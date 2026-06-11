@@ -68,12 +68,48 @@ export default function App() {
     );
   }
 
+  const floats = mode === "day"
+    ? ["#FFD6A5","#FFAAA5","#FFD6C8","#FFC4A3","#FFE8D6"]
+    : ["#A080FF","#8060D0","#C0A0FF","#6050A0","#7060B0"];
+
   return (
     <div style={{
       minHeight: "100dvh",
       background: t.bg,
       transition: "background 1.2s ease",
+      position: "relative",
+      overflow: "hidden",
     }}>
+      {/* 背景浮动装饰 */}
+      {[
+        { size: 180, top: "8%", left: "6%", delay: "0s", dur: "14s" },
+        { size: 120, top: "22%", right: "5%", delay: "3s", dur: "18s" },
+        { size: 80, top: "55%", left: "3%", delay: "6s", dur: "12s" },
+        { size: 150, top: "70%", right: "8%", delay: "1s", dur: "16s" },
+        { size: 60, top: "40%", left: "88%", delay: "9s", dur: "20s" },
+      ].map((d, i) => (
+        <div key={i} style={{
+          position: "fixed",
+          width: d.size,
+          height: d.size,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${floats[i]}22 0%, transparent 70%)`,
+          top: d.top,
+          left: d.left,
+          right: d.right,
+          pointerEvents: "none",
+          animation: `floatBlob ${d.dur} ease-in-out ${d.delay} infinite alternate`,
+          zIndex: 0,
+        }} />
+      ))}
+
+      <style>{`
+        @keyframes floatBlob {
+          from { transform: translateY(0px) scale(1); }
+          to { transform: translateY(20px) scale(1.05); }
+        }
+      `}</style>
+
       <audio ref={audioRef} loop src={BGM[mode]} style={{ display: "none" }} />
 
       <div style={{
@@ -127,6 +163,8 @@ export default function App() {
         maxWidth: wide ? 960 : 480,
         margin: "0 auto",
         padding: wide ? "0 24px" : "0",
+        position: "relative",
+        zIndex: 1,
       }}>
         {wide ? (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>

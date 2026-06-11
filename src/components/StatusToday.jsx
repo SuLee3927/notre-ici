@@ -20,112 +20,90 @@ export default function StatusToday({ theme: t }) {
 
   return (
     <section style={{
-      padding: "48px 24px",
+      padding: "40px 28px",
       fontFamily: "sans-serif",
     }}>
       <div style={{
         fontSize: 11,
-        letterSpacing: "0.3em",
+        letterSpacing: "0.25em",
         color: t.textMuted,
-        textAlign: "center",
-        marginBottom: 32,
+        marginBottom: 24,
         textTransform: "uppercase",
+        fontFamily: "'Noto Serif SC', serif",
       }}>
         今日状态
       </div>
 
+      {/* 状态标签 — 散落排列，无卡片框 */}
       <div style={{
-        maxWidth: 360,
-        margin: "0 auto",
-        background: t.surface,
-        borderRadius: 20,
-        border: `1px solid ${t.surfaceBorder}`,
-        padding: "24px 20px",
-        backdropFilter: "blur(12px)",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 10,
+        marginBottom: 20,
       }}>
-        {/* 状态标签 */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 10,
-          marginBottom: 20,
-        }}>
-          {STATUS_OPTIONS.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSelected(selected === s.id ? null : s.id)}
-              style={{
-                padding: "10px 8px",
-                borderRadius: 12,
-                border: `1.5px solid ${selected === s.id ? t.accentBorder : t.surfaceBorder}`,
-                background: selected === s.id ? t.accentSoft : "transparent",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 4,
-                transition: "all 0.2s",
-                fontFamily: "sans-serif",
-              }}
-            >
-              <span style={{ fontSize: 22 }}>{s.emoji}</span>
-              <span style={{ fontSize: 10, color: selected === s.id ? t.accent : t.textMuted }}>{s.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* 活动标签 */}
-        <div style={{
-          fontSize: 11,
-          color: t.textMuted,
-          marginBottom: 10,
-        }}>
-          此刻在做什么
-        </div>
-        <div style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 8,
-        }}>
-          {ACTIVITY_OPTIONS.map(a => (
-            <button
-              key={a}
-              onClick={() => setActivity(activity === a ? null : a)}
-              style={{
-                padding: "6px 12px",
-                borderRadius: 999,
-                border: `1px solid ${activity === a ? t.accentBorder : t.surfaceBorder}`,
-                background: activity === a ? t.accentSoft : "transparent",
-                color: activity === a ? t.accent : t.textSub,
-                fontSize: 11,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                fontFamily: "sans-serif",
-              }}
-            >
-              {a}
-            </button>
-          ))}
-        </div>
-
-        {(selected || activity) && (
-          <div style={{
-            marginTop: 20,
-            paddingTop: 16,
-            borderTop: `1px solid ${t.surfaceBorder}`,
-            fontSize: 12,
-            color: t.textSub,
-            textAlign: "center",
-            lineHeight: 1.8,
-          }}>
-            {selected && STATUS_OPTIONS.find(s => s.id === selected)?.emoji}
-            {" "}
-            {selected && STATUS_OPTIONS.find(s => s.id === selected)?.label}
-            {selected && activity && " · "}
-            {activity && activity}
-          </div>
-        )}
+        {STATUS_OPTIONS.map(s => (
+          <button
+            key={s.id}
+            onClick={() => setSelected(selected === s.id ? null : s.id)}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 999,
+              border: `1.5px solid ${selected === s.id ? t.accentBorder : t.surfaceBorder}`,
+              background: selected === s.id ? t.accentSoft : "transparent",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              transition: "all 0.2s",
+              fontFamily: "sans-serif",
+            }}
+          >
+            <span style={{ fontSize: 16 }}>{s.emoji}</span>
+            <span style={{ fontSize: 12, color: selected === s.id ? t.accent : t.textSub }}>{s.label}</span>
+          </button>
+        ))}
       </div>
+
+      {/* 活动标签 */}
+      <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 10 }}>此刻在做什么</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {ACTIVITY_OPTIONS.map(a => (
+          <button
+            key={a}
+            onClick={() => setActivity(activity === a ? null : a)}
+            style={{
+              padding: "5px 12px",
+              borderRadius: 999,
+              border: `1px solid ${activity === a ? t.accentBorder : t.surfaceBorder}`,
+              background: activity === a ? t.accentSoft : "transparent",
+              color: activity === a ? t.accent : t.textSub,
+              fontSize: 11,
+              cursor: "pointer",
+              transition: "all 0.15s",
+              fontFamily: "sans-serif",
+            }}
+          >
+            {a}
+          </button>
+        ))}
+      </div>
+
+      {(selected || activity) && (
+        <div style={{
+          marginTop: 20,
+          fontSize: 13,
+          color: t.textSub,
+          lineHeight: 1.8,
+          fontFamily: "'Noto Serif SC', serif",
+          fontStyle: "italic",
+        }}>
+          {selected && STATUS_OPTIONS.find(s => s.id === selected)?.emoji}
+          {" "}
+          {selected && STATUS_OPTIONS.find(s => s.id === selected)?.label}
+          {selected && activity && " · "}
+          {activity && activity}
+        </div>
+      )}
     </section>
   );
 }
