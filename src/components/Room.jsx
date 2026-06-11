@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getDayCount, getTodayQuote } from "../theme.js";
 import Timeline from "./Timeline.jsx";
 import StatusToday from "./StatusToday.jsx";
@@ -172,15 +172,72 @@ function RoomBg({ mode }) {
   );
 }
 
+// 糯糯 SVG 本体
+function NuonuoSVG({ size = 120 }) {
+  const [blink, setBlink] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const open  = setInterval(() => { setBlink(true);  timerRef.current = setTimeout(() => setBlink(false), 200); }, 4000 + Math.random()*2000);
+    return () => { clearInterval(open); clearTimeout(timerRef.current); };
+  }, []);
+
+  const scale = size / 180;
+  return (
+    <svg width={size} height={size} viewBox="-10 0 220 225" style={{ display:"block", overflow:"visible" }}>
+      <style>{`
+        @keyframes nnBreathe { 0%,100%{transform:scaleY(1) scaleX(1)} 50%{transform:scaleY(1.03) scaleX(0.98)} }
+        @keyframes nnTail    { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(18deg)} }
+        @keyframes nnEar     { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(6deg)} }
+        .nn-b { animation: nnBreathe 3.2s ease-in-out infinite; transform-origin: center bottom; }
+        .nn-t { animation: nnTail 1.8s ease-in-out infinite; transform-origin: 68px 155px; }
+        .nn-eL { animation: nnEar 2.5s ease-in-out infinite; transform-origin: 50% 100%; }
+        .nn-eR { animation: nnEar 2.5s ease-in-out infinite 0.3s; transform-origin: 50% 100%; }
+      `}</style>
+      <g className="nn-b">
+        <g className="nn-t">
+          <path d="M68,155 Q46,145 37,128 Q28,111 40,103 Q50,97 55,109 Q48,119 54,130 Q61,142 72,148" fill="none" stroke="#EDD0B8" strokeWidth="10" strokeLinecap="round"/>
+          <path d="M68,155 Q46,145 37,128 Q28,111 40,103 Q50,97 55,109 Q48,119 54,130 Q61,142 72,148" fill="none" stroke="#FFFAF5" strokeWidth="6.5" strokeLinecap="round"/>
+        </g>
+        <ellipse cx="102" cy="158" rx="54" ry="48" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
+        <ellipse cx="102" cy="164" rx="30" ry="26" fill="#FFF0E6" opacity=".5"/>
+        <rect x="60" y="133" width="84" height="10" rx="5" fill="#FFB0C8" opacity=".9"/>
+        <path d="M56,143 Q48,170 44,198 L160,198 Q156,170 148,143 Z" fill="#FFD6E8" stroke="#FFB0C8" strokeWidth="2"/>
+        <path d="M44,198 Q54,192 64,198 Q74,204 84,198 Q94,192 104,198 Q114,204 124,198 Q134,192 144,198 Q152,204 160,198" fill="none" stroke="#FFB0C8" strokeWidth="1.5"/>
+        <ellipse cx="52" cy="158" rx="20" ry="13" fill="#FFD6E8" stroke="#FFB0C8" strokeWidth="2" transform="rotate(-22,52,158)"/>
+        <ellipse cx="152" cy="158" rx="20" ry="13" fill="#FFD6E8" stroke="#FFB0C8" strokeWidth="2" transform="rotate(22,152,158)"/>
+        <ellipse cx="54" cy="170" rx="17" ry="13" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5" transform="rotate(-20,54,170)"/>
+        <ellipse cx="150" cy="170" rx="17" ry="13" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5" transform="rotate(20,150,170)"/>
+        <ellipse cx="82" cy="200" rx="18" ry="11" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
+        <ellipse cx="122" cy="200" rx="18" ry="11" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
+        <ellipse cx="102" cy="98" rx="54" ry="51" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
+        <ellipse className="nn-eL" cx="62" cy="56" rx="19" ry="20" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
+        <ellipse cx="62" cy="57" rx="11" ry="12" fill="#FFCCC8" opacity=".75"/>
+        <ellipse className="nn-eR" cx="142" cy="56" rx="19" ry="20" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
+        <ellipse cx="142" cy="57" rx="11" ry="12" fill="#FFCCC8" opacity=".75"/>
+        {blink ? (
+          <>
+            <path d="M82,96 Q90,102 98,96" fill="none" stroke="#5A3828" strokeWidth="2.8" strokeLinecap="round"/>
+            <path d="M106,96 Q114,102 122,96" fill="none" stroke="#5A3828" strokeWidth="2.8" strokeLinecap="round"/>
+          </>
+        ) : (
+          <>
+            <g><ellipse cx="90" cy="96" rx="8.5" ry="9" fill="#5A3828"/><circle cx="92" cy="93" r="3" fill="white" opacity=".65"/></g>
+            <g><ellipse cx="114" cy="96" rx="8.5" ry="9" fill="#5A3828"/><circle cx="116" cy="93" r="3" fill="white" opacity=".65"/></g>
+          </>
+        )}
+        <ellipse cx="102" cy="110" rx="4.5" ry="3.5" fill="#EAAA9A"/>
+        <path d="M94,117 Q102,123 110,117" fill="none" stroke="#C07060" strokeWidth="2.2" strokeLinecap="round"/>
+        <ellipse cx="76" cy="114" rx="14" ry="9" fill="#FFB0A0" opacity=".52"/>
+        <ellipse cx="128" cy="114" rx="14" ry="9" fill="#FFB0A0" opacity=".52"/>
+      </g>
+    </svg>
+  );
+}
+
 // 糯糯——房间居民，不是按钮
 function NuonuoResident({ theme: t }) {
   const [msg, setMsg] = useState(null);
-  const [blink, setBlink] = useState(false);
-
-  useEffect(() => {
-    const id = setInterval(() => setBlink(b => !b), 3000 + Math.random()*2000);
-    return () => clearInterval(id);
-  }, []);
 
   function pat() {
     const s = NUONUO_SAYS[Math.floor(Math.random() * NUONUO_SAYS.length)];
@@ -190,20 +247,21 @@ function NuonuoResident({ theme: t }) {
 
   return (
     <div
+      onClick={pat}
       style={{
         position:"absolute",
-        left:"32%", top:"71%",
+        left:"30%", top:"68%",
         transform:"translate(-50%,-50%)",
         zIndex:7, cursor:"pointer",
         animation:"nuonuoFloat 4s ease-in-out infinite",
+        filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.12))",
       }}
-      onClick={pat}
     >
       {msg && (
         <div style={{
-          position:"absolute", bottom:"115%", left:"50%",
+          position:"absolute", bottom:"105%", left:"50%",
           transform:"translateX(-50%)",
-          background: t.surface,
+          background:t.surface,
           border:`1px solid ${t.surfaceBorder}`,
           padding:"4px 10px", borderRadius:10,
           fontSize:11, color:t.text,
@@ -214,11 +272,10 @@ function NuonuoResident({ theme: t }) {
           zIndex:8,
         }}>
           {msg}
-          <div style={{ position:"absolute", bottom:-5, left:"50%", transform:"translateX(-50%)", width:6, height:6, background:t.surface, border:`1px solid ${t.surfaceBorder}`, borderTop:"none", borderLeft:"none", transform:"translateX(-50%) rotate(45deg)" }} />
         </div>
       )}
-      {/* 糯糯占位（G老师出图后换成 <img src="/nuonuo.png" /> ）*/}
-      <div style={{ fontSize:"clamp(28px,8vw,44px)", lineHeight:1, filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.15))" }}>🐱</div>
+      {/* G老师出图后换成: <img src="/nuonuo.png" style={{width:80}} /> */}
+      <NuonuoSVG size={80} />
     </div>
   );
 }
