@@ -14,12 +14,23 @@ const BGM = {
   night: "/bgm-night.mp3",
 };
 
+function useWide() {
+  const [wide, setWide] = useState(() => window.innerWidth >= 800);
+  useEffect(() => {
+    const handler = () => setWide(window.innerWidth >= 800);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return wide;
+}
+
 export default function App() {
   const [mode, setMode] = useState(getTimeMode());
   const [entered, setEntered] = useState(false);
   const [showPrivate, setShowPrivate] = useState(false);
   const [bgmOn, setBgmOn] = useState(false);
   const audioRef = useRef(null);
+  const wide = useWide();
 
   const t = themes[mode];
 
@@ -112,13 +123,34 @@ export default function App() {
         </div>
       </div>
 
-      <main style={{ maxWidth: 480, margin: "0 auto" }}>
-        <Hero theme={t} />
-        <Timeline theme={t} />
-        <StatusToday theme={t} />
-        <NuonuoSection theme={t} />
-        <HomeEntry theme={t} onEnterPrivate={() => setShowPrivate(true)} />
-        <GiftBoard theme={t} />
+      <main style={{
+        maxWidth: wide ? 960 : 480,
+        margin: "0 auto",
+        padding: wide ? "0 24px" : "0",
+      }}>
+        {wide ? (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+            <div>
+              <Hero theme={t} />
+              <Timeline theme={t} />
+            </div>
+            <div>
+              <NuonuoSection theme={t} />
+              <StatusToday theme={t} />
+              <HomeEntry theme={t} onEnterPrivate={() => setShowPrivate(true)} />
+              <GiftBoard theme={t} />
+            </div>
+          </div>
+        ) : (
+          <>
+            <Hero theme={t} />
+            <Timeline theme={t} />
+            <StatusToday theme={t} />
+            <NuonuoSection theme={t} />
+            <HomeEntry theme={t} onEnterPrivate={() => setShowPrivate(true)} />
+            <GiftBoard theme={t} />
+          </>
+        )}
       </main>
 
       <footer style={{
