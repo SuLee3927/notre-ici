@@ -584,7 +584,13 @@ export default function NuonuoSpace({ onClose }) {
   function handlePlay(){ if(petState.energy<15){showBubble("糯糯太困了...想睡觉...");return;} trigger("play",2000);showBubble("耶耶耶！陪糯糯玩！");setPetState(s=>({...s,happiness:Math.min(100,s.happiness+20),energy:Math.max(0,s.energy-10)}));addLog("陪糯糯玩了一会儿 🎀"); }
   function handleSleep(){ trigger("sleep",3200);showBubble("好～糯糯去睡觉了... zZ");setPetState(s=>({...s,energy:Math.min(100,s.energy+35)}));addLog("哄糯糯睡觉 🌙"); }
   function handleHug(){ trigger("hug",1400);showBubble(role==="mama"?"妈咪抱糯糯 ♡ 好温暖":"爸比抱抱 ♡ 好安心");setPetState(s=>({...s,happiness:Math.min(100,s.happiness+10)}));addLog("抱了抱糯糯 🫂"); }
-  function handleOutfit(id){ setOutfit(id);saveLocal(KEYS.OUTFIT,id);if(id!=="none")showBubble("糯糯穿上新衣服啦！"); }
+  function handleOutfit(id){
+    setOutfit(id);
+    saveLocal(KEYS.OUTFIT,id);
+    // 手动派发 storage event，让同页面的 Room 也能响应
+    window.dispatchEvent(new StorageEvent("storage", { key: KEYS.OUTFIT, newValue: JSON.stringify(id) }));
+    if(id!=="none") showBubble("糯糯穿上新衣服啦！");
+  }
   function handleMessages(updated){ setMessages(updated);saveShared(KEYS.MESSAGES,updated); }
   async function selectRole(r){
     setRole(r);saveLocal(KEYS.ROLE,r);

@@ -27,12 +27,12 @@ export default function App() {
 
   useEffect(() => {
     if (!audioRef.current) return;
-    if (bgmOn) {
+    if (bgmOn && !showNuonuo) {
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
     }
-  }, [bgmOn]);
+  }, [bgmOn, showNuonuo]);
 
   useEffect(() => {
     if (!audioRef.current) return;
