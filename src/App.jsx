@@ -42,7 +42,7 @@ export default function App() {
   }, [mode]);
 
   if (showNuonuo) {
-    return <NuonuoSpace onClose={() => setShowNuonuo(false)} />;
+    return <NuonuoSpace onClose={() => setShowNuonuo(false)} mode={mode} />;
   }
 
   if (showPrivate) {

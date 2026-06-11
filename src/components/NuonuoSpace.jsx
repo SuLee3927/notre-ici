@@ -528,8 +528,8 @@ function RoleSelect({ isDay, c, onSelect, onClose }) {
 }
 
 // ── 主组件 ──
-export default function NuonuoSpace({ onClose }) {
-  const isDay = new Date().getHours() >= 6 && new Date().getHours() < 18;
+export default function NuonuoSpace({ onClose, mode }) {
+  const isDay = mode ? mode === "day" : (new Date().getHours() >= 6 && new Date().getHours() < 18);
   const c = nc(isDay);
 
   const [loading,  setLoading]  = useState(true);
