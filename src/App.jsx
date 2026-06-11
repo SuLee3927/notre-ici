@@ -51,8 +51,8 @@ export default function App() {
   if (!entered) {
     return (
       <>
-        <audio ref={audioRef} loop style={{ display: "none" }} />
-        <Gate theme={t} onEnter={() => setEntered(true)} />
+        <audio ref={audioRef} loop src={BGM[mode]} style={{ display: "none" }} />
+        <Gate theme={t} onEnter={() => { setEntered(true); setBgmOn(true); }} />
       </>
     );
   }
