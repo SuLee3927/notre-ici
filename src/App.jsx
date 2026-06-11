@@ -3,6 +3,7 @@ import { getTimeMode, themes } from "./theme.js";
 import Gate from "./components/Gate.jsx";
 import Room from "./components/Room.jsx";
 import PrivateLayer from "./components/PrivateLayer.jsx";
+import NuonuoSpace from "./components/NuonuoSpace.jsx";
 
 const BGM = {
   day: "/bgm-day.mp3",
@@ -13,6 +14,7 @@ export default function App() {
   const [mode, setMode] = useState(getTimeMode());
   const [entered, setEntered] = useState(false);
   const [showPrivate, setShowPrivate] = useState(false);
+  const [showNuonuo, setShowNuonuo] = useState(false);
   const [bgmOn, setBgmOn] = useState(false);
   const audioRef = useRef(null);
 
@@ -39,6 +41,10 @@ export default function App() {
     if (wasPlaying) audioRef.current.play().catch(() => {});
   }, [mode]);
 
+  if (showNuonuo) {
+    return <NuonuoSpace onClose={() => setShowNuonuo(false)} />;
+  }
+
   if (showPrivate) {
     return <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />;
   }
@@ -61,6 +67,7 @@ export default function App() {
         setBgmOn={setBgmOn}
         mode={mode}
         onEnterPrivate={() => setShowPrivate(true)}
+        onEnterNuonuo={() => setShowNuonuo(true)}
       />
     </>
   );

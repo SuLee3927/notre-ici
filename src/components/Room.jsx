@@ -109,17 +109,16 @@ function NuonuoSVG({ size = 80 }) {
 }
 
 // ── 糯糯居民 ──
-const PATS = ["嗯……", "干嘛嘛", "♡", "糯糯在呢", "别吵", "呼……", "爸比呢"];
-function NuonuoResident({ theme: t }) {
+function NuonuoResident({ theme: t, onEnter }) {
   const state = getNuonuoState();
-  const [pat, setPat] = useState(null);
-  function onPat() {
-    const s = PATS[Math.floor(Math.random() * PATS.length)];
-    setPat(s);
-    setTimeout(() => setPat(null), 2000);
+  const [hint, setHint] = useState(false);
+  function onClick() {
+    if (hint) { onEnter(); return; }
+    setHint(true);
+    setTimeout(() => setHint(false), 1800);
   }
   return (
-    <div onClick={onPat} style={{
+    <div onClick={onClick} style={{
       position:"absolute", left:state.left, top:state.top,
       transform:"translate(-50%,-50%)",
       zIndex:7, cursor:"pointer",
@@ -130,9 +129,9 @@ function NuonuoResident({ theme: t }) {
       <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75 }}>
         {state.words}
       </div>
-      {pat && (
+      {hint && (
         <div style={{ position:"absolute", bottom:"140%", left:"50%", transform:"translateX(-50%)", background:t.surface, border:`1px solid ${t.surfaceBorder}`, padding:"3px 9px", borderRadius:8, fontSize:11, color:t.text, whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,.1)", backdropFilter:"blur(4px)", animation:"fadeInUp .15s ease", zIndex:9 }}>
-          {pat}
+          再点一下进来～
         </div>
       )}
       <NuonuoSVG size={68} />
@@ -318,7 +317,7 @@ const FURNITURE = [
 ];
 
 // ── 主组件 ──
-export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate }) {
+export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, onEnterNuonuo }) {
   const [active, setActive] = useState(null);
   const [hovered, setHovered] = useState(null);
   const isDay = mode === "day";
@@ -361,7 +360,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate }
       <div style={{ position:"absolute", bottom:12, right:14, zIndex:10, fontSize:12, opacity:.4 }}>{isDay?"☀️":"🌙"}</div>
 
       {/* 糯糯 */}
-      <NuonuoResident theme={t} />
+      <NuonuoResident theme={t} onEnter={onEnterNuonuo} />
 
       {/* 唱片机（在台灯旁地板区） */}
       <div style={{ position:"absolute", left:"38%", top:`${WALL_H+8}%`, transform:"translateX(-50%)", zIndex:6 }}>
