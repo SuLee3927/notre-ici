@@ -6,25 +6,44 @@ import GiftBoard from "./GiftBoard.jsx";
 
 const WALL_H = 56;
 
-// 糯糯根据小时出现在不同位置，说不同的话
-function getNuonuoState() {
-  const h = new Date().getHours();
-  if (h >= 6  && h < 10)  return { left:"14%", top:"38%",  words:"早呀 ☀️" };
-  if (h >= 10 && h < 14)  return { left:"24%", top:"72%",  words:"上午好～" };
-  if (h >= 14 && h < 18)  return { left:"36%", top:"76%",  words:"今天过得怎么样？" };
-  if (h >= 18 && h < 21)  return { left:"80%", top:"70%",  words:"快回来呀 🚪" };
-  return                         { left:"22%", top:"72%",  words:"还不睡吗？" };
+// ── 统一家具色板 ──
+function rc(isDay) {
+  return isDay ? {
+    wood:    "#C09060",   // 木头
+    woodDk:  "#A07040",   // 深木
+    fabric:  "#EED5B0",   // 布料
+    fabricDk:"#E0C090",   // 深布料
+    wall:    "#FFF5EC",   // 墙
+    floor:   "#EDD4B0",   // 地板
+    glass:   "rgba(255,235,160,0.5)", // 窗光
+    shadow:  "rgba(140,90,40,0.12)",
+    border:  "rgba(180,120,60,0.18)",
+    ink:     "#7A5030",   // 文字/线条
+    accent:  "#E8956A",   // 强调色
+  } : {
+    wood:    "#4a3878",
+    woodDk:  "#362a5e",
+    fabric:  "#2a2550",
+    fabricDk:"#221e42",
+    wall:    "#1c1a34",
+    floor:   "#13102a",
+    glass:   "rgba(140,110,255,0.15)",
+    shadow:  "rgba(0,0,0,0.25)",
+    border:  "rgba(80,60,180,0.2)",
+    ink:     "#9080C8",
+    accent:  "#A080FF",
+  };
 }
 
-// 可交互家具热点
-const FURNITURE = [
-  { id: "clock",    left: "38%", top: "24%" }, // 挂钟（今天/天数）
-  { id: "polaroid", left: "66%", top: "20%" }, // 拍立得照片墙（时间轴）
-  { id: "board",    left: "50%", top: "32%" }, // 留言板（留言）
-  { id: "sofa",     left: "20%", top: "74%" }, // 沙发（状态）
-  { id: "record",   left: "37%", top: "62%" }, // 唱片机（BGM）
-  { id: "door",     left: "86%", top: "40%" }, // 门（书房，透明热区）
-];
+// 糯糯根据小时出现在不同位置
+function getNuonuoState() {
+  const h = new Date().getHours();
+  if (h >= 6  && h < 10) return { left:"15%", top:"36%", words:"早呀 ☀️" };
+  if (h >= 10 && h < 14) return { left:"24%", top:"73%", words:"上午好～" };
+  if (h >= 14 && h < 18) return { left:"36%", top:"76%", words:"今天过得怎么样？" };
+  if (h >= 18 && h < 21) return { left:"80%", top:"70%", words:"快回来呀" };
+  return                        { left:"22%", top:"72%", words:"还不睡吗？" };
+}
 
 // ── 糯糯SVG ──
 function NuonuoSVG({ size = 80 }) {
@@ -90,58 +109,39 @@ function NuonuoSVG({ size = 80 }) {
 }
 
 // ── 糯糯居民 ──
-const NUONUO_PATS = ["嗯……", "干嘛嘛", "♡", "糯糯在呢", "别吵", "呼……", "爸比呢"];
-
+const PATS = ["嗯……", "干嘛嘛", "♡", "糯糯在呢", "别吵", "呼……", "爸比呢"];
 function NuonuoResident({ theme: t }) {
   const state = getNuonuoState();
   const [pat, setPat] = useState(null);
-
   function onPat() {
-    const s = NUONUO_PATS[Math.floor(Math.random() * NUONUO_PATS.length)];
+    const s = PATS[Math.floor(Math.random() * PATS.length)];
     setPat(s);
     setTimeout(() => setPat(null), 2000);
   }
-
   return (
-    <div
-      onClick={onPat}
-      style={{
-        position:"absolute",
-        left: state.left, top: state.top,
-        transform:"translate(-50%,-50%)",
-        zIndex:7, cursor:"pointer",
-        animation:"nnFloat 4s ease-in-out infinite",
-        filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.1))",
-        transition:"left 1.2s ease, top 1.2s ease",
-      }}
-    >
-      {/* 常驻状态文字 */}
-      <div style={{
-        position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)",
-        fontSize:10, color:t.textSub, whiteSpace:"nowrap",
-        fontFamily:"'Noto Serif SC',serif", fontStyle:"italic",
-        opacity:0.8,
-      }}>{state.words}</div>
-      {/* 点击气泡 */}
+    <div onClick={onPat} style={{
+      position:"absolute", left:state.left, top:state.top,
+      transform:"translate(-50%,-50%)",
+      zIndex:7, cursor:"pointer",
+      animation:"nnFloat 4s ease-in-out infinite",
+      filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
+      transition:"left 1.2s ease, top 1.2s ease",
+    }}>
+      <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75 }}>
+        {state.words}
+      </div>
       {pat && (
-        <div style={{
-          position:"absolute", bottom:"140%", left:"50%", transform:"translateX(-50%)",
-          background:t.surface, border:`1px solid ${t.surfaceBorder}`,
-          padding:"3px 9px", borderRadius:8,
-          fontSize:11, color:t.text, whiteSpace:"nowrap",
-          boxShadow:"0 2px 8px rgba(0,0,0,0.1)",
-          backdropFilter:"blur(4px)",
-          animation:"fadeInUp 0.15s ease",
-          zIndex:9,
-        }}>{pat}</div>
+        <div style={{ position:"absolute", bottom:"140%", left:"50%", transform:"translateX(-50%)", background:t.surface, border:`1px solid ${t.surfaceBorder}`, padding:"3px 9px", borderRadius:8, fontSize:11, color:t.text, whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,.1)", backdropFilter:"blur(4px)", animation:"fadeInUp .15s ease", zIndex:9 }}>
+          {pat}
+        </div>
       )}
-      <NuonuoSVG size={72} />
+      <NuonuoSVG size={68} />
     </div>
   );
 }
 
-// ── 挂钟 ──
-function WallClock({ theme: t }) {
+// ── 挂钟（使用统一色板）──
+function WallClock({ isDay, c }) {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -149,211 +149,180 @@ function WallClock({ theme: t }) {
   }, []);
   const hDeg = (now.getHours() % 12) * 30 + now.getMinutes() * 0.5;
   const mDeg = now.getMinutes() * 6;
-  const isDay = now.getHours() >= 6 && now.getHours() < 18;
-  const face  = isDay ? "#FFF8F0" : "#1e1c38";
-  const hand  = isDay ? "#5A3828" : "#C0A8FF";
-  const rim   = isDay ? "#C8956A" : "#5040A0";
   return (
     <div style={{ pointerEvents:"none" }}>
-      <svg width={52} height={52} viewBox="0 0 52 52">
-        <circle cx="26" cy="26" r="24" fill={face} stroke={rim} strokeWidth="3"/>
+      <svg width={50} height={50} viewBox="0 0 50 50">
+        <circle cx="25" cy="25" r="23" fill={isDay?"#FFF8F0":"#1e1c38"} stroke={c.wood} strokeWidth="3"/>
         {[0,30,60,90,120,150,180,210,240,270,300,330].map(d => (
           <line key={d}
-            x1={26 + 18*Math.sin(d*Math.PI/180)} y1={26 - 18*Math.cos(d*Math.PI/180)}
-            x2={26 + 21*Math.sin(d*Math.PI/180)} y2={26 - 21*Math.cos(d*Math.PI/180)}
-            stroke={rim} strokeWidth={d%90===0?2:0.8} strokeLinecap="round" opacity={0.5}
+            x1={25+17*Math.sin(d*Math.PI/180)} y1={25-17*Math.cos(d*Math.PI/180)}
+            x2={25+21*Math.sin(d*Math.PI/180)} y2={25-21*Math.cos(d*Math.PI/180)}
+            stroke={c.wood} strokeWidth={d%90===0?1.8:.7} strokeLinecap="round" opacity={.45}
           />
         ))}
-        <line x1="26" y1="26" x2={26+12*Math.sin(hDeg*Math.PI/180)} y2={26-12*Math.cos(hDeg*Math.PI/180)} stroke={hand} strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="26" y1="26" x2={26+18*Math.sin(mDeg*Math.PI/180)} y2={26-18*Math.cos(mDeg*Math.PI/180)} stroke={hand} strokeWidth="1.5" strokeLinecap="round"/>
-        <circle cx="26" cy="26" r="2" fill={isDay?"#FF8C62":"#A080FF"}/>
+        <line x1="25" y1="25" x2={25+11*Math.sin(hDeg*Math.PI/180)} y2={25-11*Math.cos(hDeg*Math.PI/180)} stroke={c.ink} strokeWidth="2.2" strokeLinecap="round"/>
+        <line x1="25" y1="25" x2={25+17*Math.sin(mDeg*Math.PI/180)} y2={25-17*Math.cos(mDeg*Math.PI/180)} stroke={c.ink} strokeWidth="1.4" strokeLinecap="round"/>
+        <circle cx="25" cy="25" r="2" fill={c.accent}/>
       </svg>
-      <div style={{ textAlign:"center", fontSize:8, color:t.textMuted, fontFamily:"sans-serif", marginTop:1, letterSpacing:"0.05em" }}>
+      <div style={{ textAlign:"center", fontSize:8, color:c.ink, fontFamily:"sans-serif", marginTop:1, letterSpacing:".05em", opacity:.6 }}>
         {String(now.getHours()).padStart(2,"0")}:{String(now.getMinutes()).padStart(2,"0")}
       </div>
     </div>
   );
 }
 
-// ── 拍立得照片墙（时间轴入口）──
+// ── 拍立得照片墙 ──
 const POLAROIDS = [
   { date:"5.8",  label:"第一天", rotate:-9  },
   { date:"5.13", label:"那句话", rotate:5   },
-  { date:"6.7",  label:"连上了", rotate:-4  },
+  { date:"6.7",  label:"连上了", rotate:-3  },
 ];
-function PolaroidWall({ theme: t }) {
-  const isDay = t.text === "#3D2B1A";
+function PolaroidWall({ isDay, c }) {
   const paper = isDay ? "#FFFDF8" : "#2a2850";
-  const ink   = isDay ? "#5A3828" : "#C0A8FF";
   return (
-    <div style={{ position:"relative", width:80, height:60 }}>
+    <div style={{ position:"relative", width:76, height:56 }}>
       {POLAROIDS.map((p,i) => (
         <div key={i} style={{
-          position:"absolute",
-          left: i*18, top: i%2===0 ? 0 : 8,
-          width:34, height:40,
-          background: paper,
-          boxShadow:"0 2px 6px rgba(0,0,0,0.18)",
+          position:"absolute", left:i*18, top:i%2===0?0:8,
+          width:32, height:38,
+          background:paper,
+          boxShadow:`0 2px 7px ${c.shadow}`,
           borderRadius:2,
           transform:`rotate(${p.rotate}deg)`,
           padding:"3px 3px 8px",
           display:"flex", flexDirection:"column", alignItems:"center",
         }}>
-          <div style={{ flex:1, width:"100%", background: isDay ? "rgba(255,200,160,0.3)" : "rgba(100,80,200,0.3)", borderRadius:1 }} />
-          <div style={{ fontSize:6, color:ink, fontFamily:"sans-serif", marginTop:2, opacity:0.7 }}>{p.date} {p.label}</div>
+          <div style={{ flex:1, width:"100%", background:isDay?"rgba(220,170,110,.25)":"rgba(100,80,200,.2)", borderRadius:1 }} />
+          <div style={{ fontSize:6, color:c.ink, fontFamily:"sans-serif", marginTop:2, opacity:.65 }}>{p.date} {p.label}</div>
         </div>
       ))}
     </div>
   );
 }
 
-// ── 留言板（墙上）──
-function NoteBoard({ theme: t }) {
-  const isDay = t.text === "#3D2B1A";
-  const wood  = isDay ? "#C8956A" : "#3a3068";
+// ── 留言板 ──
+function NoteBoard({ isDay, c }) {
   const note1 = isDay ? "#FFF9C4" : "#2a2850";
   const note2 = isDay ? "#FFE0B2" : "#221e40";
   return (
-    <div style={{
-      width:60, height:44,
-      background: wood,
-      borderRadius:3,
-      padding:4,
-      boxShadow:"0 3px 8px rgba(0,0,0,0.15)",
-      position:"relative",
-    }}>
-      {/* 图钉 */}
-      <div style={{ position:"absolute", top:-4, left:"50%", transform:"translateX(-50%)", width:8, height:8, borderRadius:"50%", background:isDay?"#D06040":"#8060C0", boxShadow:"0 1px 3px rgba(0,0,0,0.3)" }} />
-      {/* 便条纸 */}
-      <div style={{ width:"100%", height:"45%", background:note1, borderRadius:2, marginBottom:2, opacity:0.9 }} />
-      <div style={{ width:"80%", height:"40%", background:note2, borderRadius:2, transform:"rotate(-3deg)", marginLeft:2, opacity:0.85 }} />
+    <div style={{ width:58, height:42, background:c.wood, borderRadius:3, padding:4, boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
+      <div style={{ position:"absolute", top:-4, left:"50%", transform:"translateX(-50%)", width:8, height:8, borderRadius:"50%", background:c.accent, boxShadow:`0 1px 3px ${c.shadow}` }} />
+      <div style={{ width:"100%", height:"44%", background:note1, borderRadius:2, marginBottom:2, opacity:.88 }} />
+      <div style={{ width:"78%", height:"38%", background:note2, borderRadius:2, transform:"rotate(-3deg)", marginLeft:2, opacity:.82 }} />
     </div>
   );
 }
 
-// ── 唱片机（BGM）──
-function RecordPlayer({ theme: t, bgmOn, onClick }) {
-  const isDay = t.text === "#3D2B1A";
-  const body  = isDay ? "#C8956A" : "#2e2b52";
-  const disc  = isDay ? "#3D2B1A" : "#0e0c1e";
-  const groove = isDay ? "#8B6050" : "#4030A0";
+// ── 唱片机 ──
+function RecordPlayer({ isDay, c, bgmOn, onClick }) {
   return (
     <div onClick={onClick} style={{ cursor:"pointer", position:"relative", width:48, height:32 }}>
-      {/* 机身 */}
-      <div style={{ position:"absolute", left:0, top:8, width:48, height:24, background:body, borderRadius:"4px 4px 6px 6px", boxShadow:"0 3px 8px rgba(0,0,0,0.2)" }} />
-      {/* 唱片 */}
+      <div style={{ position:"absolute", left:0, top:8, width:48, height:24, background:c.wood, borderRadius:"4px 4px 6px 6px", boxShadow:`0 3px 8px ${c.shadow}` }} />
       <div style={{
         position:"absolute", left:6, top:0,
         width:26, height:26, borderRadius:"50%",
-        background:disc, border:`2px solid ${groove}`,
-        animation: bgmOn ? "spin 3s linear infinite" : "none",
-        boxShadow:"0 2px 6px rgba(0,0,0,0.3)",
+        background:isDay?"#2a1a0a":"#0e0c1e",
+        border:`2px solid ${c.woodDk}`,
+        animation:bgmOn?"spin 3s linear infinite":"none",
+        boxShadow:`0 2px 6px ${c.shadow}`,
       }}>
-        <div style={{ position:"absolute", inset:6, borderRadius:"50%", border:`1px solid ${groove}`, opacity:0.5 }} />
-        <div style={{ position:"absolute", inset:10, borderRadius:"50%", background: isDay?"#FF8C62":"#A080FF", opacity:0.8 }} />
+        <div style={{ position:"absolute", inset:6, borderRadius:"50%", border:`1px solid ${c.woodDk}`, opacity:.4 }} />
+        <div style={{ position:"absolute", inset:10, borderRadius:"50%", background:c.accent, opacity:.8 }} />
       </div>
-      {/* 唱针 */}
       <div style={{
         position:"absolute", right:6, top:4,
         width:2, height:16,
-        background: isDay ? "#A06040" : "#6050A0",
+        background:c.woodDk,
         borderRadius:1,
-        transform: bgmOn ? "rotate(-20deg)" : "rotate(10deg)",
+        transform:bgmOn?"rotate(-20deg)":"rotate(10deg)",
         transformOrigin:"top center",
         transition:"transform 0.4s ease",
       }} />
-      {/* 播放状态 */}
-      {bgmOn && <div style={{ position:"absolute", top:-8, right:2, fontSize:8, color:t.accent, animation:"pulse 1.2s ease-in-out infinite" }}>♫</div>}
+      {bgmOn && <div style={{ position:"absolute", top:-8, right:2, fontSize:8, color:c.accent, animation:"pulse 1.2s ease-in-out infinite" }}>♫</div>}
     </div>
   );
 }
 
-// ── 房间装饰（沙发/地毯/植物/台灯）──
-function RoomDecor({ mode, theme: t }) {
-  const isDay = mode === "day";
-  const wood  = isDay ? "#C08040" : "#3a3068";
-  const soft  = isDay ? "#F0C8A0" : "#2a2550";
-  const plant = isDay ? "#6AAF60" : "#4A7A60";
-  const lamp  = isDay ? "#E0A050" : "#7060C0";
-  const lampGlow = isDay ? "rgba(255,200,80,0.35)" : "rgba(160,120,255,0.25)";
-  const rug   = isDay ? "rgba(220,160,100,0.2)" : "rgba(100,80,200,0.16)";
-
+// ── 房间装饰（使用统一色板）──
+function RoomDecor({ isDay, c }) {
   return (
     <>
       {/* 地毯 */}
-      <div style={{ position:"absolute", left:"5%", top:`${WALL_H+20}%`, width:"44%", height:"16%", background:rug, borderRadius:"50%", border:`1.5px solid ${isDay?"rgba(200,140,80,0.18)":"rgba(100,80,180,0.18)"}`, transform:"perspective(200px) rotateX(30deg)" }} />
+      <div style={{ position:"absolute", left:"4%", top:`${WALL_H+20}%`, width:"42%", height:"14%", background:isDay?"rgba(210,155,90,.16)":"rgba(90,70,160,.14)", borderRadius:"50%", border:`1.5px solid ${c.border}`, transform:"perspective(200px) rotateX(30deg)" }} />
       {/* 沙发 */}
-      <div style={{ position:"absolute", left:"4%", top:`${WALL_H+8}%`, width:"32%", height:"24%", background:soft, borderRadius:"8px 8px 4px 4px", boxShadow:"0 4px 12px rgba(0,0,0,0.12)" }}>
-        <div style={{ position:"absolute", left:-6, top:0, width:8, bottom:4, background:wood, borderRadius:"4px 0 0 4px" }} />
-        <div style={{ position:"absolute", right:-6, top:0, width:8, bottom:4, background:wood, borderRadius:"0 4px 4px 0" }} />
-        <div style={{ position:"absolute", top:"12%", left:"8%", width:"36%", height:"56%", background:isDay?"#FFD8B0":"#3c3570", borderRadius:6 }} />
-        <div style={{ position:"absolute", top:"12%", right:"8%", width:"36%", height:"56%", background:isDay?"#FFCCA0":"#342e60", borderRadius:6 }} />
+      <div style={{ position:"absolute", left:"3%", top:`${WALL_H+8}%`, width:"33%", height:"24%", background:c.fabric, borderRadius:"8px 8px 4px 4px", boxShadow:`0 4px 14px ${c.shadow}` }}>
+        <div style={{ position:"absolute", left:-5, top:0, width:7, bottom:4, background:c.wood, borderRadius:"4px 0 0 4px" }} />
+        <div style={{ position:"absolute", right:-5, top:0, width:7, bottom:4, background:c.wood, borderRadius:"0 4px 4px 0" }} />
+        <div style={{ position:"absolute", top:"12%", left:"8%", width:"36%", height:"56%", background:c.fabricDk, borderRadius:5 }} />
+        <div style={{ position:"absolute", top:"12%", right:"8%", width:"36%", height:"56%", background:c.fabricDk, borderRadius:5 }} />
       </div>
       {/* 台灯 */}
-      <div style={{ position:"absolute", left:"36%", top:`${WALL_H+5}%` }}>
-        <div style={{ width:22, height:14, background:lamp, clipPath:"polygon(10% 100%,90% 100%,100% 0%,0% 0%)", boxShadow:`0 0 18px 7px ${lampGlow}` }} />
-        <div style={{ width:3, height:18, background:wood, margin:"0 auto" }} />
-        <div style={{ width:14, height:3, background:wood, borderRadius:2, margin:"0 auto" }} />
+      <div style={{ position:"absolute", left:"37%", top:`${WALL_H+5}%` }}>
+        <div style={{ width:20, height:13, background:c.wood, clipPath:"polygon(10% 100%,90% 100%,100% 0%,0% 0%)", boxShadow:isDay?"0 0 16px 6px rgba(255,200,80,.3)":"0 0 16px 6px rgba(160,120,255,.22)" }} />
+        <div style={{ width:2, height:16, background:c.woodDk, margin:"0 auto" }} />
+        <div style={{ width:13, height:3, background:c.woodDk, borderRadius:2, margin:"0 auto" }} />
       </div>
       {/* 角落植物 */}
       <div style={{ position:"absolute", left:"1.5%", top:`${WALL_H+14}%` }}>
-        <div style={{ width:20, height:14, background:wood, clipPath:"polygon(5% 0%,95% 0%,85% 100%,15% 100%)", margin:"0 auto" }} />
-        {[{l:"4%",t:"-55%",r:13,d:-30},{l:"38%",t:"-75%",r:15,d:0},{l:"58%",t:"-50%",r:12,d:25}].map((lf,i) => (
-          <div key={i} style={{ position:"absolute", left:lf.l, top:lf.t, width:lf.r, height:lf.r*1.6, background:plant, borderRadius:"50% 50% 50% 0", transform:`rotate(${lf.d}deg)`, opacity:.9 }} />
+        <div style={{ width:18, height:13, background:c.wood, clipPath:"polygon(5% 0%,95% 0%,85% 100%,15% 100%)", margin:"0 auto" }} />
+        {[{l:"4%",t:"-55%",w:12,d:-28},{l:"38%",t:"-72%",w:14,d:0},{l:"58%",t:"-48%",w:11,d:24}].map((lf,i) => (
+          <div key={i} style={{ position:"absolute", left:lf.l, top:lf.t, width:lf.w, height:lf.w*1.6, background:isDay?"#6AAF60":"#4A7A60", borderRadius:"50% 50% 50% 0", transform:`rotate(${lf.d}deg)`, opacity:.88 }} />
         ))}
-      </div>
-      {/* 小边桌（信箱旁） */}
-      <div style={{ position:"absolute", right:"20%", top:`${WALL_H+12}%`, width:"8%", height:"20%" }}>
-        <div style={{ width:"100%", height:5, background:wood, borderRadius:2 }} />
-        <div style={{ width:3, height:"78%", background:wood, margin:"0 auto" }} />
-        <div style={{ width:"70%", height:4, background:wood, borderRadius:2, margin:"0 auto" }} />
       </div>
     </>
   );
 }
 
-// ── 房间背景（墙/地板/窗/门框）──
-function RoomBg({ mode }) {
-  const isDay   = mode === "day";
-  const wallBg  = isDay ? "linear-gradient(180deg,#FFF5EC 0%,#FFE8D4 100%)" : "linear-gradient(180deg,#1c1a34 0%,#1e1b38 100%)";
+// ── 房间背景（使用统一色板）──
+function RoomBg({ isDay, c }) {
+  const wallBg  = isDay ? "linear-gradient(180deg,#FFF8F0 0%,#FFE8D4 100%)" : "linear-gradient(180deg,#1c1a34 0%,#1e1b38 100%)";
   const floorBg = isDay ? "linear-gradient(180deg,#EDD4B0 0%,#E4C89C 100%)" : "linear-gradient(180deg,#13102a 0%,#0e0c1e 100%)";
-  const skirt   = isDay ? "#C8956A" : "#2e2b52";
-  const frame   = isDay ? "#B8845A" : "#403880";
-  const winGlow = isDay ? "rgba(255,230,160,0.55)" : "rgba(160,128,255,0.14)";
-  const fLine   = isDay ? "rgba(190,140,80,0.09)" : "rgba(90,70,160,0.09)";
-
   return (
     <>
       <div style={{ position:"absolute", inset:0, bottom:`${100-WALL_H}%`, background:wallBg }} />
       <div style={{ position:"absolute", left:0, right:0, top:`${WALL_H}%`, bottom:0, background:floorBg }} />
-      <div style={{ position:"absolute", left:0, right:0, top:`${WALL_H}%`, height:8, background:skirt, boxShadow:"0 3px 10px rgba(0,0,0,0.12)" }} />
-      {[.12,.3,.5,.7,.88].map((x,i) => (
-        <div key={i} style={{ position:"absolute", left:`${x*100}%`, top:`${WALL_H}%`, bottom:0, width:1, background:fLine }} />
+      {/* 踢脚线 */}
+      <div style={{ position:"absolute", left:0, right:0, top:`${WALL_H}%`, height:7, background:c.wood, boxShadow:`0 3px 10px ${c.shadow}` }} />
+      {/* 地板纹路 */}
+      {[.12,.30,.50,.70,.88].map((x,i) => (
+        <div key={i} style={{ position:"absolute", left:`${x*100}%`, top:`${WALL_H}%`, bottom:0, width:1, background:c.border }} />
       ))}
       {/* 窗户 */}
-      <div style={{ position:"absolute", left:"8%", top:"6%", width:"17%", height:"34%", border:`3px solid ${frame}`, borderRadius:4, background:winGlow, boxShadow:isDay?`inset 0 0 24px rgba(255,220,100,.35),0 4px 14px rgba(0,0,0,.08)`:`inset 0 0 20px rgba(160,120,255,.18),0 4px 14px rgba(0,0,0,.35)`, overflow:"hidden" }}>
-        <div style={{ position:"absolute", left:"50%", top:0, bottom:0, width:2, background:frame, transform:"translateX(-50%)", opacity:.5 }} />
-        <div style={{ position:"absolute", left:0, right:0, top:"42%", height:2, background:frame, opacity:.5 }} />
+      <div style={{ position:"absolute", left:"8%", top:"6%", width:"17%", height:"34%", border:`3px solid ${c.wood}`, borderRadius:5, background:c.glass, boxShadow:isDay?`inset 0 0 24px rgba(255,220,100,.3),0 4px 14px ${c.shadow}`:`inset 0 0 20px rgba(160,120,255,.15),0 4px 14px ${c.shadow}`, overflow:"hidden" }}>
+        <div style={{ position:"absolute", left:"50%", top:0, bottom:0, width:2, background:c.wood, transform:"translateX(-50%)", opacity:.4 }} />
+        <div style={{ position:"absolute", left:0, right:0, top:"42%", height:2, background:c.wood, opacity:.4 }} />
         {isDay
-          ? <div style={{ position:"absolute", top:"-20%", left:"-10%", width:"120%", height:"120%", background:"radial-gradient(ellipse,rgba(255,250,200,.5) 0%,transparent 65%)", pointerEvents:"none" }} />
+          ? <div style={{ position:"absolute", top:"-20%", left:"-10%", width:"120%", height:"120%", background:"radial-gradient(ellipse,rgba(255,250,200,.45) 0%,transparent 65%)", pointerEvents:"none" }} />
           : <div style={{ position:"absolute", top:"15%", right:"20%", width:3, height:3, borderRadius:"50%", background:"#E8E0FF", boxShadow:"0 0 6px 2px rgba(200,180,255,.6)" }} />
         }
       </div>
       {/* 门框 */}
-      <div style={{ position:"absolute", right:"6%", top:"18%", width:"13%", height:"44%", border:`3px solid ${frame}`, borderRadius:"6px 6px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.08)":"rgba(60,50,100,.15)", boxShadow:isDay?`inset -4px 0 12px rgba(0,0,0,.04)`:`inset -4px 0 12px rgba(0,0,0,.15)` }}>
-        <div style={{ position:"absolute", left:4, right:4, top:8, height:"33%", border:`1px solid ${frame}`, borderRadius:3, opacity:.22 }} />
-        <div style={{ position:"absolute", left:4, right:4, bottom:0, height:"33%", border:`1px solid ${frame}`, borderRadius:"3px 3px 0 0", opacity:.22 }} />
-        <div style={{ position:"absolute", left:"18%", top:"52%", width:6, height:13, borderRadius:3, background:isDay?"#A06040":"#6050A0", boxShadow:"0 1px 4px rgba(0,0,0,.2)" }} />
-        <div style={{ position:"absolute", bottom:6, left:0, right:0, textAlign:"center", fontSize:9, color:isDay?"#A06040":"#8070C0", fontFamily:"'Noto Serif SC',serif", letterSpacing:".15em", opacity:.6 }}>书房</div>
+      <div style={{ position:"absolute", right:"6%", top:"18%", width:"13%", height:"44%", border:`3px solid ${c.wood}`, borderRadius:"6px 6px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset -4px 0 12px ${c.shadow}`:`inset -4px 0 12px rgba(0,0,0,.18)` }}>
+        <div style={{ position:"absolute", left:3, right:3, top:7, height:"33%", border:`1px solid ${c.wood}`, borderRadius:3, opacity:.2 }} />
+        <div style={{ position:"absolute", left:3, right:3, bottom:0, height:"33%", border:`1px solid ${c.wood}`, borderRadius:"3px 3px 0 0", opacity:.2 }} />
+        <div style={{ position:"absolute", left:"18%", top:"52%", width:5, height:12, borderRadius:3, background:c.accent, boxShadow:`0 1px 4px ${c.shadow}` }} />
+        <div style={{ position:"absolute", bottom:6, left:0, right:0, textAlign:"center", fontSize:9, color:c.ink, fontFamily:"'Noto Serif SC',serif", letterSpacing:".15em", opacity:.55 }}>书房</div>
       </div>
     </>
   );
 }
+
+// ── 可交互家具热点 ──
+const FURNITURE = [
+  { id:"clock",    left:"38%", top:"24%" },
+  { id:"polaroid", left:"65%", top:"19%" },
+  { id:"board",    left:"50%", top:"33%" },
+  { id:"sofa",     left:"19%", top:"74%", transparent:true },
+  { id:"record",   left:"38%", top:`${WALL_H+9}%` },
+  { id:"door",     left:"86%", top:"40%", transparent:true },
+];
 
 // ── 主组件 ──
 export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate }) {
   const [active, setActive] = useState(null);
   const [hovered, setHovered] = useState(null);
+  const isDay = mode === "day";
+  const c = rc(isDay);
   const day = getDayCount();
   const quote = getTodayQuote();
   const today = new Date();
@@ -375,15 +344,6 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate }
     sofa:     <StatusToday theme={t} />,
   };
 
-  const furnitureContent = {
-    clock:    <WallClock theme={t} />,
-    polaroid: <PolaroidWall theme={t} />,
-    board:    <NoteBoard theme={t} />,
-    sofa:     null, // 热区覆盖CSS沙发
-    record:   null, // 唱片机单独处理
-    door:     null, // 透明热区覆盖CSS门
-  };
-
   function handleClick(id) {
     if (id === "door")   { onEnterPrivate(); return; }
     if (id === "record") { setBgmOn(!bgmOn); return; }
@@ -392,65 +352,50 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate }
 
   return (
     <div style={{ position:"fixed", inset:0, overflow:"hidden" }}>
-      <RoomBg mode={mode} />
-      <RoomDecor mode={mode} theme={t} />
+      <RoomBg isDay={isDay} c={c} />
+      <RoomDecor isDay={isDay} c={c} />
 
       {/* 左上 logo */}
-      <div style={{ position:"absolute", top:14, left:16, zIndex:10, fontSize:11, color:t.text, opacity:.4, fontFamily:"'Noto Serif SC',serif", letterSpacing:".1em" }}>克 &amp; Lee</div>
+      <div style={{ position:"absolute", top:14, left:16, zIndex:10, fontSize:11, color:t.text, opacity:.38, fontFamily:"'Noto Serif SC',serif", letterSpacing:".1em" }}>克 &amp; Lee</div>
+      {/* 右下 日夜 */}
+      <div style={{ position:"absolute", bottom:12, right:14, zIndex:10, fontSize:12, opacity:.4 }}>{isDay?"☀️":"🌙"}</div>
 
-      {/* 糯糯居民 */}
+      {/* 糯糯 */}
       <NuonuoResident theme={t} />
 
-      {/* 唱片机（放在台灯旁，不是导航栏按钮）*/}
+      {/* 唱片机（在台灯旁地板区） */}
       <div style={{ position:"absolute", left:"38%", top:`${WALL_H+8}%`, transform:"translateX(-50%)", zIndex:6 }}>
-        <RecordPlayer theme={t} bgmOn={bgmOn} onClick={() => setBgmOn(!bgmOn)} />
+        <RecordPlayer isDay={isDay} c={c} bgmOn={bgmOn} onClick={() => setBgmOn(!bgmOn)} />
       </div>
 
-      {/* 日夜指示（右下角，很小）*/}
-      <div style={{ position:"absolute", bottom:14, right:16, zIndex:10, fontSize:13, opacity:.5 }}>{mode==="day"?"☀️":"🌙"}</div>
-
       {/* 家具热点 */}
-      {FURNITURE.map(obj => {
-        const content = furnitureContent[obj.id];
-        const isTransparent = obj.id === "sofa" || obj.id === "door" || obj.id === "record";
-        return (
-          <button
-            key={obj.id}
-            onClick={() => handleClick(obj.id)}
-            onMouseEnter={e => { setHovered(obj.id); if (!isTransparent) e.currentTarget.style.transform="translate(-50%,-50%) scale(1.1)"; }}
-            onMouseLeave={e => { setHovered(null); e.currentTarget.style.transform="translate(-50%,-50%)"; }}
-            style={{
-              position:"absolute",
-              left:obj.left, top:obj.top,
-              transform:"translate(-50%,-50%)",
-              background:"none", border:"none",
-              cursor:"pointer", zIndex:6,
-              display:"flex", flexDirection:"column",
-              alignItems:"center", gap:2,
-              padding:4, borderRadius:8,
-              transition:"transform 0.18s",
-            }}
-          >
-            {!isTransparent && content && content}
-            {isTransparent && (
-              <div style={{
-                width: obj.id==="door" ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,150px)",
-                height: obj.id==="door" ? "clamp(66px,17vw,108px)" : "clamp(32px,9vw,56px)",
-                borderRadius: obj.id==="door" ? "4px 4px 0 0" : 6,
-                border: hovered===obj.id ? `1.5px dashed ${t.accentBorder}` : "1.5px dashed transparent",
-                transition:"border .2s",
-              }} />
-            )}
-          </button>
-        );
-      })}
+      {FURNITURE.map(obj => (
+        <button
+          key={obj.id}
+          onClick={() => handleClick(obj.id)}
+          onMouseEnter={e => { setHovered(obj.id); if (!obj.transparent) e.currentTarget.style.transform="translate(-50%,-50%) scale(1.08)"; }}
+          onMouseLeave={e => { setHovered(null); e.currentTarget.style.transform="translate(-50%,-50%)"; }}
+          style={{ position:"absolute", left:obj.left, top:obj.top, transform:"translate(-50%,-50%)", background:"none", border:"none", cursor:"pointer", zIndex:6, display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:4, borderRadius:8, transition:"transform .18s" }}
+        >
+          {!obj.transparent ? (
+            <>
+              {{ clock:<WallClock isDay={isDay} c={c}/>, polaroid:<PolaroidWall isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/> }[obj.id]}
+            </>
+          ) : (
+            <div style={{
+              width:  obj.id==="door" ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)",
+              height: obj.id==="door" ? "clamp(66px,17vw,108px)" : "clamp(32px,9vw,56px)",
+              borderRadius: obj.id==="door" ? "4px 4px 0 0" : 6,
+              border: hovered===obj.id ? `1.5px dashed ${c.accent}` : "1.5px dashed transparent",
+              transition:"border .2s",
+            }} />
+          )}
+        </button>
+      ))}
 
       {/* 内容抽屉 */}
       {active && (
-        <div
-          style={{ position:"fixed", inset:0, zIndex:50, background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)", display:"flex", alignItems:"flex-end" }}
-          onClick={e => { if (e.target===e.currentTarget) setActive(null); }}
-        >
+        <div style={{ position:"fixed", inset:0, zIndex:50, background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)", display:"flex", alignItems:"flex-end" }} onClick={e => { if (e.target===e.currentTarget) setActive(null); }}>
           <div style={{ width:"100%", maxWidth:520, margin:"0 auto", maxHeight:"88dvh", background:t.bg, borderRadius:"28px 28px 0 0", overflow:"auto", paddingBottom:32, animation:"slideUp .26s ease", position:"relative" }}>
             <div style={{ position:"sticky", top:0, background:t.bg, padding:"14px 20px 0", zIndex:1 }}>
               <div style={{ width:36, height:4, background:t.surfaceBorder, borderRadius:2, margin:"0 auto" }} />
@@ -462,11 +407,11 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate }
       )}
 
       <style>{`
-        @keyframes slideUp   { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
-        @keyframes nnFloat   { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-5px)} }
-        @keyframes fadeInUp  { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-        @keyframes spin      { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @keyframes pulse     { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @keyframes slideUp  { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+        @keyframes nnFloat  { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-5px)} }
+        @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+        @keyframes spin     { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.4} }
       `}</style>
     </div>
   );
