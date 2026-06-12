@@ -43,7 +43,7 @@ function getNuonuoState() {
   if (h >= 6  && h < 10) return { left:"15%", top:"36%", words:"早呀 ☀️" };
   if (h >= 10 && h < 14) return { left:"24%", top:"73%", words:"上午好～" };
   if (h >= 14 && h < 18) return { left:"36%", top:"76%", words:"今天过得怎么样？" };
-  if (h >= 18 && h < 21) return { left:"80%", top:"70%", words:["快回来呀","这是什么...🤔","进不去嘤","快回来呀"][Math.floor(Date.now()/30000)%4], nearGameBox:true };
+  if (h >= 18 && h < 21) return { left:"58%", top:"70%", words:["快回来呀","这是什么...🤔","进不去嘤","快回来呀"][Math.floor(Date.now()/30000)%4], nearGameBox:true };
   // 21-22: 在沙发上困了
   return { left:"20%", top:"72%", words:YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length], sleepy:true };
 }
@@ -424,11 +424,11 @@ function RoomBg({ isDay, c }) {
 const FURNITURE = [
   { id:"clock",       left:"50%", top:"15%" },
   { id:"polaroid",    left:"62%", top:"22%" },
-  { id:"board",       left:"42%", top:"72%", floor:true },
+  { id:"board",       left:"92%", top:"83%", floor:true },
   { id:"sofa",        left:"87%", top:"73%", transparent:true },
   { id:"door",        left:"29%", top:"35%", transparent:true },
   { id:"kitchendoor", left:"10%", top:"33%", transparent:true },
-  { id:"gamebox",     left:"63%", top:"74%" },
+  { id:"gamebox",     left:"52%", top:"76%" },
 ];
 
 // ── 主组件 ──
