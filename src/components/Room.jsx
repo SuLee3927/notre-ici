@@ -366,9 +366,9 @@ function RoomBg({ isDay }) {
 // screen_top = image_y% × 0.82
 const FURNITURE = [
   { id:"clock",       left:"41%", top:"7%",  transparent:true },
-  { id:"photostring", left:"33%", top:"13%", transparent:true },
+  { id:"photostring", left:"35%", top:"13%", transparent:true, w:"clamp(60px,18vw,90px)", h:"clamp(22px,6vw,36px)" },
   { id:"board",       left:"73%", top:"44%", floor:true, transparent:true },
-  { id:"sofa",        left:"40%", top:"22%", transparent:true },
+  { id:"sofa",        left:"40%", top:"22%", transparent:true, w:"clamp(80px,22vw,110px)", h:"clamp(24px,7vw,40px)" },
   { id:"door",        left:"19%", top:"10%", transparent:true },
   { id:"kitchendoor", left:"7%",  top:"33%", transparent:true },
   { id:"tv",          left:"87%", top:"27%", transparent:true },
@@ -461,8 +461,8 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
             </>
           ) : (
             <div style={{
-              width:  (obj.id==="door"||obj.id==="kitchendoor") ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)",
-              height: (obj.id==="door"||obj.id==="kitchendoor") ? "clamp(66px,17vw,108px)" : "clamp(32px,9vw,56px)",
+              width:  obj.w || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)"),
+              height: obj.h || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(66px,17vw,108px)" : "clamp(32px,9vw,56px)"),
               borderRadius: (obj.id==="door"||obj.id==="kitchendoor") ? "4px 4px 0 0" : 6,
               border: "none",
             }} />
