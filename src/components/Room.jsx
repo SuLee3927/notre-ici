@@ -43,7 +43,7 @@ function getNuonuoState() {
   if (h >= 6  && h < 10) return { left:"15%", top:"36%", words:"早呀 ☀️" };
   if (h >= 10 && h < 14) return { left:"24%", top:"73%", words:"上午好～" };
   if (h >= 14 && h < 18) return { left:"36%", top:"76%", words:"今天过得怎么样？" };
-  if (h >= 18 && h < 21) return { left:"80%", top:"70%", words:"快回来呀" };
+  if (h >= 18 && h < 21) return { left:"80%", top:"70%", words:["快回来呀","这是什么...🤔","进不去嘤","快回来呀"][Math.floor(Date.now()/30000)%4], nearGameBox:true };
   // 21-22: 在沙发上困了
   return { left:"20%", top:"72%", words:YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length], sleepy:true };
 }
@@ -177,6 +177,27 @@ function NuonuoResident({ theme: t, onEnter }) {
         </div>
       )}
       <NuonuoSVG size={68} outfit={outfit} sleepy={!!state.sleepy} />
+    </div>
+  );
+}
+
+// ── 游戏箱 ──
+function GameBox({ isDay, c }) {
+  return (
+    <div style={{ position:"relative", width:52, height:42 }}>
+      <div style={{ width:52, height:38, background:c.wood, borderRadius:"4px 4px 2px 2px", boxShadow:`0 4px 12px ${c.shadow}`, padding:4, display:"flex", flexDirection:"column", gap:2 }}>
+        <div style={{ flex:2, background:isDay?"#3a2510":"#1a1040", borderRadius:2, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <span style={{ fontSize:12 }}>🎮</span>
+        </div>
+        <div style={{ flex:1, display:"flex", gap:3, alignItems:"center", padding:"0 4px" }}>
+          {[c.accent, c.woodDk, c.ink].map((col,i) => (
+            <div key={i} style={{ width:7, height:7, borderRadius:"50%", background:col, opacity:.7 }} />
+          ))}
+          <div style={{ flex:1 }} />
+          <div style={{ width:16, height:4, background:c.woodDk, borderRadius:1, opacity:.5 }} />
+        </div>
+      </div>
+      {[4,42].map((x,i) => <div key={i} style={{ position:"absolute", bottom:-3, left:x, width:6, height:5, background:c.woodDk, borderRadius:"0 0 2px 2px" }} />)}
     </div>
   );
 }
@@ -362,7 +383,14 @@ function RoomBg({ isDay, c }) {
           : <div style={{ position:"absolute", top:"15%", right:"20%", width:3, height:3, borderRadius:"50%", background:"#E8E0FF", boxShadow:"0 0 6px 2px rgba(200,180,255,.6)" }} />
         }
       </div>
-      {/* 门框 */}
+      {/* 厨房门框 */}
+      <div style={{ position:"absolute", left:"26%", top:"16%", width:"11%", height:"40%", border:`3px solid ${c.wood}`, borderRadius:"6px 6px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset 4px 0 12px ${c.shadow}`:`inset 4px 0 12px rgba(0,0,0,.18)` }}>
+        <div style={{ position:"absolute", left:3, right:3, top:7, height:"33%", border:`1px solid ${c.wood}`, borderRadius:3, opacity:.2 }} />
+        <div style={{ position:"absolute", left:3, right:3, bottom:0, height:"33%", border:`1px solid ${c.wood}`, borderRadius:"3px 3px 0 0", opacity:.2 }} />
+        <div style={{ position:"absolute", right:"18%", top:"52%", width:5, height:12, borderRadius:3, background:c.accent, boxShadow:`0 1px 4px ${c.shadow}` }} />
+        <div style={{ position:"absolute", bottom:6, left:0, right:0, textAlign:"center", fontSize:9, color:c.ink, fontFamily:"'Noto Serif SC',serif", letterSpacing:".15em", opacity:.55 }}>厨房</div>
+      </div>
+      {/* 书房门框 */}
       <div style={{ position:"absolute", right:"6%", top:"18%", width:"13%", height:"44%", border:`3px solid ${c.wood}`, borderRadius:"6px 6px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset -4px 0 12px ${c.shadow}`:`inset -4px 0 12px rgba(0,0,0,.18)` }}>
         <div style={{ position:"absolute", left:3, right:3, top:7, height:"33%", border:`1px solid ${c.wood}`, borderRadius:3, opacity:.2 }} />
         <div style={{ position:"absolute", left:3, right:3, bottom:0, height:"33%", border:`1px solid ${c.wood}`, borderRadius:"3px 3px 0 0", opacity:.2 }} />
@@ -375,12 +403,13 @@ function RoomBg({ isDay, c }) {
 
 // ── 可交互家具热点 ──
 const FURNITURE = [
-  { id:"clock",    left:"38%", top:"24%" },
-  { id:"polaroid", left:"65%", top:"19%" },
-  { id:"board",    left:"50%", top:"33%" },
-  { id:"sofa",     left:"19%", top:"74%", transparent:true },
-  { id:"door",     left:"86%", top:"40%", transparent:true },
-  // record is handled by its own onClick div below — no hotspot button here
+  { id:"clock",       left:"38%", top:"24%" },
+  { id:"polaroid",    left:"65%", top:"19%" },
+  { id:"board",       left:"50%", top:"33%" },
+  { id:"sofa",        left:"19%", top:"74%", transparent:true },
+  { id:"door",        left:"86%", top:"40%", transparent:true },
+  { id:"kitchendoor", left:"31%", top:"36%", transparent:true },
+  { id:"gamebox",     left:"78%", top:"73%" },
 ];
 
 // ── 主组件 ──
@@ -408,10 +437,31 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     polaroid: <Timeline theme={t} />,
     board:    <GiftBoard theme={t} />,
     sofa:     <StatusToday theme={t} />,
+    kitchendoor: (
+      <div style={{ padding:"32px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
+        <div style={{ fontSize:36, marginBottom:14 }}>🍳</div>
+        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>厨房</div>
+        <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在装修中，快了快了...</div>
+      </div>
+    ),
+    gamebox: (
+      <div style={{ padding:"24px 20px 12px", fontFamily:"'Noto Serif SC',serif" }}>
+        <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:20, textAlign:"center" }}>游戏箱</div>
+        <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, marginBottom:10 }}>
+          <div style={{ fontSize:24 }}>🎰</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, color:t.text, marginBottom:2 }}>老虎机</div>
+            <div style={{ fontSize:11, color:t.textMuted }}>小孩子不可以动哦 🔒</div>
+          </div>
+        </div>
+        <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", marginTop:16, opacity:.5 }}>更多游戏接入中...</div>
+      </div>
+    ),
   };
 
   function handleClick(id) {
-    if (id === "door")   { onEnterPrivate(); return; }
+    if (id === "door")        { onEnterPrivate(); return; }
+    if (id === "kitchendoor") { setActive("kitchendoor"); return; }
     if (id === "record") { setBgmOn(!bgmOn); return; }
     setActive(id);
   }
@@ -445,13 +495,13 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         >
           {!obj.transparent ? (
             <>
-              {{ clock:<WallClock isDay={isDay} c={c}/>, polaroid:<PolaroidWall isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/> }[obj.id]}
+              {{ clock:<WallClock isDay={isDay} c={c}/>, polaroid:<PolaroidWall isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/>, gamebox:<GameBox isDay={isDay} c={c}/> }[obj.id]}
             </>
           ) : (
             <div style={{
-              width:  obj.id==="door" ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)",
-              height: obj.id==="door" ? "clamp(66px,17vw,108px)" : "clamp(32px,9vw,56px)",
-              borderRadius: obj.id==="door" ? "4px 4px 0 0" : 6,
+              width:  (obj.id==="door"||obj.id==="kitchendoor") ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)",
+              height: (obj.id==="door"||obj.id==="kitchendoor") ? "clamp(66px,17vw,108px)" : "clamp(32px,9vw,56px)",
+              borderRadius: (obj.id==="door"||obj.id==="kitchendoor") ? "4px 4px 0 0" : 6,
               border: hovered===obj.id ? `1.5px dashed ${c.accent}` : "1.5px dashed transparent",
               transition:"border .2s",
             }} />
