@@ -369,10 +369,10 @@ const FURNITURE = [
   { id:"board",       left:"73%", top:"51%", floor:true, transparent:true, w:"clamp(40px,11vw,62px)", h:"clamp(30px,8vw,50px)" },
   { id:"sofa",        left:"46%", top:"27%", transparent:true, w:"clamp(70px,20vw,100px)", h:"clamp(24px,7vw,40px)" },
   { id:"door",        left:"19%", top:"14%", transparent:true, h:"clamp(90px,25vw,150px)" },
-  { id:"kitchendoor", left:"7%",  top:"40%", transparent:true, w:"clamp(32px,9vw,54px)", h:"clamp(62px,17vw,102px)" },
+  { id:"kitchendoor", left:"6%",  top:"35%", transparent:true, w:"clamp(28px,7vw,44px)", h:"clamp(50px,13vw,78px)" },
   { id:"tv",          left:"82%", top:"33%", transparent:true, w:"clamp(40px,11vw,64px)", h:"clamp(32px,9vw,56px)" },
   { id:"record",      left:"92%", top:"79%", transparent:true, w:"clamp(32px,9vw,52px)", h:"clamp(44px,12vw,72px)" },
-  { id:"kitchen",     left:"5%",  top:"85%", transparent:true, w:"clamp(16px,4vw,26px)", h:"clamp(60px,16vw,96px)" },
+  { id:"kitchen",     left:"3%",  top:"80%", transparent:true, w:"clamp(14px,4vw,22px)", h:"clamp(52px,14vw,84px)" },
 ];
 
 // ── 主组件 ──
