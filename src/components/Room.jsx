@@ -372,6 +372,7 @@ const FURNITURE = [
   { id:"kitchendoor", left:"7%",  top:"43%", transparent:true, h:"clamp(100px,26vw,156px)" },
   { id:"tv",          left:"82%", top:"33%", transparent:true, w:"clamp(40px,11vw,64px)", h:"clamp(32px,9vw,56px)" },
   { id:"record",      left:"92%", top:"79%", transparent:true, w:"clamp(32px,9vw,52px)", h:"clamp(44px,12vw,72px)" },
+  { id:"kitchen",     left:"5%",  top:"85%", transparent:true, w:"clamp(16px,4vw,26px)", h:"clamp(60px,16vw,96px)" },
 ];
 
 // ── 主组件 ──
@@ -401,9 +402,16 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     sofa:     <StatusToday theme={t} />,
     kitchendoor: (
       <div style={{ padding:"32px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:36, marginBottom:14 }}>🚪</div>
-        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>这扇门通向……</div>
-        <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>还没想好，先留着</div>
+        <div style={{ fontSize:36, marginBottom:14 }}>🛏️</div>
+        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>卧室</div>
+        <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在布置中……</div>
+      </div>
+    ),
+    kitchen: (
+      <div style={{ padding:"32px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
+        <div style={{ fontSize:36, marginBottom:14 }}>🍳</div>
+        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>厨房</div>
+        <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在布置中……</div>
       </div>
     ),
     tv: (
