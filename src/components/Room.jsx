@@ -205,11 +205,11 @@ function WallClock({ isDay, c }) {
         <circle cx="31" cy="36" r="24.5" fill={isDay?"#EEDBB0":"#2a1848"} opacity=".3"/>
         {/* 表盘 */}
         <circle cx="31" cy="36" r="23" fill={face}/>
-        {/* 罗马数字 */}
-        <text x="31" y="19" textAnchor="middle" fontSize="5.5" fill={num} fontFamily="Georgia,serif" opacity=".8">XII</text>
-        <text x="50" y="40" textAnchor="middle" fontSize="5.5" fill={num} fontFamily="Georgia,serif" opacity=".8">III</text>
-        <text x="31" y="58" textAnchor="middle" fontSize="5.5" fill={num} fontFamily="Georgia,serif" opacity=".8">VI</text>
-        <text x="12" y="40" textAnchor="middle" fontSize="5.5" fill={num} fontFamily="Georgia,serif" opacity=".8">IX</text>
+        {/* 数字刻度 12/3/6/9 */}
+        <text x="31" y="19" textAnchor="middle" fontSize="6" fill={num} fontFamily="sans-serif" fontWeight="300" opacity=".75">12</text>
+        <text x="51" y="40" textAnchor="middle" fontSize="6" fill={num} fontFamily="sans-serif" fontWeight="300" opacity=".75">3</text>
+        <text x="31" y="58.5" textAnchor="middle" fontSize="6" fill={num} fontFamily="sans-serif" fontWeight="300" opacity=".75">6</text>
+        <text x="11" y="40" textAnchor="middle" fontSize="6" fill={num} fontFamily="sans-serif" fontWeight="300" opacity=".75">9</text>
         {/* 小刻度（其余8个位置） */}
         {[30,60,120,150,210,240,300,330].map(d => (
           <line key={d}
