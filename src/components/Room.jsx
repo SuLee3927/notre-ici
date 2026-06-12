@@ -434,10 +434,13 @@ function RoomBg({ isDay, c }) {
         }
       </div>
 
-      {/* ── 厨房门（左侧墙，有倾斜感） ── */}
-      <div style={{ position:"absolute", left:"1%", top:"6%", width:"10%", height:"22%", border:`2px solid ${c.wood}`, borderRadius:"10px 10px 0 0", borderBottom:"none", background:isDay?"rgba(240,210,170,.12)":"rgba(50,40,90,.2)", transform:"skewY(-14deg)", transformOrigin:"top left", boxShadow:`inset 2px 0 8px ${c.shadow}` }}>
-        <div style={{ position:"absolute", right:"22%", top:"50%", width:3, height:8, borderRadius:2, background:c.accent }} />
-        <div style={{ position:"absolute", bottom:6, left:0, right:0, textAlign:"center", fontSize:7, color:c.ink, opacity:.5, fontFamily:"'Noto Serif SC',serif" }}>厨房</div>
+      {/* ── 厨房门（左侧墙，clip-path精确透视：左高右矮） ── */}
+      {/* 门框层 */}
+      <div style={{ position:"absolute", left:"0.8%", top:"7%", width:"11%", height:"26%", clipPath:"polygon(0% 0%, 100% 3%, 100% 66%, 0% 100%)", background:c.wood, opacity:.5 }} />
+      {/* 门面层 */}
+      <div style={{ position:"absolute", left:"1.5%", top:"7.7%", width:"9.5%", height:"24%", clipPath:"polygon(0% 0%, 100% 3%, 100% 65%, 0% 100%)", background:isDay?"rgba(255,245,225,.1)":"rgba(50,40,90,.18)" }}>
+        <div style={{ position:"absolute", right:"26%", top:"42%", width:3, height:8, borderRadius:2, background:c.accent }} />
+        <div style={{ position:"absolute", bottom:"16%", left:0, right:0, textAlign:"center", fontSize:7, color:c.ink, opacity:.5, fontFamily:"'Noto Serif SC',serif" }}>厨房</div>
       </div>
 
       {/* ── 书房门（后墙最左侧，圆拱顶） ── */}
@@ -456,7 +459,7 @@ const FURNITURE = [
   { id:"board",       left:"68%", top:"74%", floor:true },
   { id:"sofa",        left:"48%", top:"37%", transparent:true },
   { id:"door",        left:"23%", top:"18%", transparent:true },
-  { id:"kitchendoor", left:"7%",  top:"26%", transparent:true },
+  { id:"kitchendoor", left:"6%",  top:"18%", transparent:true },
   { id:"tv",          left:"89%", top:"20%" },
 ];
 
