@@ -379,24 +379,25 @@ function RoomBg({ isDay, c }) {
       {[.12,.30,.50,.70,.88].map((x,i) => (
         <div key={i} style={{ position:"absolute", left:`${x*100}%`, top:`${WALL_H}%`, bottom:0, width:1, background:c.border }} />
       ))}
-      {/* 窗户 */}
-      <div style={{ position:"absolute", left:"8%", top:"6%", width:"17%", height:"34%", border:`3px solid ${c.wood}`, borderRadius:5, background:c.glass, boxShadow:isDay?`inset 0 0 24px rgba(255,220,100,.3),0 4px 14px ${c.shadow}`:`inset 0 0 20px rgba(160,120,255,.15),0 4px 14px ${c.shadow}`, overflow:"hidden" }}>
-        <div style={{ position:"absolute", left:"50%", top:0, bottom:0, width:2, background:c.wood, transform:"translateX(-50%)", opacity:.4 }} />
-        <div style={{ position:"absolute", left:0, right:0, top:"42%", height:2, background:c.wood, opacity:.4 }} />
+      {/* 窗户（横宽飘窗） */}
+      <div style={{ position:"absolute", left:"4%", top:"5%", width:"20%", height:"22%", border:`3px solid ${c.wood}`, borderRadius:6, background:c.glass, boxShadow:isDay?`inset 0 0 24px rgba(255,220,100,.3),0 4px 14px ${c.shadow}`:`inset 0 0 20px rgba(160,120,255,.15),0 4px 14px ${c.shadow}`, overflow:"hidden" }}>
+        <div style={{ position:"absolute", left:"33%", top:0, bottom:0, width:2, background:c.wood, opacity:.4 }} />
+        <div style={{ position:"absolute", left:"66%", top:0, bottom:0, width:2, background:c.wood, opacity:.4 }} />
+        <div style={{ position:"absolute", left:0, right:0, top:"50%", height:2, background:c.wood, opacity:.4 }} />
         {isDay
           ? <div style={{ position:"absolute", top:"-20%", left:"-10%", width:"120%", height:"120%", background:"radial-gradient(ellipse,rgba(255,250,200,.45) 0%,transparent 65%)", pointerEvents:"none" }} />
-          : <div style={{ position:"absolute", top:"15%", right:"20%", width:3, height:3, borderRadius:"50%", background:"#E8E0FF", boxShadow:"0 0 6px 2px rgba(200,180,255,.6)" }} />
+          : <div style={{ position:"absolute", top:"20%", right:"15%", width:3, height:3, borderRadius:"50%", background:"#E8E0FF", boxShadow:"0 0 6px 2px rgba(200,180,255,.6)" }} />
         }
       </div>
       {/* 厨房门框 */}
-      <div style={{ position:"absolute", left:"26%", top:"16%", width:"10%", height:"40%", border:`3px solid ${c.wood}`, borderRadius:"6px 6px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset 4px 0 12px ${c.shadow}`:`inset 4px 0 12px rgba(0,0,0,.18)` }}>
+      <div style={{ position:"absolute", left:"26%", top:"18%", width:"11%", height:"38%", border:`3px solid ${c.wood}`, borderRadius:"28px 28px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset 4px 0 12px ${c.shadow}`:`inset 4px 0 12px rgba(0,0,0,.18)` }}>
         <div style={{ position:"absolute", left:3, right:3, top:7, height:"33%", border:`1px solid ${c.wood}`, borderRadius:3, opacity:.2 }} />
         <div style={{ position:"absolute", left:3, right:3, bottom:0, height:"33%", border:`1px solid ${c.wood}`, borderRadius:"3px 3px 0 0", opacity:.2 }} />
         <div style={{ position:"absolute", right:"18%", top:"52%", width:5, height:12, borderRadius:3, background:c.accent, boxShadow:`0 1px 4px ${c.shadow}` }} />
         <div style={{ position:"absolute", bottom:6, left:0, right:0, textAlign:"center", fontSize:9, color:c.ink, fontFamily:"'Noto Serif SC',serif", letterSpacing:".15em", opacity:.55 }}>厨房</div>
       </div>
       {/* 书房门框 */}
-      <div style={{ position:"absolute", right:"6%", top:"18%", width:"13%", height:"44%", border:`3px solid ${c.wood}`, borderRadius:"6px 6px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset -4px 0 12px ${c.shadow}`:`inset -4px 0 12px rgba(0,0,0,.18)` }}>
+      <div style={{ position:"absolute", right:"6%", top:"20%", width:"13%", height:"40%", border:`3px solid ${c.wood}`, borderRadius:"32px 32px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset -4px 0 12px ${c.shadow}`:`inset -4px 0 12px rgba(0,0,0,.18)` }}>
         <div style={{ position:"absolute", left:3, right:3, top:7, height:"33%", border:`1px solid ${c.wood}`, borderRadius:3, opacity:.2 }} />
         <div style={{ position:"absolute", left:3, right:3, bottom:0, height:"33%", border:`1px solid ${c.wood}`, borderRadius:"3px 3px 0 0", opacity:.2 }} />
         <div style={{ position:"absolute", left:"18%", top:"52%", width:5, height:12, borderRadius:3, background:c.accent, boxShadow:`0 1px 4px ${c.shadow}` }} />
@@ -412,8 +413,8 @@ const FURNITURE = [
   { id:"polaroid",    left:"67%", top:"26%" },
   { id:"board",       left:"54%", top:"72%", floor:true },
   { id:"sofa",        left:"19%", top:"74%", transparent:true },
-  { id:"door",        left:"86%", top:"40%", transparent:true },
-  { id:"kitchendoor", left:"23%", top:"36%", transparent:true },
+  { id:"door",        left:"86%", top:"38%", transparent:true },
+  { id:"kitchendoor", left:"31%", top:"36%", transparent:true },
   { id:"gamebox",     left:"72%", top:"74%" },
 ];
 
