@@ -384,7 +384,7 @@ function RoomBg({ isDay, c }) {
         }
       </div>
       {/* 厨房门框 */}
-      <div style={{ position:"absolute", left:"26%", top:"16%", width:"11%", height:"40%", border:`3px solid ${c.wood}`, borderRadius:"6px 6px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset 4px 0 12px ${c.shadow}`:`inset 4px 0 12px rgba(0,0,0,.18)` }}>
+      <div style={{ position:"absolute", left:"18%", top:"16%", width:"11%", height:"40%", border:`3px solid ${c.wood}`, borderRadius:"6px 6px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset 4px 0 12px ${c.shadow}`:`inset 4px 0 12px rgba(0,0,0,.18)` }}>
         <div style={{ position:"absolute", left:3, right:3, top:7, height:"33%", border:`1px solid ${c.wood}`, borderRadius:3, opacity:.2 }} />
         <div style={{ position:"absolute", left:3, right:3, bottom:0, height:"33%", border:`1px solid ${c.wood}`, borderRadius:"3px 3px 0 0", opacity:.2 }} />
         <div style={{ position:"absolute", right:"18%", top:"52%", width:5, height:12, borderRadius:3, background:c.accent, boxShadow:`0 1px 4px ${c.shadow}` }} />
@@ -408,8 +408,8 @@ const FURNITURE = [
   { id:"board",       left:"50%", top:"33%" },
   { id:"sofa",        left:"19%", top:"74%", transparent:true },
   { id:"door",        left:"86%", top:"40%", transparent:true },
-  { id:"kitchendoor", left:"31%", top:"36%", transparent:true },
-  { id:"gamebox",     left:"78%", top:"73%" },
+  { id:"kitchendoor", left:"23%", top:"36%", transparent:true },
+  { id:"gamebox",     left:"66%", top:"74%" },
 ];
 
 // ── 主组件 ──
