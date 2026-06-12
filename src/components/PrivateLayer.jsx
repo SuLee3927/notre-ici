@@ -139,7 +139,7 @@ export default function PrivateLayer({ theme: t, onClose }) {
     return (
       <div style={{ position:"fixed", inset:0, overflow:"hidden" }}>
         <StudyBg isDay={isDay} c={c} />
-        <button onClick={onClose} style={{ position:"absolute", top:14, left:14, zIndex:10, background:`${t.surface}cc`, border:`1px solid ${t.surfaceBorder}`, borderRadius:20, padding:"5px 12px", color:t.textSub, fontSize:12, cursor:"pointer", backdropFilter:"blur(8px)", fontFamily:"sans-serif" }}>← 客厅</button>
+        <button onClick={onClose} style={{ position:"absolute", top:14, left:14, zIndex:30, background:`${t.surface}cc`, border:`1px solid ${t.surfaceBorder}`, borderRadius:20, padding:"5px 12px", color:t.textSub, fontSize:12, cursor:"pointer", backdropFilter:"blur(8px)", fontFamily:"sans-serif" }}>← 客厅</button>
         <div style={{ position:"fixed", inset:0, display:"flex", alignItems:"center", justifyContent:"center", zIndex:10 }}>
           <div style={{ background:`${t.surface}f0`, border:`1px solid ${t.surfaceBorder}`, borderRadius:20, padding:"32px 28px", maxWidth:280, width:"90%", textAlign:"center", backdropFilter:"blur(16px)", boxShadow:`0 8px 32px ${c.shadow}` }}>
             <div style={{ fontSize:34, marginBottom:14 }}>🔒</div>
