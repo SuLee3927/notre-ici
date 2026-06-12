@@ -351,23 +351,13 @@ function RecordPlayer({ isDay, c, bgmOn, onClick }) {
 // ── 房间装饰（已改用插画背景，此处留空）──
 function RoomDecor() { return null; }
 
-// ── 房间背景（G老师插画）──
+// ── 房间背景（G老师插画，白天/夜晚各一张）──
 function RoomBg({ isDay }) {
   return (
-    <img
-      src="/room-bg.jpg"
-      alt=""
-      style={{
-        position:"absolute", inset:0,
-        width:"100%", height:"100%",
-        objectFit:"cover",
-        objectPosition:"center top",
-        filter: isDay
-          ? "none"
-          : "brightness(0.28) saturate(0.45) hue-rotate(220deg)",
-        transition:"filter 1.2s ease",
-      }}
-    />
+    <>
+      <img src="/room-bg.jpg" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top", opacity: isDay?1:0, transition:"opacity 1.2s ease" }} />
+      <img src="/room-bg-night.jpg" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top", opacity: isDay?0:1, transition:"opacity 1.2s ease" }} />
+    </>
   );
 }
 
