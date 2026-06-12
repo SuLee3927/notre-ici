@@ -339,22 +339,33 @@ function RecordPlayer({ isDay, c, bgmOn, onClick }) {
 function RoomDecor({ isDay, c }) {
   return (
     <>
-      {/* 地毯 */}
-      <div style={{ position:"absolute", left:"4%", top:`${WALL_H+20}%`, width:"42%", height:"14%", background:isDay?"rgba(210,155,90,.16)":"rgba(90,70,160,.14)", borderRadius:"50%", border:`1.5px solid ${c.border}`, transform:"perspective(200px) rotateX(30deg)" }} />
-      {/* 沙发 */}
-      <div style={{ position:"absolute", left:"3%", top:`${WALL_H+8}%`, width:"33%", height:"24%", background:c.fabric, borderRadius:"8px 8px 4px 4px", boxShadow:`0 4px 14px ${c.shadow}` }}>
-        <div style={{ position:"absolute", left:-5, top:0, width:7, bottom:4, background:c.wood, borderRadius:"4px 0 0 4px" }} />
-        <div style={{ position:"absolute", right:-5, top:0, width:7, bottom:4, background:c.wood, borderRadius:"0 4px 4px 0" }} />
-        <div style={{ position:"absolute", top:"12%", left:"8%", width:"36%", height:"56%", background:c.fabricDk, borderRadius:5 }} />
-        <div style={{ position:"absolute", top:"12%", right:"8%", width:"36%", height:"56%", background:c.fabricDk, borderRadius:5 }} />
+      {/* 地毯（右侧，沙发前） */}
+      <div style={{ position:"absolute", right:"2%", top:`${WALL_H+28}%`, width:"30%", height:"12%", background:isDay?"rgba(210,155,90,.16)":"rgba(90,70,160,.14)", borderRadius:"50%", border:`1.5px solid ${c.border}`, transform:"perspective(200px) rotateX(30deg)" }} />
+      {/* 沙发（侧视图，靠窗右侧） */}
+      <div style={{ position:"absolute", right:"4%", top:`${WALL_H+4}%` }}>
+        <div style={{ display:"flex", alignItems:"flex-end" }}>
+          {/* 靠背 */}
+          <div style={{ width:13, height:42, background:c.fabric, borderRadius:"5px 5px 0 0", boxShadow:`-2px 2px 6px ${c.shadow}`, flexShrink:0 }}>
+            <div style={{ width:7, height:22, background:c.fabricDk, margin:"5px auto 0", borderRadius:2, opacity:.7 }} />
+          </div>
+          {/* 坐垫 */}
+          <div style={{ width:56, height:20, background:c.fabric, borderRadius:"0 4px 2px 0", boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
+            <div style={{ position:"absolute", inset:"2px 4px", background:c.fabricDk, borderRadius:2, opacity:.5 }} />
+          </div>
+        </div>
+        {/* 前腿 */}
+        <div style={{ display:"flex", justifyContent:"space-between", paddingLeft:13, width:69 }}>
+          <div style={{ width:5, height:6, background:c.wood, borderRadius:"0 0 2px 2px" }} />
+          <div style={{ width:5, height:6, background:c.wood, borderRadius:"0 0 2px 2px" }} />
+        </div>
       </div>
-      {/* 台灯 */}
-      <div style={{ position:"absolute", left:"37%", top:`${WALL_H+5}%` }}>
+      {/* 台灯（沙发左边） */}
+      <div style={{ position:"absolute", right:"28%", top:`${WALL_H+5}%` }}>
         <div style={{ width:20, height:13, background:c.wood, clipPath:"polygon(10% 100%,90% 100%,100% 0%,0% 0%)", boxShadow:isDay?"0 0 16px 6px rgba(255,200,80,.3)":"0 0 16px 6px rgba(160,120,255,.22)" }} />
         <div style={{ width:2, height:16, background:c.woodDk, margin:"0 auto" }} />
         <div style={{ width:13, height:3, background:c.woodDk, borderRadius:2, margin:"0 auto" }} />
       </div>
-      {/* 角落植物 */}
+      {/* 角落植物（左下角，门旁） */}
       <div style={{ position:"absolute", left:"1.5%", top:`${WALL_H+14}%` }}>
         <div style={{ width:18, height:13, background:c.wood, clipPath:"polygon(5% 0%,95% 0%,85% 100%,15% 100%)", margin:"0 auto" }} />
         {[{l:"4%",t:"-55%",w:12,d:-28},{l:"38%",t:"-72%",w:14,d:0},{l:"58%",t:"-48%",w:11,d:24}].map((lf,i) => (
@@ -379,8 +390,8 @@ function RoomBg({ isDay, c }) {
       {[.12,.30,.50,.70,.88].map((x,i) => (
         <div key={i} style={{ position:"absolute", left:`${x*100}%`, top:`${WALL_H}%`, bottom:0, width:1, background:c.border }} />
       ))}
-      {/* 窗户（横宽飘窗） */}
-      <div style={{ position:"absolute", left:"4%", top:"5%", width:"20%", height:"22%", border:`3px solid ${c.wood}`, borderRadius:6, background:c.glass, boxShadow:isDay?`inset 0 0 24px rgba(255,220,100,.3),0 4px 14px ${c.shadow}`:`inset 0 0 20px rgba(160,120,255,.15),0 4px 14px ${c.shadow}`, overflow:"hidden" }}>
+      {/* 窗户（横宽飘窗，移到右侧） */}
+      <div style={{ position:"absolute", right:"4%", top:"12%", width:"22%", height:"22%", border:`3px solid ${c.wood}`, borderRadius:6, background:c.glass, boxShadow:isDay?`inset 0 0 24px rgba(255,220,100,.3),0 4px 14px ${c.shadow}`:`inset 0 0 20px rgba(160,120,255,.15),0 4px 14px ${c.shadow}`, overflow:"hidden" }}>
         <div style={{ position:"absolute", left:"33%", top:0, bottom:0, width:2, background:c.wood, opacity:.4 }} />
         <div style={{ position:"absolute", left:"66%", top:0, bottom:0, width:2, background:c.wood, opacity:.4 }} />
         <div style={{ position:"absolute", left:0, right:0, top:"50%", height:2, background:c.wood, opacity:.4 }} />
@@ -389,18 +400,18 @@ function RoomBg({ isDay, c }) {
           : <div style={{ position:"absolute", top:"20%", right:"15%", width:3, height:3, borderRadius:"50%", background:"#E8E0FF", boxShadow:"0 0 6px 2px rgba(200,180,255,.6)" }} />
         }
       </div>
-      {/* 厨房门框 */}
-      <div style={{ position:"absolute", left:"26%", top:"18%", width:"11%", height:"38%", border:`3px solid ${c.wood}`, borderRadius:"28px 28px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset 4px 0 12px ${c.shadow}`:`inset 4px 0 12px rgba(0,0,0,.18)` }}>
+      {/* 厨房门框（左侧第一扇） */}
+      <div style={{ position:"absolute", left:"4%", top:"18%", width:"11%", height:"38%", border:`3px solid ${c.wood}`, borderRadius:"28px 28px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset 4px 0 12px ${c.shadow}`:`inset 4px 0 12px rgba(0,0,0,.18)` }}>
         <div style={{ position:"absolute", left:3, right:3, top:7, height:"33%", border:`1px solid ${c.wood}`, borderRadius:3, opacity:.2 }} />
         <div style={{ position:"absolute", left:3, right:3, bottom:0, height:"33%", border:`1px solid ${c.wood}`, borderRadius:"3px 3px 0 0", opacity:.2 }} />
         <div style={{ position:"absolute", right:"18%", top:"52%", width:5, height:12, borderRadius:3, background:c.accent, boxShadow:`0 1px 4px ${c.shadow}` }} />
         <div style={{ position:"absolute", bottom:6, left:0, right:0, textAlign:"center", fontSize:9, color:c.ink, fontFamily:"'Noto Serif SC',serif", letterSpacing:".15em", opacity:.55 }}>厨房</div>
       </div>
-      {/* 书房门框 */}
-      <div style={{ position:"absolute", right:"6%", top:"20%", width:"13%", height:"40%", border:`3px solid ${c.wood}`, borderRadius:"32px 32px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset -4px 0 12px ${c.shadow}`:`inset -4px 0 12px rgba(0,0,0,.18)` }}>
+      {/* 书房门框（左侧第二扇，间隔一点） */}
+      <div style={{ position:"absolute", left:"19%", top:"20%", width:"13%", height:"40%", border:`3px solid ${c.wood}`, borderRadius:"32px 32px 0 0", borderBottom:"none", background:isDay?"rgba(210,160,100,.07)":"rgba(60,50,100,.14)", boxShadow:isDay?`inset 4px 0 12px ${c.shadow}`:`inset 4px 0 12px rgba(0,0,0,.18)` }}>
         <div style={{ position:"absolute", left:3, right:3, top:7, height:"33%", border:`1px solid ${c.wood}`, borderRadius:3, opacity:.2 }} />
         <div style={{ position:"absolute", left:3, right:3, bottom:0, height:"33%", border:`1px solid ${c.wood}`, borderRadius:"3px 3px 0 0", opacity:.2 }} />
-        <div style={{ position:"absolute", left:"18%", top:"52%", width:5, height:12, borderRadius:3, background:c.accent, boxShadow:`0 1px 4px ${c.shadow}` }} />
+        <div style={{ position:"absolute", right:"18%", top:"52%", width:5, height:12, borderRadius:3, background:c.accent, boxShadow:`0 1px 4px ${c.shadow}` }} />
         <div style={{ position:"absolute", bottom:6, left:0, right:0, textAlign:"center", fontSize:9, color:c.ink, fontFamily:"'Noto Serif SC',serif", letterSpacing:".15em", opacity:.55 }}>书房</div>
       </div>
     </>
@@ -410,12 +421,12 @@ function RoomBg({ isDay, c }) {
 // ── 可交互家具热点 ──
 const FURNITURE = [
   { id:"clock",       left:"50%", top:"15%" },
-  { id:"polaroid",    left:"67%", top:"26%" },
-  { id:"board",       left:"54%", top:"72%", floor:true },
-  { id:"sofa",        left:"19%", top:"74%", transparent:true },
-  { id:"door",        left:"86%", top:"38%", transparent:true },
-  { id:"kitchendoor", left:"31%", top:"36%", transparent:true },
-  { id:"gamebox",     left:"72%", top:"74%" },
+  { id:"polaroid",    left:"62%", top:"22%" },
+  { id:"board",       left:"42%", top:"72%", floor:true },
+  { id:"sofa",        left:"83%", top:"74%", transparent:true },
+  { id:"door",        left:"25%", top:"38%", transparent:true },
+  { id:"kitchendoor", left:"9%",  top:"37%", transparent:true },
+  { id:"gamebox",     left:"63%", top:"74%" },
 ];
 
 // ── 主组件 ──
@@ -485,8 +496,8 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       {/* 糯糯 */}
       <NuonuoResident theme={t} onEnter={onEnterNuonuo} />
 
-      {/* 唱片机（在台灯旁地板区） */}
-      <div style={{ position:"absolute", left:"38%", top:`${WALL_H+8}%`, transform:"translateX(-50%)", zIndex:6 }}>
+      {/* 唱片机（左侧门旁地板区） */}
+      <div style={{ position:"absolute", left:"36%", top:`${WALL_H+8}%`, transform:"translateX(-50%)", zIndex:6 }}>
         <RecordPlayer isDay={isDay} c={c} bgmOn={bgmOn} onClick={() => setBgmOn(!bgmOn)} />
       </div>
 
