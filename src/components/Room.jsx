@@ -435,7 +435,7 @@ function RoomBg({ isDay, c }) {
       </div>
 
       {/* ── 厨房门（左侧墙，有倾斜感） ── */}
-      <div style={{ position:"absolute", left:"1%", top:"6%", width:"10%", height:"22%", border:`2px solid ${c.wood}`, borderRadius:"10px 10px 0 0", borderBottom:"none", background:isDay?"rgba(240,210,170,.12)":"rgba(50,40,90,.2)", transform:"skewY(14deg)", transformOrigin:"top left", boxShadow:`inset 2px 0 8px ${c.shadow}` }}>
+      <div style={{ position:"absolute", left:"1%", top:"6%", width:"10%", height:"22%", border:`2px solid ${c.wood}`, borderRadius:"10px 10px 0 0", borderBottom:"none", background:isDay?"rgba(240,210,170,.12)":"rgba(50,40,90,.2)", transform:"skewY(-14deg)", transformOrigin:"top left", boxShadow:`inset 2px 0 8px ${c.shadow}` }}>
         <div style={{ position:"absolute", right:"22%", top:"50%", width:3, height:8, borderRadius:2, background:c.accent }} />
         <div style={{ position:"absolute", bottom:6, left:0, right:0, textAlign:"center", fontSize:7, color:c.ink, opacity:.5, fontFamily:"'Noto Serif SC',serif" }}>厨房</div>
       </div>
