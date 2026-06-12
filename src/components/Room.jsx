@@ -408,7 +408,7 @@ function RoomBg({ isDay, c }) {
 
 // ── 可交互家具热点 ──
 const FURNITURE = [
-  { id:"clock",       left:"49%", top:"24%" },
+  { id:"clock",       left:"50%", top:"15%" },
   { id:"polaroid",    left:"67%", top:"26%" },
   { id:"board",       left:"54%", top:"72%", floor:true },
   { id:"sofa",        left:"19%", top:"74%", transparent:true },
