@@ -362,16 +362,15 @@ function RoomBg({ isDay }) {
 }
 
 // ── 可交互家具热点 ──
-// 新图 941×1672（比例0.563），width:100%下图高约占手机屏82%
-// screen_top = image_y% × 0.82
+// 坐标是图片内百分比（941×1672），放在与图片等尺寸的容器里，不受屏幕高度影响
 const FURNITURE = [
   { id:"clock",       left:"41%", top:"10%", transparent:true },
   { id:"photostring", left:"39%", top:"16%", transparent:true, w:"clamp(56px,15vw,80px)", h:"clamp(20px,5vw,32px)" },
-  { id:"board",       left:"73%", top:"54%", floor:true, transparent:true },
-  { id:"sofa",        left:"46%", top:"26%", transparent:true, w:"clamp(70px,20vw,100px)", h:"clamp(24px,7vw,40px)" },
-  { id:"door",        left:"19%", top:"13%", transparent:true, h:"clamp(90px,25vw,150px)" },
-  { id:"kitchendoor", left:"7%",  top:"33%", transparent:true },
-  { id:"tv",          left:"82%", top:"38%", transparent:true },
+  { id:"board",       left:"73%", top:"55%", floor:true, transparent:true },
+  { id:"sofa",        left:"46%", top:"27%", transparent:true, w:"clamp(70px,20vw,100px)", h:"clamp(24px,7vw,40px)" },
+  { id:"door",        left:"19%", top:"14%", transparent:true, h:"clamp(90px,25vw,150px)" },
+  { id:"kitchendoor", left:"7%",  top:"40%", transparent:true },
+  { id:"tv",          left:"82%", top:"40%", transparent:true },
 ];
 
 // ── 主组件 ──
@@ -441,34 +440,40 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       {/* 糯糯 */}
       <NuonuoResident theme={t} onEnter={onEnterNuonuo} />
 
-      {/* 唱片机热点（左前角台灯旁，图里已有，此处只做BGM控制） */}
-      <div style={{ position:"absolute", left:"16%", top:"68%", transform:"translateX(-50%)", zIndex:6 }}>
-        <RecordPlayer isDay={isDay} c={c} bgmOn={bgmOn} onClick={() => setBgmOn(!bgmOn)} />
-      </div>
+      {/* 图片对齐层：与图片完全重合，内部坐标 = 图片内百分比，不受屏幕高度影响 */}
+      {/* 图片比例 941:1672，paddingBottom = 1672/941 = 177.7% */}
+      <div style={{ position:"absolute", top:0, left:0, width:"100%", paddingBottom:"177.7%", zIndex:5, pointerEvents:"none" }}>
+        <div style={{ position:"absolute", inset:0 }}>
+          {/* 唱片机 */}
+          <div style={{ position:"absolute", left:"18%", top:"79%", transform:"translate(-50%,-50%)", zIndex:6, pointerEvents:"auto" }}>
+            <RecordPlayer isDay={isDay} c={c} bgmOn={bgmOn} onClick={() => setBgmOn(!bgmOn)} />
+          </div>
 
-      {/* 家具热点 */}
-      {FURNITURE.map(obj => (
-        <button
-          key={obj.id}
-          onClick={() => handleClick(obj.id)}
-          onMouseEnter={e => { setHovered(obj.id); if (!obj.transparent) e.currentTarget.style.transform="translate(-50%,-50%) scale(1.08)"; }}
-          onMouseLeave={e => { setHovered(null); e.currentTarget.style.transform="translate(-50%,-50%)"; }}
-          style={{ position:"absolute", left:obj.left, top:obj.top, transform:"translate(-50%,-50%)", background:"none", border:"none", outline:"none", cursor:"pointer", zIndex:6, display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:4, borderRadius:8, transition:"transform .18s" }}
-        >
-          {!obj.transparent ? (
-            <>
-              {{ clock:<WallClock isDay={isDay} c={c}/>, photostring:<PhotoString isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/>, tv:<TVArea isDay={isDay} c={c}/> }[obj.id]}
-            </>
-          ) : (
-            <div style={{
-              width:  obj.w || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)"),
-              height: obj.h || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(80px,22vw,130px)" : "clamp(32px,9vw,56px)"),
-              borderRadius: (obj.id==="door"||obj.id==="kitchendoor") ? "4px 4px 0 0" : 6,
-              border: "none",
-            }} />
-          )}
-        </button>
-      ))}
+          {/* 家具热点 */}
+          {FURNITURE.map(obj => (
+            <button
+              key={obj.id}
+              onClick={() => handleClick(obj.id)}
+              onMouseEnter={e => { setHovered(obj.id); if (!obj.transparent) e.currentTarget.style.transform="translate(-50%,-50%) scale(1.08)"; }}
+              onMouseLeave={e => { setHovered(null); e.currentTarget.style.transform="translate(-50%,-50%)"; }}
+              style={{ position:"absolute", left:obj.left, top:obj.top, transform:"translate(-50%,-50%)", background:"none", border:"none", outline:"none", cursor:"pointer", zIndex:6, pointerEvents:"auto", display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:4, borderRadius:8, transition:"transform .18s" }}
+            >
+              {!obj.transparent ? (
+                <>
+                  {{ clock:<WallClock isDay={isDay} c={c}/>, photostring:<PhotoString isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/>, tv:<TVArea isDay={isDay} c={c}/> }[obj.id]}
+                </>
+              ) : (
+                <div style={{
+                  width:  obj.w || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)"),
+                  height: obj.h || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(80px,22vw,130px)" : "clamp(32px,9vw,56px)"),
+                  borderRadius: (obj.id==="door"||obj.id==="kitchendoor") ? "4px 4px 0 0" : 6,
+                  border: "none",
+                }} />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* 内容抽屉 */}
       {active && (
