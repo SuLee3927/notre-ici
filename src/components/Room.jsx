@@ -366,7 +366,7 @@ function RoomBg({ isDay }) {
 const FURNITURE = [
   { id:"clock",       left:"41%", top:"10%", transparent:true },
   { id:"photostring", left:"39%", top:"16%", transparent:true, w:"clamp(56px,15vw,80px)", h:"clamp(20px,5vw,32px)" },
-  { id:"board",       left:"73%", top:"59%", floor:true, transparent:true, w:"clamp(44px,12vw,68px)", h:"clamp(36px,10vw,60px)" },
+  { id:"board",       left:"73%", top:"62%", floor:true, transparent:true, w:"clamp(40px,11vw,62px)", h:"clamp(30px,8vw,50px)" },
   { id:"sofa",        left:"46%", top:"27%", transparent:true, w:"clamp(70px,20vw,100px)", h:"clamp(24px,7vw,40px)" },
   { id:"door",        left:"19%", top:"14%", transparent:true, h:"clamp(90px,25vw,150px)" },
   { id:"kitchendoor", left:"7%",  top:"40%", transparent:true },
@@ -456,7 +456,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
               onClick={() => handleClick(obj.id)}
               onMouseEnter={e => { setHovered(obj.id); if (!obj.transparent) e.currentTarget.style.transform="translate(-50%,-50%) scale(1.08)"; }}
               onMouseLeave={e => { setHovered(null); e.currentTarget.style.transform="translate(-50%,-50%)"; }}
-              style={{ position:"absolute", left:obj.left, top:obj.top, transform:"translate(-50%,-50%)", background:"none", border:"none", outline:"none", cursor:"pointer", zIndex:6, pointerEvents:"auto", display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:4, borderRadius:8, transition:"transform .18s" }}
+              style={{ position:"absolute", left:obj.left, top:obj.top, transform:"translate(-50%,-50%)", background:"none", border:"none", outline:"none", cursor:"pointer", zIndex:6, pointerEvents:"auto", display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding: obj.transparent ? 0 : 4, borderRadius:8, transition:"transform .18s" }}
             >
               {!obj.transparent ? (
                 <>
