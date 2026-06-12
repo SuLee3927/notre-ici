@@ -369,7 +369,7 @@ const FURNITURE = [
   { id:"photostring", left:"39%", top:"16%", transparent:true, w:"clamp(56px,15vw,80px)", h:"clamp(20px,5vw,32px)" },
   { id:"board",       left:"73%", top:"44%", floor:true, transparent:true },
   { id:"sofa",        left:"46%", top:"26%", transparent:true, w:"clamp(70px,20vw,100px)", h:"clamp(24px,7vw,40px)" },
-  { id:"door",        left:"19%", top:"9%",  transparent:true, h:"clamp(100px,28vw,168px)" },
+  { id:"door",        left:"19%", top:"13%", transparent:true, h:"clamp(90px,25vw,150px)" },
   { id:"kitchendoor", left:"7%",  top:"33%", transparent:true },
   { id:"tv",          left:"87%", top:"27%", transparent:true },
 ];
