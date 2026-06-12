@@ -287,15 +287,20 @@ function PolaroidWall({ isDay, c }) {
   );
 }
 
-// ── 留言板 ──
+// ── 留言板（立牌式）──
 function NoteBoard({ isDay, c }) {
   const note1 = isDay ? "#FFF9C4" : "#2a2850";
   const note2 = isDay ? "#FFE0B2" : "#221e40";
   return (
-    <div style={{ width:58, height:42, background:c.wood, borderRadius:3, padding:4, boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
-      <div style={{ position:"absolute", top:-4, left:"50%", transform:"translateX(-50%)", width:8, height:8, borderRadius:"50%", background:c.accent, boxShadow:`0 1px 3px ${c.shadow}` }} />
-      <div style={{ width:"100%", height:"44%", background:note1, borderRadius:2, marginBottom:2, opacity:.88 }} />
-      <div style={{ width:"78%", height:"38%", background:note2, borderRadius:2, transform:"rotate(-3deg)", marginLeft:2, opacity:.82 }} />
+    <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
+      {/* 板面 */}
+      <div style={{ width:54, height:40, background:c.wood, borderRadius:3, padding:4, boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
+        <div style={{ width:"100%", height:"44%", background:note1, borderRadius:2, marginBottom:2, opacity:.88 }} />
+        <div style={{ width:"78%", height:"38%", background:note2, borderRadius:2, transform:"rotate(-3deg)", marginLeft:2, opacity:.82 }} />
+      </div>
+      {/* 支架 */}
+      <div style={{ width:2, height:10, background:c.woodDk, opacity:.7 }} />
+      <div style={{ width:22, height:3, background:c.woodDk, borderRadius:2, opacity:.6 }} />
     </div>
   );
 }
@@ -403,9 +408,9 @@ function RoomBg({ isDay, c }) {
 
 // ── 可交互家具热点 ──
 const FURNITURE = [
-  { id:"clock",       left:"44%", top:"24%" },
-  { id:"polaroid",    left:"67%", top:"19%" },
-  { id:"board",       left:"54%", top:"33%" },
+  { id:"clock",       left:"49%", top:"24%" },
+  { id:"polaroid",    left:"67%", top:"26%" },
+  { id:"board",       left:"54%", top:"72%", floor:true },
   { id:"sofa",        left:"19%", top:"74%", transparent:true },
   { id:"door",        left:"86%", top:"40%", transparent:true },
   { id:"kitchendoor", left:"23%", top:"36%", transparent:true },
