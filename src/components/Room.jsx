@@ -181,25 +181,33 @@ function NuonuoResident({ theme: t, onEnter }) {
   );
 }
 
-// ── 游戏箱（侧视角，贴右墙） ──
-function GameBox({ isDay, c }) {
+// ── 电视区（右墙：电视+电视柜+游戏机）──
+function TVArea({ isDay, c }) {
   return (
-    <div style={{ position:"relative", width:18, height:44 }}>
-      {/* 矮柜侧面 */}
-      <div style={{ width:18, height:40, background:c.wood, borderRadius:"3px 0 0 3px", boxShadow:`-4px 3px 12px ${c.shadow}`, position:"relative" }}>
-        {/* 屏幕侧面 */}
-        <div style={{ position:"absolute", left:2, top:5, width:14, height:16, background:isDay?"#3a2510":"#1a1040", borderRadius:1 }}>
-          <div style={{ textAlign:"center", fontSize:9, lineHeight:"16px" }}>🎮</div>
-        </div>
-        {/* 按钮 */}
-        <div style={{ position:"absolute", left:3, top:26, width:12, height:3, background:c.accent, borderRadius:1, opacity:.7 }} />
-        <div style={{ position:"absolute", left:3, top:31, display:"flex", gap:3 }}>
-          {[c.accent, c.woodDk].map((col,i) => (
-            <div key={i} style={{ width:4, height:4, borderRadius:"50%", background:col, opacity:.7 }} />
-          ))}
+    <div style={{ position:"relative", width:58, height:76 }}>
+      {/* 电视屏 */}
+      <div style={{ width:58, height:32, background:isDay?"#141428":"#070710", borderRadius:4, border:`2px solid ${c.woodDk}`, boxShadow:`0 2px 12px ${c.shadow}`, position:"relative" }}>
+        <div style={{ position:"absolute", inset:3, background:isDay?"#182035":"#04040e", borderRadius:2 }}>
+          <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 35% 30%,rgba(60,120,220,.22),transparent 70%)", borderRadius:2 }} />
+          {!isDay && <div style={{ position:"absolute", top:"22%", left:"18%", width:2, height:2, borderRadius:"50%", background:"#E0D8FF", boxShadow:"0 0 4px 1px rgba(200,180,255,.45)" }} />}
         </div>
       </div>
-      {[2, 12].map((x,i) => <div key={i} style={{ position:"absolute", bottom:-3, left:x, width:3, height:4, background:c.woodDk, borderRadius:"0 0 2px 2px" }} />)}
+      {/* 支撑 */}
+      <div style={{ width:10, height:4, background:c.woodDk, margin:"0 auto", borderRadius:"0 0 2px 2px" }} />
+      {/* 电视柜 */}
+      <div style={{ width:58, height:26, background:c.wood, borderRadius:3, boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
+        {/* 游戏机 */}
+        <div style={{ position:"absolute", left:5, top:4, width:18, height:13, background:c.woodDk, borderRadius:2, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <span style={{ fontSize:8 }}>🎮</span>
+        </div>
+        <div style={{ position:"absolute", left:0, right:0, top:"48%", height:1, background:c.border, opacity:.5 }} />
+        <div style={{ position:"absolute", right:8, top:"28%", width:8, height:2, background:c.border, borderRadius:1, opacity:.65 }} />
+        <div style={{ position:"absolute", right:8, top:"66%", width:8, height:2, background:c.border, borderRadius:1, opacity:.65 }} />
+      </div>
+      {/* 柜脚 */}
+      {[5,47].map((x,i)=>(
+        <div key={i} style={{ position:"absolute", bottom:-4, left:x, width:4, height:5, background:c.woodDk, borderRadius:"0 0 2px 2px" }} />
+      ))}
     </div>
   );
 }
@@ -260,49 +268,52 @@ function WallClock({ isDay, c }) {
   );
 }
 
-// ── 拍立得照片墙 ──
-const POLAROIDS = [
-  { date:"5.8",  label:"第一天", rotate:-9  },
-  { date:"5.13", label:"那句话", rotate:5   },
-  { date:"6.7",  label:"连上了", rotate:-3  },
+// ── 照片绳（横线+夹子+小照片）──
+const PHOTO_ITEMS = [
+  { rot:-6, label:"5.8"  },
+  { rot: 4, label:"5.13" },
+  { rot:-2, label:"6.7"  },
+  { rot: 5, label:"6.8"  },
 ];
-function PolaroidWall({ isDay, c }) {
+function PhotoString({ isDay, c }) {
   const paper = isDay ? "#FFFDF8" : "#2a2850";
   return (
-    <div style={{ position:"relative", width:76, height:56 }}>
-      {POLAROIDS.map((p,i) => (
-        <div key={i} style={{
-          position:"absolute", left:i*18, top:i%2===0?0:8,
-          width:32, height:38,
-          background:paper,
-          boxShadow:`0 2px 7px ${c.shadow}`,
-          borderRadius:2,
-          transform:`rotate(${p.rotate}deg)`,
-          padding:"3px 3px 8px",
-          display:"flex", flexDirection:"column", alignItems:"center",
-        }}>
-          <div style={{ flex:1, width:"100%", background:isDay?"rgba(220,170,110,.25)":"rgba(100,80,200,.2)", borderRadius:1 }} />
-          <div style={{ fontSize:6, color:c.ink, fontFamily:"sans-serif", marginTop:2, opacity:.65 }}>{p.date} {p.label}</div>
+    <div style={{ position:"relative", width:96, height:56 }}>
+      {/* 横绳 */}
+      <div style={{ position:"absolute", top:7, left:0, right:0, height:1.5, background:c.woodDk, opacity:.6, borderRadius:1 }} />
+      {PHOTO_ITEMS.map((p,i) => (
+        <div key={i} style={{ position:"absolute", left:i*22+2, top:0 }}>
+          {/* 夹子 */}
+          <div style={{ width:5, height:6, background:c.wood, borderRadius:"2px 2px 0 0", margin:"0 auto", opacity:.82 }} />
+          {/* 照片 */}
+          <div style={{ width:18, height:24, background:paper, transform:`rotate(${p.rot}deg)`, boxShadow:`0 2px 5px ${c.shadow}`, padding:"2px 2px 5px", borderRadius:1 }}>
+            <div style={{ width:"100%", height:"70%", background:isDay?"rgba(200,160,100,.18)":"rgba(80,60,150,.18)", borderRadius:1 }} />
+            <div style={{ fontSize:5, color:c.ink, textAlign:"center", marginTop:2, opacity:.6 }}>{p.label}</div>
+          </div>
         </div>
       ))}
     </div>
   );
 }
 
-// ── 留言板（立牌式）──
+// ── 留言板（A字立牌）──
 function NoteBoard({ isDay, c }) {
   const note1 = isDay ? "#FFF9C4" : "#2a2850";
   const note2 = isDay ? "#FFE0B2" : "#221e40";
   return (
     <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
       {/* 板面 */}
-      <div style={{ width:54, height:40, background:c.wood, borderRadius:3, padding:4, boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
+      <div style={{ width:52, height:38, background:c.wood, borderRadius:3, padding:4, boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
         <div style={{ width:"100%", height:"44%", background:note1, borderRadius:2, marginBottom:2, opacity:.88 }} />
         <div style={{ width:"78%", height:"38%", background:note2, borderRadius:2, transform:"rotate(-3deg)", marginLeft:2, opacity:.82 }} />
       </div>
-      {/* 支架 */}
-      <div style={{ width:2, height:10, background:c.woodDk, opacity:.7 }} />
-      <div style={{ width:22, height:3, background:c.woodDk, borderRadius:2, opacity:.6 }} />
+      {/* A字脚架 */}
+      <div style={{ position:"relative", width:56, height:18 }}>
+        <div style={{ position:"absolute", left:5, top:0, width:2.5, height:18, background:c.woodDk, transform:"rotate(-14deg)", transformOrigin:"top center", borderRadius:1, opacity:.75 }} />
+        <div style={{ position:"absolute", right:5, top:0, width:2.5, height:18, background:c.woodDk, transform:"rotate(14deg)", transformOrigin:"top center", borderRadius:1, opacity:.75 }} />
+        {/* A字横档 */}
+        <div style={{ position:"absolute", left:"28%", right:"28%", top:"44%", height:1.5, background:c.woodDk, opacity:.5 }} />
+      </div>
     </div>
   );
 }
@@ -345,8 +356,8 @@ function RoomDecor({ isDay, c }) {
       <div style={{ position:"absolute", left:"18%", top:"52%", width:"58%", height:"26%", background:isDay?"rgba(210,155,90,.16)":"rgba(90,70,160,.16)", borderRadius:20, border:`1.5px solid ${c.border}`, transform:"perspective(600px) rotateX(32deg)", transformOrigin:"top center", boxShadow:`0 2px 8px ${c.shadow}` }}>
         <div style={{ position:"absolute", inset:7, borderRadius:14, border:`1px solid ${c.border}`, opacity:.5 }} />
       </div>
-      {/* 沙发（正视图，紧贴后墙底部，窗户下方） */}
-      <div style={{ position:"absolute", left:"28%", top:"28%", width:"52%" }}>
+      {/* 沙发（正视图，紧贴后墙底部，居中偏左） */}
+      <div style={{ position:"absolute", left:"22%", top:"28%", width:"50%" }}>
         <div style={{ width:"100%", height:46, background:c.fabric, borderRadius:"10px 10px 0 0", boxShadow:`0 4px 14px ${c.shadow}`, position:"relative" }}>
           <div style={{ position:"absolute", left:0, top:0, bottom:-22, width:12, background:c.fabricDk, borderRadius:"10px 0 0 5px", opacity:.8 }} />
           <div style={{ position:"absolute", right:0, top:0, bottom:-22, width:12, background:c.fabricDk, borderRadius:"0 10px 5px 0", opacity:.8 }} />
@@ -369,6 +380,13 @@ function RoomDecor({ isDay, c }) {
         {[{l:"4%",t:"-55%",w:12,d:-28},{l:"38%",t:"-72%",w:14,d:0},{l:"58%",t:"-48%",w:11,d:24}].map((lf,i) => (
           <div key={i} style={{ position:"absolute", left:lf.l, top:lf.t, width:lf.w, height:lf.w*1.6, background:isDay?"#6AAF60":"#4A7A60", borderRadius:"50% 50% 50% 0", transform:`rotate(${lf.d}deg)`, opacity:.88 }} />
         ))}
+      </div>
+      {/* 小凳子（电视柜前方） */}
+      <div style={{ position:"absolute", left:"82%", top:"50%" }}>
+        <div style={{ width:22, height:8, background:c.fabric, borderRadius:3, boxShadow:`0 2px 5px ${c.shadow}` }} />
+        <div style={{ display:"flex", justifyContent:"space-between", padding:"0 3px" }}>
+          {[0,1].map(i=><div key={i} style={{ width:3, height:9, background:c.woodDk, borderRadius:"0 0 2px 2px" }} />)}
+        </div>
       </div>
     </>
   );
@@ -406,8 +424,8 @@ function RoomBg({ isDay, c }) {
       {/* 棱线：右侧墙/后墙交角 */}
       <div style={{ position:"absolute", inset:0, background:c.wood, opacity:.35, clipPath:"polygon(83.5% 6%, 84.5% 6%, 84.5% 30%, 83.5% 30%)" }} />
 
-      {/* ── 窗户（后墙右侧） ── */}
-      <div style={{ position:"absolute", left:"62%", top:"7%", width:"19%", height:"19%", border:`2px solid ${c.wood}`, borderRadius:4, background:c.glass, overflow:"hidden", boxShadow:`0 2px 10px ${c.shadow}` }}>
+      {/* ── 窗户（后墙偏右，采光主角，更大） ── */}
+      <div style={{ position:"absolute", left:"56%", top:"7%", width:"25%", height:"21%", border:`2px solid ${c.wood}`, borderRadius:4, background:c.glass, overflow:"hidden", boxShadow:`0 2px 12px ${c.shadow}` }}>
         <div style={{ position:"absolute", left:0, right:0, top:"50%", height:1.5, background:c.wood, opacity:.4 }} />
         <div style={{ position:"absolute", left:"50%", top:0, bottom:0, width:1.5, background:c.wood, opacity:.4 }} />
         {isDay
@@ -433,13 +451,13 @@ function RoomBg({ isDay, c }) {
 
 // ── 可交互家具热点 ──
 const FURNITURE = [
-  { id:"clock",       left:"50%", top:"12%" },
-  { id:"polaroid",    left:"70%", top:"14%" },
-  { id:"board",       left:"83%", top:"72%", floor:true },
-  { id:"sofa",        left:"50%", top:"38%", transparent:true },
+  { id:"clock",       left:"42%", top:"12%" },
+  { id:"photostring", left:"42%", top:"22%" },
+  { id:"board",       left:"68%", top:"74%", floor:true },
+  { id:"sofa",        left:"48%", top:"37%", transparent:true },
   { id:"door",        left:"23%", top:"18%", transparent:true },
   { id:"kitchendoor", left:"7%",  top:"26%", transparent:true },
-  { id:"gamebox",     left:"92%", top:"56%" },
+  { id:"tv",          left:"89%", top:"20%" },
 ];
 
 // ── 主组件 ──
@@ -464,7 +482,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         </div>
       </div>
     ),
-    polaroid: <Timeline theme={t} />,
+    photostring: <Timeline theme={t} />,
     board:    <GiftBoard theme={t} />,
     sofa:     <StatusToday theme={t} />,
     kitchendoor: (
@@ -474,9 +492,9 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在装修中，快了快了...</div>
       </div>
     ),
-    gamebox: (
+    tv: (
       <div style={{ padding:"24px 20px 12px", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:20, textAlign:"center" }}>游戏箱</div>
+        <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:20, textAlign:"center" }}>游戏区</div>
         <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, marginBottom:10 }}>
           <div style={{ fontSize:24 }}>🎰</div>
           <div style={{ flex:1 }}>
@@ -509,8 +527,8 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       {/* 糯糯 */}
       <NuonuoResident theme={t} onEnter={onEnterNuonuo} />
 
-      {/* 唱片机（地板左侧） */}
-      <div style={{ position:"absolute", left:"28%", top:"46%", transform:"translateX(-50%)", zIndex:6 }}>
+      {/* 唱片机（左前角，R位置） */}
+      <div style={{ position:"absolute", left:"14%", top:"56%", transform:"translateX(-50%)", zIndex:6 }}>
         <RecordPlayer isDay={isDay} c={c} bgmOn={bgmOn} onClick={() => setBgmOn(!bgmOn)} />
       </div>
 
@@ -525,7 +543,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         >
           {!obj.transparent ? (
             <>
-              {{ clock:<WallClock isDay={isDay} c={c}/>, polaroid:<PolaroidWall isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/>, gamebox:<GameBox isDay={isDay} c={c}/> }[obj.id]}
+              {{ clock:<WallClock isDay={isDay} c={c}/>, photostring:<PhotoString isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/>, tv:<TVArea isDay={isDay} c={c}/> }[obj.id]}
             </>
           ) : (
             <div style={{
