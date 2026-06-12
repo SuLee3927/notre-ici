@@ -27,48 +27,38 @@ export default function App() {
 
   useEffect(() => {
     if (!audioRef.current) return;
-    if (bgmOn && !showNuonuo) {
+    if (bgmOn && !showNuonuo && !showPrivate) {
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
     }
-  }, [bgmOn, showNuonuo]);
+  }, [bgmOn, showNuonuo, showPrivate]);
 
   useEffect(() => {
     if (!audioRef.current) return;
     const wasPlaying = bgmOn;
     audioRef.current.src = BGM[mode];
-    if (wasPlaying) audioRef.current.play().catch(() => {});
+    if (wasPlaying && !showNuonuo && !showPrivate) audioRef.current.play().catch(() => {});
   }, [mode]);
-
-  if (showNuonuo) {
-    return <NuonuoSpace onClose={() => setShowNuonuo(false)} mode={mode} />;
-  }
-
-  if (showPrivate) {
-    return <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />;
-  }
-
-  if (!entered) {
-    return (
-      <>
-        <audio ref={audioRef} loop src={BGM[mode]} style={{ display: "none" }} />
-        <Gate theme={t} onEnter={() => { setEntered(true); setBgmOn(true); }} />
-      </>
-    );
-  }
 
   return (
     <>
       <audio ref={audioRef} loop src={BGM[mode]} style={{ display: "none" }} />
-      <Room
-        theme={t}
-        bgmOn={bgmOn}
-        setBgmOn={setBgmOn}
-        mode={mode}
-        onEnterPrivate={() => setShowPrivate(true)}
-        onEnterNuonuo={() => setShowNuonuo(true)}
-      />
+      {showNuonuo && <NuonuoSpace onClose={() => setShowNuonuo(false)} mode={mode} />}
+      {!showNuonuo && showPrivate && <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />}
+      {!showNuonuo && !showPrivate && !entered && (
+        <Gate theme={t} onEnter={() => { setEntered(true); setBgmOn(true); }} />
+      )}
+      {!showNuonuo && !showPrivate && entered && (
+        <Room
+          theme={t}
+          bgmOn={bgmOn}
+          setBgmOn={setBgmOn}
+          mode={mode}
+          onEnterPrivate={() => setShowPrivate(true)}
+          onEnterNuonuo={() => setShowNuonuo(true)}
+        />
+      )}
     </>
   );
 }

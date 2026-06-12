@@ -32,11 +32,11 @@ function sc(isDay) {
 }
 
 const STUDY_ITEMS = [
-  { id:"desk",      left:"30%", top:"68%", label:"书桌",  },
-  { id:"bookshelf", left:"72%", top:"32%", label:"书架",  },
-  { id:"diary",     left:"48%", top:"26%", label:"日记本" },
-  { id:"drawer",    left:"20%", top:"42%", label:"抽屉",  },
-  { id:"photos",    left:"58%", top:"72%", label:"相册",  },
+  { id:"desk",      left:"26%", top:"70%", label:"书桌"   },
+  { id:"bookshelf", left:"76%", top:"30%", label:"书架"   },
+  { id:"diary",     left:"22%", top:"62%", label:"日记本" },
+  { id:"drawer",    left:"10%", top:"70%", label:"抽屉"   },
+  { id:"photos",    left:"54%", top:"26%", label:"相册"   },
 ];
 
 function StudyBg({ isDay, c }) {
