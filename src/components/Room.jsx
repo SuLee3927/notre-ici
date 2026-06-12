@@ -399,9 +399,9 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     sofa:     <StatusToday theme={t} />,
     kitchendoor: (
       <div style={{ padding:"32px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:36, marginBottom:14 }}>🍳</div>
-        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>厨房</div>
-        <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在装修中，快了快了...</div>
+        <div style={{ fontSize:36, marginBottom:14 }}>🛏️</div>
+        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>糯糯的房间</div>
+        <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>小家伙的秘密基地，正在布置中...</div>
       </div>
     ),
     tv: (
