@@ -344,7 +344,7 @@ function RoomDecor({ isDay, c }) {
         <div style={{ position:"absolute", inset:5, borderRadius:8, border:`1px solid ${c.border}`, opacity:.5 }} />
       </div>
       {/* 沙发（侧视图，靠右墙，宽度≈窗户） */}
-      <div style={{ position:"absolute", right:0, top:`${WALL_H+4}%` }}>
+      <div style={{ position:"absolute", right:0, top:`${WALL_H+0}%` }}>
         <div style={{ display:"flex", alignItems:"flex-end" }}>
           {/* 坐垫（向左延伸） */}
           <div style={{ width:"26vw", height:22, background:c.fabric, borderRadius:"4px 0 2px 0", boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
@@ -362,13 +362,13 @@ function RoomDecor({ isDay, c }) {
         </div>
       </div>
       {/* 台灯（沙发左边） */}
-      <div style={{ position:"absolute", right:"28%", top:`${WALL_H+5}%` }}>
+      <div style={{ position:"absolute", right:"28%", top:`${WALL_H+1}%` }}>
         <div style={{ width:20, height:13, background:c.wood, clipPath:"polygon(10% 100%,90% 100%,100% 0%,0% 0%)", boxShadow:isDay?"0 0 16px 6px rgba(255,200,80,.3)":"0 0 16px 6px rgba(160,120,255,.22)" }} />
         <div style={{ width:2, height:16, background:c.woodDk, margin:"0 auto" }} />
         <div style={{ width:13, height:3, background:c.woodDk, borderRadius:2, margin:"0 auto" }} />
       </div>
       {/* 角落植物（左下角，门旁） */}
-      <div style={{ position:"absolute", left:"1.5%", top:`${WALL_H+14}%` }}>
+      <div style={{ position:"absolute", left:"1.5%", top:`${WALL_H+2}%` }}>
         <div style={{ width:18, height:13, background:c.wood, clipPath:"polygon(5% 0%,95% 0%,85% 100%,15% 100%)", margin:"0 auto" }} />
         {[{l:"4%",t:"-55%",w:12,d:-28},{l:"38%",t:"-72%",w:14,d:0},{l:"58%",t:"-48%",w:11,d:24}].map((lf,i) => (
           <div key={i} style={{ position:"absolute", left:lf.l, top:lf.t, width:lf.w, height:lf.w*1.6, background:isDay?"#6AAF60":"#4A7A60", borderRadius:"50% 50% 50% 0", transform:`rotate(${lf.d}deg)`, opacity:.88 }} />
@@ -423,12 +423,12 @@ function RoomBg({ isDay, c }) {
 // ── 可交互家具热点 ──
 const FURNITURE = [
   { id:"clock",       left:"50%", top:"15%" },
-  { id:"polaroid",    left:"62%", top:"22%" },
+  { id:"polaroid",    left:"62%", top:"42%" },
   { id:"board",       left:"85%", top:"86%", floor:true },
   { id:"sofa",        left:"87%", top:"73%", transparent:true },
   { id:"door",        left:"29%", top:"35%", transparent:true },
   { id:"kitchendoor", left:"10%", top:"33%", transparent:true },
-  { id:"gamebox",     left:"55%", top:"63%" },
+  { id:"gamebox",     left:"58%", top:"58%" },
 ];
 
 // ── 主组件 ──
