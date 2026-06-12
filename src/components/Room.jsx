@@ -371,7 +371,7 @@ const FURNITURE = [
   { id:"door",        left:"19%", top:"14%", transparent:true, h:"clamp(90px,25vw,150px)" },
   { id:"kitchendoor", left:"7%",  top:"40%", transparent:true },
   { id:"tv",          left:"82%", top:"33%", transparent:true, w:"clamp(40px,11vw,64px)", h:"clamp(32px,9vw,56px)" },
-  { id:"record",      left:"88%", top:"79%", transparent:true, w:"clamp(44px,12vw,68px)", h:"clamp(48px,13vw,78px)" },
+  { id:"record",      left:"92%", top:"79%", transparent:true, w:"clamp(32px,9vw,52px)", h:"clamp(44px,12vw,72px)" },
 ];
 
 // ── 主组件 ──
