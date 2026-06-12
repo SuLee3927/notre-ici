@@ -190,24 +190,48 @@ function WallClock({ isDay, c }) {
   }, []);
   const hDeg = (now.getHours() % 12) * 30 + now.getMinutes() * 0.5;
   const mDeg = now.getMinutes() * 6;
+  const rim  = isDay ? "#C8946A" : "#7a5080";
+  const face = isDay ? "#FFF8F0" : "#1e1c38";
+  const num  = isDay ? "#8B5A3A" : "#A080C0";
+  const hand = isDay ? "#5A3020" : "#D0B8FF";
   return (
     <div style={{ pointerEvents:"none" }}>
-      <svg width={50} height={50} viewBox="0 0 50 50">
-        <circle cx="25" cy="25" r="23" fill={isDay?"#FFF8F0":"#1e1c38"} stroke={c.wood} strokeWidth="3"/>
-        {[0,30,60,90,120,150,180,210,240,270,300,330].map(d => (
+      <svg width={62} height={66} viewBox="0 0 62 66">
+        {/* 挂钩 */}
+        <path d="M28,4 Q31,1 34,4" fill="none" stroke={rim} strokeWidth="1.8" strokeLinecap="round"/>
+        {/* 木框 */}
+        <circle cx="31" cy="36" r="27" fill={rim}/>
+        {/* 内衬 */}
+        <circle cx="31" cy="36" r="24.5" fill={isDay?"#EEDBB0":"#2a1848"} opacity=".3"/>
+        {/* 表盘 */}
+        <circle cx="31" cy="36" r="23" fill={face}/>
+        {/* 罗马数字 */}
+        <text x="31" y="19" textAnchor="middle" fontSize="5.5" fill={num} fontFamily="Georgia,serif" opacity=".8">XII</text>
+        <text x="50" y="40" textAnchor="middle" fontSize="5.5" fill={num} fontFamily="Georgia,serif" opacity=".8">III</text>
+        <text x="31" y="58" textAnchor="middle" fontSize="5.5" fill={num} fontFamily="Georgia,serif" opacity=".8">VI</text>
+        <text x="12" y="40" textAnchor="middle" fontSize="5.5" fill={num} fontFamily="Georgia,serif" opacity=".8">IX</text>
+        {/* 小刻度（其余8个位置） */}
+        {[30,60,120,150,210,240,300,330].map(d => (
           <line key={d}
-            x1={25+17*Math.sin(d*Math.PI/180)} y1={25-17*Math.cos(d*Math.PI/180)}
-            x2={25+21*Math.sin(d*Math.PI/180)} y2={25-21*Math.cos(d*Math.PI/180)}
-            stroke={c.wood} strokeWidth={d%90===0?1.8:.7} strokeLinecap="round" opacity={.45}
+            x1={31+19*Math.sin(d*Math.PI/180)} y1={36-19*Math.cos(d*Math.PI/180)}
+            x2={31+22*Math.sin(d*Math.PI/180)} y2={36-22*Math.cos(d*Math.PI/180)}
+            stroke={num} strokeWidth=".8" strokeLinecap="round" opacity=".35"
           />
         ))}
-        <line x1="25" y1="25" x2={25+11*Math.sin(hDeg*Math.PI/180)} y2={25-11*Math.cos(hDeg*Math.PI/180)} stroke={c.ink} strokeWidth="2.2" strokeLinecap="round"/>
-        <line x1="25" y1="25" x2={25+17*Math.sin(mDeg*Math.PI/180)} y2={25-17*Math.cos(mDeg*Math.PI/180)} stroke={c.ink} strokeWidth="1.4" strokeLinecap="round"/>
-        <circle cx="25" cy="25" r="2" fill={c.accent}/>
+        {/* 时针（短粗） */}
+        <line
+          x1={31-3*Math.sin(hDeg*Math.PI/180)} y1={36+3*Math.cos(hDeg*Math.PI/180)}
+          x2={31+13*Math.sin(hDeg*Math.PI/180)} y2={36-13*Math.cos(hDeg*Math.PI/180)}
+          stroke={hand} strokeWidth="2.8" strokeLinecap="round"/>
+        {/* 分针（细长） */}
+        <line
+          x1={31-4*Math.sin(mDeg*Math.PI/180)} y1={36+4*Math.cos(mDeg*Math.PI/180)}
+          x2={31+19*Math.sin(mDeg*Math.PI/180)} y2={36-19*Math.cos(mDeg*Math.PI/180)}
+          stroke={hand} strokeWidth="1.5" strokeLinecap="round" opacity=".88"/>
+        {/* 中心轴 */}
+        <circle cx="31" cy="36" r="2.5" fill={rim}/>
+        <circle cx="31" cy="36" r="1.1" fill={face}/>
       </svg>
-      <div style={{ textAlign:"center", fontSize:8, color:c.ink, fontFamily:"sans-serif", marginTop:1, letterSpacing:".05em", opacity:.6 }}>
-        {String(now.getHours()).padStart(2,"0")}:{String(now.getMinutes()).padStart(2,"0")}
-      </div>
     </div>
   );
 }
