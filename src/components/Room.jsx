@@ -365,10 +365,10 @@ function RoomBg({ isDay }) {
 // 新图 941×1672（比例0.563），width:100%下图高约占手机屏82%
 // screen_top = image_y% × 0.82
 const FURNITURE = [
-  { id:"clock",       left:"41%", top:"7%",  transparent:true },
-  { id:"photostring", left:"35%", top:"13%", transparent:true, w:"clamp(60px,18vw,90px)", h:"clamp(22px,6vw,36px)" },
+  { id:"clock",       left:"41%", top:"10%", transparent:true },
+  { id:"photostring", left:"35%", top:"16%", transparent:true, w:"clamp(60px,18vw,90px)", h:"clamp(22px,6vw,36px)" },
   { id:"board",       left:"73%", top:"44%", floor:true, transparent:true },
-  { id:"sofa",        left:"40%", top:"22%", transparent:true, w:"clamp(80px,22vw,110px)", h:"clamp(24px,7vw,40px)" },
+  { id:"sofa",        left:"40%", top:"26%", transparent:true, w:"clamp(80px,22vw,110px)", h:"clamp(24px,7vw,40px)" },
   { id:"door",        left:"19%", top:"10%", transparent:true },
   { id:"kitchendoor", left:"7%",  top:"33%", transparent:true },
   { id:"tv",          left:"87%", top:"27%", transparent:true },
