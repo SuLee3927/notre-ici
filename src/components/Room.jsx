@@ -40,12 +40,11 @@ const YAWN_WORDS = ["呼～好困啊...", "眼睛要闭上了...", "打哈欠～
 function getNuonuoState() {
   const h = new Date().getHours();
   if (h >= 22 || h < 6)  return null; // 睡着了，不在客厅
-  if (h >= 6  && h < 10) return { left:"18%", top:"40%", words:"早呀 ☀️" };
-  if (h >= 10 && h < 14) return { left:"28%", top:"68%", words:"上午好～" };
-  if (h >= 14 && h < 18) return { left:"40%", top:"74%", words:"今天过得怎么样？" };
-  if (h >= 18 && h < 21) return { left:"84%", top:"62%", words:["快回来呀","这是什么...🤔","进不去嘤","快回来呀"][Math.floor(Date.now()/30000)%4], nearGameBox:true };
-  // 21-22: 在沙发上困了
-  return { left:"52%", top:"50%", words:YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length], sleepy:true };
+  if (h >= 6  && h < 10) return { left:"20%", top:"60%", words:"早呀 ☀️" };
+  if (h >= 10 && h < 14) return { left:"35%", top:"72%", words:"上午好～" };
+  if (h >= 14 && h < 18) return { left:"50%", top:"68%", words:"今天过得怎么样？" };
+  if (h >= 18 && h < 21) return { left:"75%", top:"62%", words:["快回来呀","这是什么...🤔","进不去嘤","快回来呀"][Math.floor(Date.now()/30000)%4], nearGameBox:true };
+  return { left:"45%", top:"55%", words:YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length], sleepy:true };
 }
 
 // ── 糯糯衣服图层（与 NuonuoSpace 保持一致）──
@@ -352,24 +351,27 @@ function RecordPlayer({ isDay, c, bgmOn, onClick }) {
 function RoomDecor() { return null; }
 
 // ── 房间背景（G老师插画，白天/夜晚各一张）──
+// 图片比例0.92≈正方形，width:100%不裁切，下方地板色延伸
 function RoomBg({ isDay }) {
   return (
-    <>
-      <img src="/room-bg.jpg" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top", opacity: isDay?1:0, transition:"opacity 1.2s ease" }} />
-      <img src="/room-bg-night.jpg" alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top", opacity: isDay?0:1, transition:"opacity 1.2s ease" }} />
-    </>
+    <div style={{ position:"absolute", inset:0, background: isDay?"#C4A070":"#1a1008" }}>
+      <img src="/room-bg.jpg"       alt="" style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto", opacity:isDay?1:0, transition:"opacity 1.2s ease" }} />
+      <img src="/room-bg-night.jpg" alt="" style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto", opacity:isDay?0:1, transition:"opacity 1.2s ease" }} />
+    </div>
   );
 }
 
 // ── 可交互家具热点 ──
+// 热点坐标：图片 width:100% height:auto，图片高约占屏幕50%
+// x直接对应图片x%，y = 图片y% × ~0.5（屏幕比例）
 const FURNITURE = [
-  { id:"clock",       left:"34%", top:"26%", transparent:true },
-  { id:"photostring", left:"38%", top:"37%", transparent:true },
-  { id:"board",       left:"76%", top:"82%", floor:true, transparent:true },
-  { id:"sofa",        left:"42%", top:"52%", transparent:true },
-  { id:"door",        left:"17%", top:"41%", transparent:true },
-  { id:"kitchendoor", left:"5%",  top:"56%", transparent:true },
-  { id:"tv",          left:"86%", top:"53%", transparent:true },
+  { id:"clock",       left:"42%", top:"7%",  transparent:true },
+  { id:"photostring", left:"33%", top:"17%", transparent:true },
+  { id:"board",       left:"81%", top:"40%", floor:true, transparent:true },
+  { id:"sofa",        left:"50%", top:"24%", transparent:true },
+  { id:"door",        left:"24%", top:"14%", transparent:true },
+  { id:"kitchendoor", left:"8%",  top:"9%",  transparent:true },
+  { id:"tv",          left:"84%", top:"29%", transparent:true },
 ];
 
 // ── 主组件 ──
