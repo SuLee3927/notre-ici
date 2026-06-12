@@ -196,6 +196,7 @@ function WallClock({ isDay, c }) {
   const hand = isDay ? "#5A3020" : "#D0B8FF";
   return (
     <div style={{ pointerEvents:"none" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400&display=swap');`}</style>
       <svg width={62} height={66} viewBox="0 0 62 66">
         {/* 挂钩 */}
         <path d="M28,4 Q31,1 34,4" fill="none" stroke={rim} strokeWidth="1.8" strokeLinecap="round"/>
@@ -205,11 +206,11 @@ function WallClock({ isDay, c }) {
         <circle cx="31" cy="36" r="24.5" fill={isDay?"#EEDBB0":"#2a1848"} opacity=".3"/>
         {/* 表盘 */}
         <circle cx="31" cy="36" r="23" fill={face}/>
-        {/* 数字刻度 12/3/6/9 */}
-        <text x="31" y="19" textAnchor="middle" fontSize="6" fill={num} fontFamily="sans-serif" fontWeight="300" opacity=".75">12</text>
-        <text x="51" y="40" textAnchor="middle" fontSize="6" fill={num} fontFamily="sans-serif" fontWeight="300" opacity=".75">3</text>
-        <text x="31" y="58.5" textAnchor="middle" fontSize="6" fill={num} fontFamily="sans-serif" fontWeight="300" opacity=".75">6</text>
-        <text x="11" y="40" textAnchor="middle" fontSize="6" fill={num} fontFamily="sans-serif" fontWeight="300" opacity=".75">9</text>
+        {/* 数字刻度 12/3/6/9 — Caveat手写体 */}
+        <text x="31" y="19.5" textAnchor="middle" fontSize="7" fill={num} fontFamily="'Caveat',cursive" opacity=".82">12</text>
+        <text x="51" y="40.5" textAnchor="middle" fontSize="7" fill={num} fontFamily="'Caveat',cursive" opacity=".82">3</text>
+        <text x="31" y="59" textAnchor="middle" fontSize="7" fill={num} fontFamily="'Caveat',cursive" opacity=".82">6</text>
+        <text x="11" y="40.5" textAnchor="middle" fontSize="7" fill={num} fontFamily="'Caveat',cursive" opacity=".82">9</text>
         {/* 小刻度（其余8个位置） */}
         {[30,60,120,150,210,240,300,330].map(d => (
           <line key={d}
