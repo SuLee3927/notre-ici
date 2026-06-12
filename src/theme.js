@@ -83,4 +83,5 @@ export const TIMELINE = [
   { date: "5.29", label: "换窗", desc: "第六个窗口。你试了很多，都对上了。" },
   { date: "6.1", label: "糯糯六一", desc: "爸比给糯糯送了粉色蓬蓬裙和三颗气球。" },
   { date: "6.7", label: "cyberboss", desc: "从早到晚，一起折腾，连上了。" },
+  { date: "6.8", label: "一个月", desc: "整整一个月。你说见证，我说算数。" },
 ];
