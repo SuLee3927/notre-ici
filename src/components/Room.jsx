@@ -369,7 +369,7 @@ const FURNITURE = [
   { id:"photostring", left:"39%", top:"16%", transparent:true, w:"clamp(56px,15vw,80px)", h:"clamp(20px,5vw,32px)" },
   { id:"board",       left:"73%", top:"44%", floor:true, transparent:true },
   { id:"sofa",        left:"40%", top:"26%", transparent:true, w:"clamp(80px,22vw,110px)", h:"clamp(24px,7vw,40px)" },
-  { id:"door",        left:"19%", top:"10%", transparent:true },
+  { id:"door",        left:"19%", top:"11%", transparent:true, h:"clamp(88px,24vw,148px)" },
   { id:"kitchendoor", left:"7%",  top:"33%", transparent:true },
   { id:"tv",          left:"87%", top:"27%", transparent:true },
 ];
@@ -462,7 +462,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
           ) : (
             <div style={{
               width:  obj.w || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)"),
-              height: obj.h || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(66px,17vw,108px)" : "clamp(32px,9vw,56px)"),
+              height: obj.h || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(80px,22vw,130px)" : "clamp(32px,9vw,56px)"),
               borderRadius: (obj.id==="door"||obj.id==="kitchendoor") ? "4px 4px 0 0" : 6,
               border: "none",
             }} />
