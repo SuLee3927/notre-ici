@@ -371,6 +371,7 @@ const FURNITURE = [
   { id:"door",        left:"19%", top:"14%", transparent:true, h:"clamp(90px,25vw,150px)" },
   { id:"kitchendoor", left:"7%",  top:"40%", transparent:true },
   { id:"tv",          left:"82%", top:"33%", transparent:true, w:"clamp(40px,11vw,64px)", h:"clamp(32px,9vw,56px)" },
+  { id:"record",      left:"88%", top:"79%", transparent:true, w:"clamp(44px,12vw,68px)", h:"clamp(48px,13vw,78px)" },
 ];
 
 // ── 主组件 ──
@@ -444,11 +445,6 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       {/* 图片比例 941:1672，paddingBottom = 1672/941 = 177.7% */}
       <div style={{ position:"absolute", top:0, left:0, width:"100%", paddingBottom:"177.7%", zIndex:5, pointerEvents:"none" }}>
         <div style={{ position:"absolute", inset:0 }}>
-          {/* 唱片机 */}
-          <div style={{ position:"absolute", left:"18%", top:"79%", transform:"translate(-50%,-50%)", zIndex:6, pointerEvents:"auto" }}>
-            <RecordPlayer isDay={isDay} c={c} bgmOn={bgmOn} onClick={() => setBgmOn(!bgmOn)} />
-          </div>
-
           {/* 家具热点 */}
           {FURNITURE.map(obj => (
             <button
@@ -463,12 +459,16 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
                   {{ clock:<WallClock isDay={isDay} c={c}/>, photostring:<PhotoString isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/>, tv:<TVArea isDay={isDay} c={c}/> }[obj.id]}
                 </>
               ) : (
-                <div style={{
+                <div style={{ position:"relative",
                   width:  obj.w || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(40px,11vw,66px)" : "clamp(56px,26vw,148px)"),
                   height: obj.h || ((obj.id==="door"||obj.id==="kitchendoor") ? "clamp(80px,22vw,130px)" : "clamp(32px,9vw,56px)"),
                   borderRadius: (obj.id==="door"||obj.id==="kitchendoor") ? "4px 4px 0 0" : 6,
                   border: "none",
-                }} />
+                }}>
+                  {obj.id==="record" && bgmOn && (
+                    <span style={{ position:"absolute", top:-14, right:0, fontSize:11, color:c.accent, animation:"pulse 1.2s ease-in-out infinite" }}>♫</span>
+                  )}
+                </div>
               )}
             </button>
           ))}
