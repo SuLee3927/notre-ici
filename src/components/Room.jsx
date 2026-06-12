@@ -367,11 +367,11 @@ function RoomBg({ isDay }) {
 const FURNITURE = [
   { id:"clock",       left:"41%", top:"10%", transparent:true },
   { id:"photostring", left:"39%", top:"16%", transparent:true, w:"clamp(56px,15vw,80px)", h:"clamp(20px,5vw,32px)" },
-  { id:"board",       left:"73%", top:"49%", floor:true, transparent:true },
+  { id:"board",       left:"73%", top:"54%", floor:true, transparent:true },
   { id:"sofa",        left:"46%", top:"26%", transparent:true, w:"clamp(70px,20vw,100px)", h:"clamp(24px,7vw,40px)" },
   { id:"door",        left:"19%", top:"13%", transparent:true, h:"clamp(90px,25vw,150px)" },
   { id:"kitchendoor", left:"7%",  top:"33%", transparent:true },
-  { id:"tv",          left:"82%", top:"33%", transparent:true },
+  { id:"tv",          left:"82%", top:"38%", transparent:true },
 ];
 
 // ── 主组件 ──
