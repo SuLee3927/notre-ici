@@ -393,7 +393,7 @@ function RoomBg({ isDay, c }) {
         <div key={i} style={{ position:"absolute", left:`${x*100}%`, top:`${WALL_H}%`, bottom:0, width:1, background:c.border }} />
       ))}
       {/* 窗户（横宽飘窗，右侧） */}
-      <div style={{ position:"absolute", right:"4%", top:"14%", width:"26%", height:"16%", border:`3px solid ${c.wood}`, borderRadius:6, background:c.glass, boxShadow:isDay?`inset 0 0 24px rgba(255,220,100,.3),0 4px 14px ${c.shadow}`:`inset 0 0 20px rgba(160,120,255,.15),0 4px 14px ${c.shadow}`, overflow:"hidden" }}>
+      <div style={{ position:"absolute", right:"4%", top:"15%", width:"22%", height:"11%", border:`3px solid ${c.wood}`, borderRadius:6, background:c.glass, boxShadow:isDay?`inset 0 0 24px rgba(255,220,100,.3),0 4px 14px ${c.shadow}`:`inset 0 0 20px rgba(160,120,255,.15),0 4px 14px ${c.shadow}`, overflow:"hidden" }}>
         <div style={{ position:"absolute", left:"33%", top:0, bottom:0, width:2, background:c.wood, opacity:.4 }} />
         <div style={{ position:"absolute", left:"66%", top:0, bottom:0, width:2, background:c.wood, opacity:.4 }} />
         <div style={{ position:"absolute", left:0, right:0, top:"50%", height:2, background:c.wood, opacity:.4 }} />
