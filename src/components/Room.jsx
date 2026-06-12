@@ -351,10 +351,10 @@ function RecordPlayer({ isDay, c, bgmOn, onClick }) {
 function RoomDecor() { return null; }
 
 // ── 房间背景（G老师插画，白天/夜晚各一张）──
-// 图片比例0.92≈正方形，width:100%不裁切，下方地板色延伸
+// 图片比例0.563≈9:16，width:100%下图高约占手机屏幕82%，下方地板色延伸
 function RoomBg({ isDay }) {
   return (
-    <div style={{ position:"absolute", inset:0, background: isDay?"#C4A070":"#1a1008" }}>
+    <div style={{ position:"absolute", inset:0, background: isDay?"#B8935A":"#130f08" }}>
       <img src="/room-bg.jpg"       alt="" style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto", opacity:isDay?1:0, transition:"opacity 1.2s ease" }} />
       <img src="/room-bg-night.jpg" alt="" style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto", opacity:isDay?0:1, transition:"opacity 1.2s ease" }} />
     </div>
@@ -362,16 +362,16 @@ function RoomBg({ isDay }) {
 }
 
 // ── 可交互家具热点 ──
-// 热点坐标：图片 width:100% height:auto，图片高约占屏幕50%
-// x直接对应图片x%，y = 图片y% × ~0.5（屏幕比例）
+// 新图 941×1672（比例0.563），width:100%下图高约占手机屏82%
+// screen_top = image_y% × 0.82
 const FURNITURE = [
-  { id:"clock",       left:"42%", top:"7%",  transparent:true },
-  { id:"photostring", left:"33%", top:"17%", transparent:true },
-  { id:"board",       left:"81%", top:"40%", floor:true, transparent:true },
-  { id:"sofa",        left:"50%", top:"24%", transparent:true },
-  { id:"door",        left:"24%", top:"14%", transparent:true },
-  { id:"kitchendoor", left:"8%",  top:"9%",  transparent:true },
-  { id:"tv",          left:"84%", top:"29%", transparent:true },
+  { id:"clock",       left:"41%", top:"7%",  transparent:true },
+  { id:"photostring", left:"33%", top:"13%", transparent:true },
+  { id:"board",       left:"73%", top:"44%", floor:true, transparent:true },
+  { id:"sofa",        left:"40%", top:"22%", transparent:true },
+  { id:"door",        left:"19%", top:"10%", transparent:true },
+  { id:"kitchendoor", left:"7%",  top:"33%", transparent:true },
+  { id:"tv",          left:"87%", top:"27%", transparent:true },
 ];
 
 // ── 主组件 ──
@@ -401,9 +401,9 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     sofa:     <StatusToday theme={t} />,
     kitchendoor: (
       <div style={{ padding:"32px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:36, marginBottom:14 }}>🛏️</div>
-        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>糯糯的房间</div>
-        <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>小家伙的秘密基地，正在布置中...</div>
+        <div style={{ fontSize:36, marginBottom:14 }}>🚪</div>
+        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>这扇门通向……</div>
+        <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>还没想好，先留着</div>
       </div>
     ),
     tv: (
