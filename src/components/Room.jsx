@@ -47,27 +47,45 @@ function getNuonuoState() {
   return { left:"45%", top:"55%", words:YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length], sleepy:true };
 }
 
-// ── 糯糯PNG（G老师插画版，睁眼+闭眼眨眼动画）──
+// ── 糯糯PNG（G老师插画版，眨眼+随机走路动画）──
 function NuonuoPNG({ size = 76 }) {
   const [blink, setBlink] = useState(false);
-  const timer = useRef(null);
+  const [walkFrame, setWalkFrame] = useState(-1); // -1=standing
+  const blinkTimer = useRef(null);
+  const walkTimer = useRef(null);
+
   useEffect(() => {
-    function scheduleNext() {
-      const delay = 3000 + Math.random() * 3000;
-      timer.current = setTimeout(() => {
+    function scheduleBlink() {
+      blinkTimer.current = setTimeout(() => {
         setBlink(true);
-        setTimeout(() => { setBlink(false); scheduleNext(); }, 200);
-      }, delay);
+        setTimeout(() => { setBlink(false); scheduleBlink(); }, 200);
+      }, 3000 + Math.random() * 3000);
     }
-    scheduleNext();
-    return () => clearTimeout(timer.current);
+    scheduleBlink();
+
+    function scheduleWalk() {
+      walkTimer.current = setTimeout(() => {
+        let f = 0;
+        setWalkFrame(0);
+        const iv = setInterval(() => { f = (f + 1) % 2; setWalkFrame(f); }, 280);
+        setTimeout(() => {
+          clearInterval(iv);
+          setWalkFrame(-1);
+          scheduleWalk();
+        }, 2200);
+      }, 12000 + Math.random() * 10000);
+    }
+    scheduleWalk();
+
+    return () => { clearTimeout(blinkTimer.current); clearTimeout(walkTimer.current); };
   }, []);
+
+  const src = walkFrame >= 0
+    ? (walkFrame === 0 ? "/nuonuo-walk1.png" : "/nuonuo-walk2.png")
+    : (blink ? "/nuonuo-blink.png" : "/nuonuo.png");
+
   return (
-    <img
-      src={blink ? "/nuonuo-blink.png" : "/nuonuo.png"}
-      alt="糯糯"
-      style={{ width: size, height: "auto", display: "block" }}
-    />
+    <img src={src} alt="糯糯" style={{ width: size, height: "auto", display: "block" }} />
   );
 }
 
