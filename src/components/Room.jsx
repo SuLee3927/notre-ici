@@ -372,7 +372,7 @@ const FURNITURE = [
   { id:"kitchendoor", left:"6%",  top:"35%", transparent:true, w:"clamp(28px,7vw,44px)", h:"clamp(50px,13vw,78px)" },
   { id:"tv",          left:"82%", top:"33%", transparent:true, w:"clamp(40px,11vw,64px)", h:"clamp(32px,9vw,56px)" },
   { id:"record",      left:"92%", top:"79%", transparent:true, w:"clamp(32px,9vw,52px)", h:"clamp(44px,12vw,72px)" },
-  { id:"kitchen",     left:"5%",  top:"57%", transparent:true, w:"clamp(22px,6vw,36px)", h:"clamp(60px,16vw,96px)" },
+  { id:"kitchen",     left:"5%",  top:"51%", transparent:true, w:"clamp(22px,6vw,36px)", h:"clamp(80px,22vw,132px)" },
 ];
 
 // ── 主组件 ──
