@@ -43,7 +43,7 @@ function getNuonuoState() {
   if (h >= 6  && h < 10) return { left:"15%", top:"36%", words:"早呀 ☀️" };
   if (h >= 10 && h < 14) return { left:"24%", top:"73%", words:"上午好～" };
   if (h >= 14 && h < 18) return { left:"36%", top:"76%", words:"今天过得怎么样？" };
-  if (h >= 18 && h < 21) return { left:"60%", top:"68%", words:["快回来呀","这是什么...🤔","进不去嘤","快回来呀"][Math.floor(Date.now()/30000)%4], nearGameBox:true };
+  if (h >= 18 && h < 21) return { left:"82%", top:"68%", words:["快回来呀","这是什么...🤔","进不去嘤","快回来呀"][Math.floor(Date.now()/30000)%4], nearGameBox:true };
   // 21-22: 在沙发上困了
   return { left:"20%", top:"72%", words:YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length], sleepy:true };
 }
@@ -343,22 +343,25 @@ function RoomDecor({ isDay, c }) {
       <div style={{ position:"absolute", left:"12%", top:`${WALL_H+18}%`, width:"66%", height:"28%", background:isDay?"rgba(210,155,90,.12)":"rgba(90,70,160,.12)", borderRadius:12, border:`1.5px solid ${c.border}`, transform:"perspective(300px) rotateX(22deg)", boxShadow:`0 2px 8px ${c.shadow}` }}>
         <div style={{ position:"absolute", inset:5, borderRadius:8, border:`1px solid ${c.border}`, opacity:.5 }} />
       </div>
-      {/* 沙发（侧视图，靠右墙，宽度≈窗户） */}
-      <div style={{ position:"absolute", right:0, top:`${WALL_H+0}%` }}>
-        <div style={{ display:"flex", alignItems:"flex-end" }}>
-          {/* 坐垫（向左延伸） */}
-          <div style={{ width:"26vw", height:22, background:c.fabric, borderRadius:"4px 0 2px 0", boxShadow:`0 3px 8px ${c.shadow}`, position:"relative" }}>
-            <div style={{ position:"absolute", inset:"3px 6px", background:c.fabricDk, borderRadius:2, opacity:.5 }} />
-          </div>
-          {/* 靠背（贴右墙） */}
-          <div style={{ width:14, height:48, background:c.fabric, borderRadius:"5px 0 0 0", boxShadow:`-2px 2px 6px ${c.shadow}`, flexShrink:0 }}>
-            <div style={{ width:7, height:26, background:c.fabricDk, margin:"6px auto 0", borderRadius:2, opacity:.7 }} />
-          </div>
+      {/* 沙发（正视图，靠后墙，窗户下方） */}
+      <div style={{ position:"absolute", right:"4%", top:`${WALL_H+1}%`, width:"22%" }}>
+        {/* 靠背+扶手 */}
+        <div style={{ width:"100%", height:42, background:c.fabric, borderRadius:"8px 8px 0 0", boxShadow:`0 3px 12px ${c.shadow}`, position:"relative" }}>
+          <div style={{ position:"absolute", left:0, top:0, bottom:-20, width:9, background:c.fabricDk, borderRadius:"8px 0 0 4px", opacity:.8 }} />
+          <div style={{ position:"absolute", right:0, top:0, bottom:-20, width:9, background:c.fabricDk, borderRadius:"0 8px 4px 0", opacity:.8 }} />
+          <div style={{ position:"absolute", left:"15%", top:"15%", width:"28%", height:"62%", background:c.fabricDk, borderRadius:8, opacity:.55 }} />
+          <div style={{ position:"absolute", right:"15%", top:"15%", width:"28%", height:"62%", background:c.fabricDk, borderRadius:8, opacity:.55 }} />
         </div>
-        {/* 前腿 */}
-        <div style={{ display:"flex", justifyContent:"flex-start", paddingRight:14, width:"26vw" }}>
-          <div style={{ width:5, height:7, background:c.wood, borderRadius:"0 0 2px 2px", marginRight:8 }} />
-          <div style={{ width:5, height:7, background:c.wood, borderRadius:"0 0 2px 2px" }} />
+        {/* 坐垫 */}
+        <div style={{ display:"flex", gap:2, padding:"0 9px", background:c.fabricDk, paddingTop:1 }}>
+          {[0,1,2].map(i=>(
+            <div key={i} style={{ flex:1, height:18, background:c.fabric, borderRadius:"0 0 3px 3px", boxShadow:`inset 0 2px 5px ${c.shadow}` }} />
+          ))}
+        </div>
+        {/* 脚 */}
+        <div style={{ display:"flex", justifyContent:"space-between", padding:"0 14px" }}>
+          <div style={{ width:5, height:7, background:c.woodDk, borderRadius:"0 0 3px 3px" }} />
+          <div style={{ width:5, height:7, background:c.woodDk, borderRadius:"0 0 3px 3px" }} />
         </div>
       </div>
       {/* 台灯（沙发左边） */}
@@ -424,11 +427,11 @@ function RoomBg({ isDay, c }) {
 const FURNITURE = [
   { id:"clock",       left:"50%", top:"15%" },
   { id:"polaroid",    left:"62%", top:"42%" },
-  { id:"board",       left:"85%", top:"86%", floor:true },
-  { id:"sofa",        left:"87%", top:"73%", transparent:true },
+  { id:"board",       left:"82%", top:"86%", floor:true },
+  { id:"sofa",        left:"84%", top:"62%", transparent:true },
   { id:"door",        left:"29%", top:"35%", transparent:true },
   { id:"kitchendoor", left:"10%", top:"33%", transparent:true },
-  { id:"gamebox",     left:"58%", top:"58%" },
+  { id:"gamebox",     left:"90%", top:"70%" },
 ];
 
 // ── 主组件 ──
