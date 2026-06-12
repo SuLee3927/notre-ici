@@ -47,89 +47,27 @@ function getNuonuoState() {
   return { left:"45%", top:"55%", words:YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length], sleepy:true };
 }
 
-// ── 糯糯衣服图层（与 NuonuoSpace 保持一致）──
-function NnOutfitLayer({ id }) {
-  switch(id) {
-    case "dress": return (<g><rect x="60" y="133" width="84" height="10" rx="5" fill="#FFB0C8" opacity=".9"/><path d="M56,143 Q48,170 44,198 L160,198 Q156,170 148,143 Z" fill="#FFD6E8" stroke="#FFB0C8" strokeWidth="2"/><path d="M44,198 Q54,192 64,198 Q74,204 84,198 Q94,192 104,198 Q114,204 124,198 Q134,192 144,198 Q152,204 160,198" fill="none" stroke="#FFB0C8" strokeWidth="1.5"/></g>);
-    case "pajama": return (<g><path d="M58,141 Q54,168 56,200 L148,200 Q150,168 146,141 Q124,128 102,128 Q80,128 58,141Z" fill="#C8D8FF" stroke="#A8C0F0" strokeWidth="2"/><path d="M88,130 Q102,147 116,130" fill="none" stroke="#A8C0F0" strokeWidth="2.5" strokeLinecap="round"/></g>);
-    case "sailor": return (<g><path d="M58,141 Q54,168 56,200 L148,200 Q150,168 146,141 Q124,126 102,126 Q80,126 58,141Z" fill="#F0F4FF" stroke="#C0C8E8" strokeWidth="1.5"/><path d="M102,128 L70,162 Q66,169 68,174 L88,150Z" fill="#4060B0" stroke="#2040A0" strokeWidth="1"/><path d="M102,128 L134,162 Q138,169 136,174 L116,150Z" fill="#4060B0" stroke="#2040A0" strokeWidth="1"/></g>);
-    case "suit": return (<g><path d="M58,141 Q54,168 56,200 L148,200 Q150,168 146,141 Q124,120 102,120 Q80,120 58,141Z" fill="#4A4A6A" stroke="#3A3A5A" strokeWidth="2"/><path d="M96,123 L102,200 L108,123 Q102,116 96,123Z" fill="#FAFAFA"/></g>);
-    case "festival": return (<g><rect x="60" y="133" width="84" height="10" rx="5" fill="#FF6EB0" opacity=".9"/><path d="M56,143 Q48,170 44,198 L160,198 Q156,170 148,143 Z" fill="#FFE0F0" stroke="#FF9FCC" strokeWidth="2"/></g>);
-    default: return (<g><rect x="60" y="133" width="84" height="10" rx="5" fill="#FFB0C8" opacity=".9"/><path d="M56,143 Q48,170 44,198 L160,198 Q156,170 148,143 Z" fill="#FFD6E8" stroke="#FFB0C8" strokeWidth="2"/><path d="M44,198 Q54,192 64,198 Q74,204 84,198 Q94,192 104,198 Q114,204 124,198 Q134,192 144,198 Q152,204 160,198" fill="none" stroke="#FFB0C8" strokeWidth="1.5"/></g>);
-  }
-}
-function NnShoulderPatch({ id }) {
-  const cfg = { dress:{fill:"#FFD6E8",stroke:"#FFB0C8"}, pajama:{fill:"#C8D8FF",stroke:"#A8C0F0"}, sailor:{fill:"#F0F4FF",stroke:"#C0C8E8"}, suit:{fill:"#4A4A6A",stroke:"#3A3A5A"}, festival:{fill:"#FFE0F0",stroke:"#FF9FCC"} };
-  const s = cfg[id] || cfg.dress;
-  return (<g><ellipse cx="52" cy="158" rx="20" ry="13" fill={s.fill} stroke={s.stroke} strokeWidth="2" transform="rotate(-22,52,158)"/><ellipse cx="152" cy="158" rx="20" ry="13" fill={s.fill} stroke={s.stroke} strokeWidth="2" transform="rotate(22,152,158)"/></g>);
-}
-
-// ── 糯糯SVG ──
-function NuonuoSVG({ size = 80, outfit = "dress", sleepy = false }) {
+// ── 糯糯PNG（G老师插画版，睁眼+闭眼眨眼动画）──
+function NuonuoPNG({ size = 76 }) {
   const [blink, setBlink] = useState(false);
   const timer = useRef(null);
   useEffect(() => {
-    const id = setInterval(() => {
-      setBlink(true);
-      timer.current = setTimeout(() => setBlink(false), 180);
-    }, 3500 + Math.random() * 2000);
-    return () => { clearInterval(id); clearTimeout(timer.current); };
+    function scheduleNext() {
+      const delay = 3000 + Math.random() * 3000;
+      timer.current = setTimeout(() => {
+        setBlink(true);
+        setTimeout(() => { setBlink(false); scheduleNext(); }, 200);
+      }, delay);
+    }
+    scheduleNext();
+    return () => clearTimeout(timer.current);
   }, []);
   return (
-    <svg width={size} height={size} viewBox="-10 0 220 225" style={{ display:"block", overflow:"visible" }}>
-      <style>{`
-        @keyframes nnB{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.03) scaleX(.98)}}
-        @keyframes nnT{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(18deg)}}
-        @keyframes nnE{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(6deg)}}
-        .nb{animation:nnB ${sleepy?"5s":"3.2s"} ease-in-out infinite;transform-origin:center bottom}
-        .nt{animation:nnT 1.8s ease-in-out infinite;transform-origin:68px 155px}
-        .nel{animation:nnE 2.5s ease-in-out infinite;transform-origin:50% 100%}
-        .ner{animation:nnE 2.5s ease-in-out infinite .3s;transform-origin:50% 100%}
-      `}</style>
-      <g className="nb">
-        <g className="nt">
-          <path d="M68,155 Q46,145 37,128 Q28,111 40,103 Q50,97 55,109 Q48,119 54,130 Q61,142 72,148" fill="none" stroke="#EDD0B8" strokeWidth="10" strokeLinecap="round"/>
-          <path d="M68,155 Q46,145 37,128 Q28,111 40,103 Q50,97 55,109 Q48,119 54,130 Q61,142 72,148" fill="none" stroke="#FFFAF5" strokeWidth="6.5" strokeLinecap="round"/>
-        </g>
-        <ellipse cx="102" cy="158" rx="54" ry="48" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
-        <ellipse cx="102" cy="164" rx="30" ry="26" fill="#FFF0E6" opacity=".5"/>
-        <NnOutfitLayer id={outfit}/>
-        <NnShoulderPatch id={outfit}/>
-        <ellipse cx="54" cy="170" rx="17" ry="13" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5" transform="rotate(-20,54,170)"/>
-        <ellipse cx="150" cy="170" rx="17" ry="13" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5" transform="rotate(20,150,170)"/>
-        <ellipse cx="82" cy="200" rx="18" ry="11" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
-        <ellipse cx="122" cy="200" rx="18" ry="11" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
-        <ellipse cx="102" cy="98" rx="54" ry="51" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
-        <ellipse className="nel" cx="62" cy="56" rx="19" ry="20" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
-        <ellipse cx="62" cy="57" rx="11" ry="12" fill="#FFCCC8" opacity=".75"/>
-        <ellipse className="ner" cx="142" cy="56" rx="19" ry="20" fill="#FFFAF5" stroke="#EDD0B8" strokeWidth="2.5"/>
-        <ellipse cx="142" cy="57" rx="11" ry="12" fill="#FFCCC8" opacity=".75"/>
-        {sleepy ? (
-          <>
-            <path d="M82,95 Q90,103 98,95" fill="none" stroke="#5A3828" strokeWidth="2.8" strokeLinecap="round"/>
-            <path d="M106,95 Q114,103 122,95" fill="none" stroke="#5A3828" strokeWidth="2.8" strokeLinecap="round"/>
-          </>
-        ) : blink ? (
-          <>
-            <path d="M82,96 Q90,102 98,96" fill="none" stroke="#5A3828" strokeWidth="2.8" strokeLinecap="round"/>
-            <path d="M106,96 Q114,102 122,96" fill="none" stroke="#5A3828" strokeWidth="2.8" strokeLinecap="round"/>
-          </>
-        ) : (
-          <>
-            <g><ellipse cx="90" cy="96" rx="8.5" ry="9" fill="#5A3828"/><circle cx="92" cy="93" r="3" fill="white" opacity=".65"/></g>
-            <g><ellipse cx="114" cy="96" rx="8.5" ry="9" fill="#5A3828"/><circle cx="116" cy="93" r="3" fill="white" opacity=".65"/></g>
-          </>
-        )}
-        <ellipse cx="102" cy="110" rx="4.5" ry="3.5" fill="#EAAA9A"/>
-        {sleepy
-          ? <path d="M97,116 Q102,119 107,116" fill="none" stroke="#C07060" strokeWidth="2" strokeLinecap="round"/>
-          : <path d="M94,117 Q102,123 110,117" fill="none" stroke="#C07060" strokeWidth="2.2" strokeLinecap="round"/>
-        }
-        <ellipse cx="76" cy="114" rx="14" ry="9" fill={sleepy?"#AABCFF":"#FFB0A0"} opacity=".52"/>
-        <ellipse cx="128" cy="114" rx="14" ry="9" fill={sleepy?"#AABCFF":"#FFB0A0"} opacity=".52"/>
-        {sleepy && <><text x="150" y="76" fontSize="12" fill="#AABCFF" fontWeight="700">z</text><text x="160" y="63" fontSize="9" fill="#AABCFF" fontWeight="700" opacity=".7">z</text></>}
-      </g>
-    </svg>
+    <img
+      src={blink ? "/nuonuo-blink.png" : "/nuonuo.png"}
+      alt="糯糯"
+      style={{ width: size, height: "auto", display: "block" }}
+    />
   );
 }
 
@@ -137,19 +75,6 @@ function NuonuoSVG({ size = 80, outfit = "dress", sleepy = false }) {
 function NuonuoResident({ theme: t, onEnter }) {
   const state = getNuonuoState();
   const [hint, setHint] = useState(false);
-  const [outfit, setOutfit] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("nn_outfit_v3") || '"dress"') || "dress"; } catch { return "dress"; }
-  });
-
-  useEffect(() => {
-    function onStorage(e) {
-      if (e.key === "nn_outfit_v3") {
-        try { setOutfit(JSON.parse(e.newValue) || "dress"); } catch {}
-      }
-    }
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
 
   if (!state) return null; // 22点后去睡了
 
@@ -175,7 +100,7 @@ function NuonuoResident({ theme: t, onEnter }) {
           再点一下进来～
         </div>
       )}
-      <NuonuoSVG size={68} outfit={outfit} sleepy={!!state.sleepy} />
+      <NuonuoPNG size={76} />
     </div>
   );
 }
