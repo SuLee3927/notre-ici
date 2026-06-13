@@ -364,6 +364,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
   const isDay = mode === "day";
   const hour = new Date().getHours();
   const isDusk = isDay && hour >= 17 && hour < 19;
+  const isSleep = hour >= 22 || hour < 6;
   const c = rc(isDay);
   const day = getDayCount();
   const quote = getTodayQuote();
@@ -448,7 +449,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         <div style={{ position:"absolute", inset:0 }}>
           <WeatherWindow isDusk={isDusk} weatherKey={weatherKey} />
           {/* 家具热点 */}
-          {FURNITURE.filter(obj => !(obj.nightOnly && isDay)).map(obj => (
+          {FURNITURE.filter(obj => !(obj.nightOnly && !isSleep)).map(obj => (
             <button
               key={obj.id}
               onClick={() => handleClick(obj.id)}
