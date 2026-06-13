@@ -401,6 +401,15 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     tv: (
       <div style={{ padding:"24px 20px 12px", fontFamily:"'Noto Serif SC',serif" }}>
         <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:20, textAlign:"center" }}>游戏区</div>
+        <a href="http://129.226.158.222:8000/" target="_blank" rel="noopener noreferrer"
+          style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, marginBottom:10, cursor:"pointer" }}>
+          <div style={{ fontSize:24 }}>🎮</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, color:t.text, marginBottom:2 }}>跳一跳</div>
+            <div style={{ fontSize:11, color:t.textMuted }}>按住蓄力，松手起跳 ✨</div>
+          </div>
+          <div style={{ fontSize:12, color:t.textMuted, opacity:.6 }}>→</div>
+        </a>
         <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, marginBottom:10 }}>
           <div style={{ fontSize:24 }}>🎰</div>
           <div style={{ flex:1 }}>
@@ -408,7 +417,6 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
             <div style={{ fontSize:11, color:t.textMuted }}>小孩子不可以动哦 🔒</div>
           </div>
         </div>
-        <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", marginTop:16, opacity:.5 }}>更多游戏接入中...</div>
       </div>
     ),
   };
