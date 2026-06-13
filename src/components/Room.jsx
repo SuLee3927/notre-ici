@@ -58,7 +58,7 @@ function NuonuoPNG({ size = 76 }) {
     function scheduleBlink() {
       blinkTimer.current = setTimeout(() => {
         setBlink(true);
-        setTimeout(() => { setBlink(false); scheduleBlink(); }, 180);
+        setTimeout(() => { setBlink(false); scheduleBlink(); }, 300);
       }, 2000 + Math.random() * 2000);
     }
     scheduleBlink();
