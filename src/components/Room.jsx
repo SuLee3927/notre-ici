@@ -291,18 +291,16 @@ function RecordPlayer({ isDay, c, bgmOn, onClick }) {
 }
 
 // ── 窗口天气叠加 ──
-// 时段：黄昏17-19点叠日落图；白天晴天不叠（原背景已是蓝天），阴/雨由天气API决定（TODO）
-function getWeatherSrc(hour, weatherKey = null) {
-  if (hour >= 17 && hour < 19) return "/weather-dusk.jpg";
-  if (hour >= 6  && hour < 17 && weatherKey) {
-    const map = { cloudy:"/weather-cloudy.jpg", rain:"/weather-rain.jpg", "rain-light":"/weather-rain-light.jpg" };
-    return map[weatherKey] || null;
-  }
+// 窗外风景叠加：黄昏/雨天叠对应风景图；晴天/阴天用背景本身的窗户视角
+function getWeatherSrc(isDusk, weatherKey) {
+  if (isDusk) return "/weather-dusk.jpg";
+  if (weatherKey === "rain")       return "/weather-rain.jpg";
+  if (weatherKey === "rain-light") return "/weather-rain-light.jpg";
   return null;
 }
 
-function WeatherWindow({ hour, weatherKey }) {
-  const src = getWeatherSrc(hour, weatherKey);
+function WeatherWindow({ isDusk, weatherKey }) {
+  const src = getWeatherSrc(isDusk, weatherKey);
   if (!src) return null;
   return (
     <div style={{
@@ -319,15 +317,26 @@ function WeatherWindow({ hour, weatherKey }) {
 // ── 房间装饰（已改用插画背景，此处留空）──
 function RoomDecor() { return null; }
 
-// ── 房间背景（G老师插画，白天/阴天/夜晚）──
-// 图片比例0.563≈9:16，width:100%下图高约占手机屏幕82%，下方地板色延伸
-function RoomBg({ isDay, weatherKey }) {
-  const isCloudy = isDay && (weatherKey === "cloudy" || weatherKey === "rain" || weatherKey === "rain-light");
+// ── 房间背景（G老师插画全套：晴/阴/小雨/大雨/黄昏/夜）──
+// weatherKey: null=晴天, "cloudy"=阴天, "rain-light"=小雨, "rain"=大雨
+// isDusk 由 hour 决定（17-19），优先级高于 weatherKey
+function RoomBg({ isDay, weatherKey, isDusk }) {
+  const show = (key) => {
+    if (!isDay) return key === "night";
+    if (isDusk)  return key === "dusk";
+    return key === (weatherKey || "clear");
+  };
+  const img = (src, key) => (
+    <img key={key} src={src} alt="" style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto", opacity:show(key)?1:0, transition:"opacity 1.2s ease" }} />
+  );
   return (
     <div style={{ position:"absolute", inset:0, background: isDay?"#B8935A":"#130f08" }}>
-      <img src="/room-bg.jpg"        alt="" style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto", opacity:(isDay && !isCloudy)?1:0, transition:"opacity 1.2s ease" }} />
-      <img src="/room-bg-cloudy.jpg" alt="" style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto", opacity:isCloudy?1:0, transition:"opacity 1.2s ease" }} />
-      <img src="/room-bg-night.jpg"  alt="" style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto", opacity:isDay?0:1, transition:"opacity 1.2s ease" }} />
+      {img("/room-bg.jpg",            "clear")}
+      {img("/room-bg-cloudy.jpg",     "cloudy")}
+      {img("/room-bg-rain-light.jpg", "rain-light")}
+      {img("/room-bg-rain.jpg",       "rain")}
+      {img("/room-bg-dusk.jpg",       "dusk")}
+      {img("/room-bg-night.jpg",      "night")}
     </div>
   );
 }
@@ -354,6 +363,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
   const [weatherKey, setWeatherKey] = useState(null); // null=sunny; "cloudy"/"rain"/"rain-light" from API (TODO)
   const isDay = mode === "day";
   const hour = new Date().getHours();
+  const isDusk = isDay && hour >= 17 && hour < 19;
   const c = rc(isDay);
   const day = getDayCount();
   const quote = getTodayQuote();
@@ -413,12 +423,8 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
 
   return (
     <div style={{ position:"fixed", inset:0, overflow:"hidden" }}>
-      <RoomBg isDay={isDay} weatherKey={weatherKey} />
+      <RoomBg isDay={isDay} weatherKey={weatherKey} isDusk={isDusk} />
       <RoomDecor />
-      {/* 黄昏室内暖光 */}
-      {hour >= 17 && hour < 19 && (
-        <div style={{ position:"absolute", inset:0, background:"rgba(255,130,40,0.12)", zIndex:1, pointerEvents:"none", transition:"opacity 0.8s ease" }} />
-      )}
 
       {/* 左上 logo */}
       <div style={{ position:"absolute", top:14, left:16, zIndex:10, fontSize:11, color:t.text, opacity:.38, fontFamily:"'Noto Serif SC',serif", letterSpacing:".1em" }}>克 &amp; Lee</div>
@@ -432,7 +438,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       {/* 图片比例 941:1672，paddingBottom = 1672/941 = 177.7% */}
       <div style={{ position:"absolute", top:0, left:0, width:"100%", paddingBottom:"177.7%", zIndex:5, pointerEvents:"none" }}>
         <div style={{ position:"absolute", inset:0 }}>
-          <WeatherWindow hour={hour} weatherKey={weatherKey} />
+          <WeatherWindow isDusk={isDusk} weatherKey={weatherKey} />
           {/* 家具热点 */}
           {FURNITURE.filter(obj => !(obj.nightOnly && isDay)).map(obj => (
             <button
