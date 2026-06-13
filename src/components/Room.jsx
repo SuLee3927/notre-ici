@@ -106,7 +106,7 @@ function NuonuoResident({ theme: t, onEnter }) {
       position:"absolute", left:state.left, top:state.top,
       transform:"translate(-50%,-50%)",
       zIndex:7, cursor:"pointer",
-      animation:"nnFloat 4s ease-in-out infinite",
+      animation:"nnFloat 5s ease-in-out infinite",
       filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
       transition:"left 1.2s ease, top 1.2s ease",
     }}>
@@ -446,7 +446,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
 
       <style>{`
         @keyframes slideUp  { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
-        @keyframes nnFloat  { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-5px)} }
+        @keyframes nnFloat  { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-3px)} }
         @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         @keyframes spin     { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.4} }
