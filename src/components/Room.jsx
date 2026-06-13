@@ -291,12 +291,12 @@ function RecordPlayer({ isDay, c, bgmOn, onClick }) {
 }
 
 // ── 窗口天气叠加 ──
-// 时段：黄昏17-19点；白天其余时段由真实天气API决定（TODO），默认阴天
-function getWeatherSrc(hour, weatherKey = "cloudy") {
+// 时段：黄昏17-19点叠日落图；白天晴天不叠（原背景已是蓝天），阴/雨由天气API决定（TODO）
+function getWeatherSrc(hour, weatherKey = null) {
   if (hour >= 17 && hour < 19) return "/weather-dusk.jpg";
-  if (hour >= 6  && hour < 17) {
+  if (hour >= 6  && hour < 17 && weatherKey) {
     const map = { cloudy:"/weather-cloudy.jpg", rain:"/weather-rain.jpg", "rain-light":"/weather-rain-light.jpg" };
-    return map[weatherKey] || "/weather-cloudy.jpg";
+    return map[weatherKey] || null;
   }
   return null;
 }
