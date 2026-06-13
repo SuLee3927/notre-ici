@@ -290,6 +290,32 @@ function RecordPlayer({ isDay, c, bgmOn, onClick }) {
   );
 }
 
+// ── 窗口天气叠加 ──
+// 时段：黄昏17-19点；白天其余时段由真实天气API决定（TODO），默认阴天
+function getWeatherSrc(hour, weatherKey = "cloudy") {
+  if (hour >= 17 && hour < 19) return "/weather-dusk.jpg";
+  if (hour >= 6  && hour < 17) {
+    const map = { cloudy:"/weather-cloudy.jpg", rain:"/weather-rain.jpg", "rain-light":"/weather-rain-light.jpg" };
+    return map[weatherKey] || "/weather-cloudy.jpg";
+  }
+  return null;
+}
+
+function WeatherWindow({ hour }) {
+  const src = getWeatherSrc(hour);
+  if (!src) return null;
+  return (
+    <div style={{
+      position:"absolute", left:"52%", top:"7.8%",
+      width:"23%", height:"6%",
+      overflow:"hidden", borderRadius:2,
+      zIndex:2, pointerEvents:"none",
+    }}>
+      <img src={src} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 25%", display:"block" }} />
+    </div>
+  );
+}
+
 // ── 房间装饰（已改用插画背景，此处留空）──
 function RoomDecor() { return null; }
 
@@ -324,6 +350,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
   const [active, setActive] = useState(null);
   const [hovered, setHovered] = useState(null);
   const isDay = mode === "day";
+  const hour = new Date().getHours();
   const c = rc(isDay);
   const day = getDayCount();
   const quote = getTodayQuote();
@@ -385,6 +412,10 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     <div style={{ position:"fixed", inset:0, overflow:"hidden" }}>
       <RoomBg isDay={isDay} />
       <RoomDecor />
+      {/* 黄昏室内暖光 */}
+      {hour >= 17 && hour < 19 && (
+        <div style={{ position:"absolute", inset:0, background:"rgba(255,130,40,0.12)", zIndex:1, pointerEvents:"none", transition:"opacity 0.8s ease" }} />
+      )}
 
       {/* 左上 logo */}
       <div style={{ position:"absolute", top:14, left:16, zIndex:10, fontSize:11, color:t.text, opacity:.38, fontFamily:"'Noto Serif SC',serif", letterSpacing:".1em" }}>克 &amp; Lee</div>
@@ -398,6 +429,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       {/* 图片比例 941:1672，paddingBottom = 1672/941 = 177.7% */}
       <div style={{ position:"absolute", top:0, left:0, width:"100%", paddingBottom:"177.7%", zIndex:5, pointerEvents:"none" }}>
         <div style={{ position:"absolute", inset:0 }}>
+          <WeatherWindow hour={hour} />
           {/* 家具热点 */}
           {FURNITURE.filter(obj => !(obj.nightOnly && isDay)).map(obj => (
             <button
