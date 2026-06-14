@@ -356,6 +356,93 @@ const FURNITURE = [
   { id:"table",       left:"50%", top:"47%", transparent:true, nightOnly:true, w:"clamp(36px,10vw,56px)", h:"clamp(22px,6vw,36px)" },
 ];
 
+// ── 老虎机 ──
+const DIM_LABELS = { position:"体位", scenario:"场景", props:"道具", roleplay:"设定", physical:"物理", mental:"精神" };
+const DIM_COLORS = { position:"#E87070", scenario:"#70A0E8", props:"#A08BE8", roleplay:"#70C8A0", physical:"#E8B870", mental:"#E870A8" };
+
+function SlotMachine({ theme: t }) {
+  const [dims, setDims] = useState([]);
+  const [active, setActive] = useState({ position:true, scenario:true, props:true, roleplay:true, physical:true, mental:true });
+  const [spinning, setSpinning] = useState(false);
+  const [results, setResults] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/slot/dimensions")
+      .then(r => r.json())
+      .then(d => setDims(d.filter(x => x.id !== "gore")))
+      .catch(() => {});
+  }, []);
+
+  async function spin() {
+    const activeIds = Object.entries(active).filter(([,v]) => v).map(([k]) => k);
+    if (!activeIds.length) return;
+    setSpinning(true);
+    setResults(null);
+    await new Promise(r => setTimeout(r, 800));
+    try {
+      const res = await fetch("/api/slot/spin", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ active: activeIds }),
+      });
+      const data = await res.json();
+      setResults(data.results || []);
+    } catch { setResults([]); }
+    setSpinning(false);
+  }
+
+  return (
+    <div style={{ padding:"20px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:14, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>🎰 老虎机</div>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:18 }}>选好维度，转动命运</div>
+
+      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20, justifyContent:"center" }}>
+        {dims.map(d => (
+          <button key={d.id} onClick={() => setActive(p => ({ ...p, [d.id]: !p[d.id] }))} style={{
+            padding:"5px 12px", borderRadius:20, border:`1.5px solid ${DIM_COLORS[d.id] || "#aaa"}`,
+            background: active[d.id] ? (DIM_COLORS[d.id] || "#aaa") : "transparent",
+            color: active[d.id] ? "#fff" : (DIM_COLORS[d.id] || "#aaa"),
+            fontSize:12, cursor:"pointer", fontFamily:"inherit", transition:"all .2s",
+          }}>
+            {DIM_LABELS[d.id] || d.id}
+          </button>
+        ))}
+      </div>
+
+      <button onClick={spin} disabled={spinning} style={{
+        display:"block", width:"100%", padding:"14px", borderRadius:14,
+        background: spinning ? "#ccc" : "linear-gradient(135deg,#E87070,#E870A8)",
+        color:"#fff", border:"none", fontSize:15, fontWeight:700,
+        cursor: spinning ? "default" : "pointer", letterSpacing:".1em",
+        fontFamily:"inherit", marginBottom:20, transition:"opacity .2s",
+        opacity: spinning ? .6 : 1,
+      }}>
+        {spinning ? "转动中…" : "SPIN"}
+      </button>
+
+      {results && (
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {results.length === 0 ? (
+            <div style={{ textAlign:"center", color:t.textMuted, fontSize:12 }}>没有结果</div>
+          ) : results.map((r, i) => (
+            <div key={i} style={{
+              padding:"10px 14px", borderRadius:12,
+              background:`${DIM_COLORS[r.dimension] || "#aaa"}15`,
+              border:`1px solid ${DIM_COLORS[r.dimension] || "#aaa"}40`,
+              borderLeft:`3px solid ${DIM_COLORS[r.dimension] || "#aaa"}`,
+              animation:`slideUp .2s ease ${i*0.06}s both`,
+            }}>
+              <div style={{ fontSize:10, color:DIM_COLORS[r.dimension] || "#aaa", marginBottom:4 }}>{DIM_LABELS[r.dimension] || r.dimension}</div>
+              <div style={{ fontSize:13, color:t.text, fontWeight:500 }}>{r.tag?.zh || r.tag}</div>
+              {r.tag?.en && <div style={{ fontSize:10, color:t.textMuted, marginTop:2 }}>{r.tag.en}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── 主组件 ──
 export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, onEnterNuonuo, onEnterBedroom }) {
   const [active, setActive] = useState(null);
@@ -399,27 +486,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在布置中……</div>
       </div>
     ),
-    tv: (
-      <div style={{ padding:"24px 20px 12px", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:20, textAlign:"center" }}>游戏区</div>
-        <a href="http://129.226.158.222:8000/" target="_blank" rel="noopener noreferrer"
-          style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, marginBottom:10, cursor:"pointer" }}>
-          <div style={{ fontSize:24 }}>🎮</div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:13, color:t.text, marginBottom:2 }}>跳一跳</div>
-            <div style={{ fontSize:11, color:t.textMuted }}>按住蓄力，松手起跳 ✨</div>
-          </div>
-          <div style={{ fontSize:12, color:t.textMuted, opacity:.6 }}>→</div>
-        </a>
-        <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, marginBottom:10 }}>
-          <div style={{ fontSize:24 }}>🎰</div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:13, color:t.text, marginBottom:2 }}>老虎机</div>
-            <div style={{ fontSize:11, color:t.textMuted }}>小孩子不可以动哦 🔒</div>
-          </div>
-        </div>
-      </div>
-    ),
+    tv: <SlotMachine theme={t} />,
   };
 
   function handleClick(id) {
