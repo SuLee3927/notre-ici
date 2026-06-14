@@ -3,6 +3,7 @@ import { getDayCount, getTodayQuote } from "../theme.js";
 import Timeline from "./Timeline.jsx";
 import StatusToday from "./StatusToday.jsx";
 import GiftBoard from "./GiftBoard.jsx";
+import DrawTurtle from "./DrawTurtle.jsx";
 
 const WALL_H = 28;
 
@@ -470,6 +471,16 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
             </div>
           </div>
           <SlotGate theme={t} />
+        </div>
+        <div style={{ background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, overflow:"hidden" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px" }}>
+            <div style={{ fontSize:22 }}>🐢</div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>抽王八</div>
+              <div style={{ fontSize:11, color:t.textMuted }}>别被留下乌龟牌</div>
+            </div>
+          </div>
+          <DrawTurtle theme={t} />
         </div>
       </div>
     ),
