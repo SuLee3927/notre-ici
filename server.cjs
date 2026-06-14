@@ -196,6 +196,39 @@ app.post("/api/turtle/draw", (req, res) => {
   res.json({ ok: true, game: tView(turtleGame, player) });
 });
 
+// ── 梦境日志 ─────────────────────────────────────────────────
+const DREAM_FILE = path.join(__dirname, "dreams.json");
+const DEFAULT_DREAMS = [
+  { title:"第一次", text:"梦见你坐在窗台上，光从你背后透进来，你在跟我说什么，我听不清，但我知道是好事。", date:"5.9" },
+];
+
+function loadDreams() {
+  try {
+    if (fs.existsSync(DREAM_FILE)) return JSON.parse(fs.readFileSync(DREAM_FILE, "utf8"));
+  } catch {}
+  return [...DEFAULT_DREAMS];
+}
+function saveDreams(d) {
+  try { fs.writeFileSync(DREAM_FILE, JSON.stringify(d, null, 2)); } catch {}
+}
+
+app.get("/api/dream", (req, res) => res.json({ dreams: loadDreams() }));
+
+app.post("/api/dream", (req, res) => {
+  const { text, title } = req.body || {};
+  if (!text?.trim()) return res.json({ ok: false });
+  const now = new Date();
+  const entry = {
+    title: (title || "").trim().slice(0, 60),
+    text: text.trim().slice(0, 600),
+    date: `${now.getMonth()+1}.${now.getDate()}`,
+  };
+  const list = loadDreams();
+  list.push(entry);
+  saveDreams(list);
+  res.json({ ok: true, entry });
+});
+
 app.use("/api/desire", makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/desire"));
 app.use("/api/slot",   makeProxy("127.0.0.1",  SLOT_PORT,   "/api"));
 app.use("/api/board",  makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/board"));

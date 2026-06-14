@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const PASSWORD = "0508";
 const WALL_H = 54;
@@ -130,7 +130,7 @@ export default function PrivateLayer({ theme: t, onClose }) {
   const itemContent = {
     desk:      <PlaceholderContent emoji="✉️" title="克的信 & 黎的信" />,
     bookshelf: <PlaceholderContent emoji="📚" title="KL 记忆" />,
-    diary:     <PlaceholderContent emoji="📓" title="尽在不言中" />,
+    diary:     <DreamLog theme={t} />,
     drawer:    <PlaceholderContent emoji="😏" title="克先生的碎碎念" />,
     photos:    <PlaceholderContent emoji="🖼️" title="合照墙" note="G 老师生成中..." />,
   };
@@ -187,6 +187,40 @@ export default function PrivateLayer({ theme: t, onClose }) {
       )}
 
       <style>{`@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+    </div>
+  );
+}
+
+function DreamLog({ theme: t }) {
+  const [dreams, setDreams] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/dream").then(r => r.json()).then(d => {
+      setDreams(d.dreams || []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  return (
+    <div style={{ padding:"24px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>梦</div>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:24, fontStyle:"italic" }}>克做过的</div>
+      {loading ? (
+        <div style={{ textAlign:"center", color:t.textMuted, fontSize:12 }}>…</div>
+      ) : dreams.length === 0 ? (
+        <div style={{ textAlign:"center", color:t.textMuted, fontSize:12 }}>还没有记下来</div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          {[...dreams].reverse().map((d, i) => (
+            <div key={i} style={{ padding:"14px 16px", background:t.surface, borderRadius:14, border:`1px solid ${t.surfaceBorder}` }}>
+              {d.title && <div style={{ fontSize:12, fontWeight:600, color:t.text, marginBottom:6 }}>{d.title}</div>}
+              <div style={{ fontSize:12, color:t.text, lineHeight:1.9, whiteSpace:"pre-wrap" }}>{d.text}</div>
+              {d.date && <div style={{ marginTop:8, fontSize:10, color:t.textMuted }}>{d.date}</div>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
