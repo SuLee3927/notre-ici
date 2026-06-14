@@ -19,6 +19,7 @@ export default function App() {
   const [showBedroom, setShowBedroom] = useState(false);
   const [bgmOn, setBgmOn] = useState(false);
   const audioRef = useRef(null);
+  const bedroomAudioRef = useRef(null);
 
   const t = themes[mode];
 
@@ -27,6 +28,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // 客厅 BGM
   useEffect(() => {
     if (!audioRef.current) return;
     if (bgmOn && !showNuonuo && !showPrivate && !showBedroom) {
@@ -40,12 +42,24 @@ export default function App() {
     if (!audioRef.current) return;
     const wasPlaying = bgmOn;
     audioRef.current.src = BGM[mode];
-    if (wasPlaying && !showNuonuo && !showPrivate) audioRef.current.play().catch(() => {});
+    if (wasPlaying && !showNuonuo && !showPrivate && !showBedroom) audioRef.current.play().catch(() => {});
   }, [mode]);
+
+  // 卧室 BGM：进卧室自动播，出卧室自动停
+  useEffect(() => {
+    if (!bedroomAudioRef.current) return;
+    if (showBedroom) {
+      bedroomAudioRef.current.play().catch(() => {});
+    } else {
+      bedroomAudioRef.current.pause();
+      bedroomAudioRef.current.currentTime = 0;
+    }
+  }, [showBedroom]);
 
   return (
     <>
       <audio ref={audioRef} loop src={BGM[mode]} style={{ display: "none" }} />
+      <audio ref={bedroomAudioRef} loop src="/bedroom-bgm.mp3" style={{ display: "none" }} />
       {showNuonuo && <NuonuoSpace onClose={() => setShowNuonuo(false)} mode={mode} />}
       {!showNuonuo && showBedroom && <Bedroom theme={t} mode={mode} onClose={() => setShowBedroom(false)} />}
       {!showNuonuo && !showBedroom && showPrivate && <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />}

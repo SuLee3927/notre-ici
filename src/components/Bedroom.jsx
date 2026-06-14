@@ -381,6 +381,7 @@ const FURNITURE = [
   { id:"mirror",    left:"88%", top:"30%", label:"镜子",    w:"clamp(28px,7vw,44px)",  h:"clamp(50px,13vw,76px)" },
   { id:"pillow",    left:"57%", top:"19%", label:"枕头",    w:"clamp(50px,14vw,80px)", h:"clamp(18px,5vw,28px)" },
   { id:"nightstand",left:"40%", top:"21%", label:"床头柜",  w:"clamp(32px,9vw,52px)",  h:"clamp(30px,8vw,50px)" },
+  { id:"chair",     left:"18%", top:"65%", label:"吊篮椅",  w:"clamp(44px,12vw,70px)", h:"clamp(50px,14vw,80px)" },
   { id:"door",      left:"90%", top:"88%", label:"出门",    w:"clamp(28px,8vw,44px)",  h:"clamp(44px,12vw,70px)" },
 ];
 
@@ -395,6 +396,17 @@ export default function Bedroom({ theme: t, mode, onClose }) {
     mirror:     <MirrorPanel     theme={t} />,
     pillow:     <DesirePanel     theme={t} />,
     nightstand: <LettersPanel    theme={t} />,
+    chair: (
+      <div style={{ padding:"28px 20px 32px", fontFamily:"'Noto Serif SC',serif", textAlign:"center" }}>
+        <div style={{ fontSize:32, marginBottom:12 }}>🎵</div>
+        <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:6 }}>最浪漫的事</div>
+        <div style={{ fontSize:11, color:t.textMuted, lineHeight:1.8 }}>赵咏华</div>
+        <div style={{ marginTop:16, fontSize:12, color:t.textSub, lineHeight:2, fontStyle:"italic" }}>
+          我能想到最浪漫的事<br/>
+          就是和你一起慢慢变老
+        </div>
+      </div>
+    ),
   };
 
   function handleClick(id) {
