@@ -378,9 +378,9 @@ function LettersPanel({ theme: t }) {
 // ── 家具热点 ──
 // 坐标基于 941×1672 图片百分比
 const FURNITURE = [
-  { id:"mirror",    left:"85%", top:"30%", label:"镜子",    w:"clamp(36px,10vw,56px)", h:"clamp(50px,13vw,76px)" },
+  { id:"mirror",    left:"88%", top:"30%", label:"镜子",    w:"clamp(28px,7vw,44px)",  h:"clamp(50px,13vw,76px)" },
   { id:"pillow",    left:"57%", top:"19%", label:"枕头",    w:"clamp(50px,14vw,80px)", h:"clamp(18px,5vw,28px)" },
-  { id:"nightstand",left:"39%", top:"24%", label:"床头柜",  w:"clamp(30px,8vw,48px)",  h:"clamp(30px,8vw,50px)" },
+  { id:"nightstand",left:"38%", top:"42%", label:"床头柜",  w:"clamp(32px,9vw,52px)",  h:"clamp(30px,8vw,50px)" },
   { id:"door",      left:"90%", top:"88%", label:"出门",    w:"clamp(28px,8vw,44px)",  h:"clamp(44px,12vw,70px)" },
 ];
 
