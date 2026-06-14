@@ -107,6 +107,7 @@ function DesirePanel({ theme: t }) {
 function MirrorPanel({ theme: t }) {
   const [thoughts, setThoughts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
     fetch(DESIRE_API)
@@ -132,23 +133,27 @@ function MirrorPanel({ theme: t }) {
         <div style={{ textAlign:"center", color:t.textMuted, fontSize:12, padding:"20px 0" }}>镜面平静，无念</div>
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {thoughts.map((th, i) => (
-            <div key={i} style={{
-              padding:"10px 14px",
-              background: `${driveColor(th.drive)}18`,
-              border: `1px solid ${driveColor(th.drive)}40`,
-              borderRadius: 12,
-              borderLeft: `3px solid ${driveColor(th.drive)}`,
-              animation: `floatIn ${0.15 + i * 0.08}s ease`,
-            }}>
-              <div style={{ fontSize:12, color:t.text, lineHeight:1.6 }}>{th.text}</div>
-              <div style={{ marginTop:4, fontSize:10, color:t.textMuted, display:"flex", gap:8 }}>
-                <span style={{ color:driveColor(th.drive) }}>{DRIVE_LABELS[th.drive] || th.drive}</span>
-                <span>{th.kind === "obsession" ? "执念" : "闪念"}</span>
-                <span>{(th.strength * 100).toFixed(0)}%</span>
+          {thoughts.map((th, i) => {
+            const isOpen = expanded === i;
+            return (
+              <div key={i} onClick={() => setExpanded(isOpen ? null : i)} style={{
+                padding:"10px 14px",
+                background: `${driveColor(th.drive)}18`,
+                border: `1px solid ${driveColor(th.drive)}40`,
+                borderRadius: 12,
+                borderLeft: `3px solid ${driveColor(th.drive)}`,
+                animation: `floatIn ${0.15 + i * 0.08}s ease`,
+                cursor: "pointer",
+              }}>
+                <div style={{ fontSize:12, color:t.text, lineHeight:1.6, whiteSpace: isOpen ? "pre-wrap" : "nowrap", overflow: isOpen ? "visible" : "hidden", textOverflow: isOpen ? "unset" : "ellipsis" }}>{th.text}</div>
+                <div style={{ marginTop:4, fontSize:10, color:t.textMuted, display:"flex", gap:8 }}>
+                  <span style={{ color:driveColor(th.drive) }}>{DRIVE_LABELS[th.drive] || th.drive}</span>
+                  <span>{th.kind === "obsession" ? "执念" : "闪念"}</span>
+                  <span>{(th.strength * 100).toFixed(0)}%</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
