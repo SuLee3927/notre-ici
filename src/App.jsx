@@ -4,6 +4,7 @@ import Gate from "./components/Gate.jsx";
 import Room from "./components/Room.jsx";
 import PrivateLayer from "./components/PrivateLayer.jsx";
 import NuonuoSpace from "./components/NuonuoSpace.jsx";
+import Bedroom from "./components/Bedroom.jsx";
 
 const BGM = {
   day: "/bgm-day.mp3",
@@ -15,6 +16,7 @@ export default function App() {
   const [entered, setEntered] = useState(false);
   const [showPrivate, setShowPrivate] = useState(false);
   const [showNuonuo, setShowNuonuo] = useState(false);
+  const [showBedroom, setShowBedroom] = useState(false);
   const [bgmOn, setBgmOn] = useState(false);
   const audioRef = useRef(null);
 
@@ -27,12 +29,12 @@ export default function App() {
 
   useEffect(() => {
     if (!audioRef.current) return;
-    if (bgmOn && !showNuonuo && !showPrivate) {
+    if (bgmOn && !showNuonuo && !showPrivate && !showBedroom) {
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
     }
-  }, [bgmOn, showNuonuo, showPrivate]);
+  }, [bgmOn, showNuonuo, showPrivate, showBedroom]);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -45,11 +47,12 @@ export default function App() {
     <>
       <audio ref={audioRef} loop src={BGM[mode]} style={{ display: "none" }} />
       {showNuonuo && <NuonuoSpace onClose={() => setShowNuonuo(false)} mode={mode} />}
-      {!showNuonuo && showPrivate && <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />}
-      {!showNuonuo && !showPrivate && !entered && (
+      {!showNuonuo && showBedroom && <Bedroom theme={t} mode={mode} onClose={() => setShowBedroom(false)} />}
+      {!showNuonuo && !showBedroom && showPrivate && <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />}
+      {!showNuonuo && !showBedroom && !showPrivate && !entered && (
         <Gate theme={t} onEnter={() => { setEntered(true); setBgmOn(true); }} />
       )}
-      {!showNuonuo && !showPrivate && entered && (
+      {!showNuonuo && !showBedroom && !showPrivate && entered && (
         <Room
           theme={t}
           bgmOn={bgmOn}
@@ -57,6 +60,7 @@ export default function App() {
           mode={mode}
           onEnterPrivate={() => setShowPrivate(true)}
           onEnterNuonuo={() => setShowNuonuo(true)}
+          onEnterBedroom={() => setShowBedroom(true)}
         />
       )}
     </>
