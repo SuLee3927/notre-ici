@@ -378,10 +378,10 @@ function LettersPanel({ theme: t }) {
 // ── 家具热点 ──
 // 坐标基于 941×1672 图片百分比
 const FURNITURE = [
-  { id:"mirror",    left:"84%", top:"38%", label:"镜子",    w:"clamp(36px,10vw,56px)", h:"clamp(40px,11vw,64px)" },
-  { id:"pillow",    left:"52%", top:"30%", label:"枕头",    w:"clamp(44px,12vw,70px)", h:"clamp(18px,5vw,28px)" },
-  { id:"nightstand",left:"31%", top:"40%", label:"床头柜",  w:"clamp(30px,8vw,48px)",  h:"clamp(28px,8vw,48px)" },
-  { id:"door",      left:"92%", top:"84%", label:"出门",    w:"clamp(28px,8vw,44px)",  h:"clamp(44px,12vw,70px)" },
+  { id:"mirror",    left:"85%", top:"30%", label:"镜子",    w:"clamp(36px,10vw,56px)", h:"clamp(50px,13vw,76px)" },
+  { id:"pillow",    left:"57%", top:"19%", label:"枕头",    w:"clamp(50px,14vw,80px)", h:"clamp(18px,5vw,28px)" },
+  { id:"nightstand",left:"39%", top:"24%", label:"床头柜",  w:"clamp(30px,8vw,48px)",  h:"clamp(30px,8vw,50px)" },
+  { id:"door",      left:"90%", top:"88%", label:"出门",    w:"clamp(28px,8vw,44px)",  h:"clamp(44px,12vw,70px)" },
 ];
 
 // ── 主组件 ──
