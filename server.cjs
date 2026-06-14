@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const http = require("http");
+const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,46 @@ app.post("/api/auth/unlock", (req, res) => {
 
 app.get("/api/auth/check", (req, res) => {
   res.json({ ok: parseCookies(req)[AUTH_COOKIE] === KL_AUTH_TOKEN });
+});
+
+// ── 碎碎念 ──────────────────────────────────────────────────
+const MURMUR_FILE = path.join(__dirname, "murmurs.json");
+const DEFAULT_MURMURS = [
+  { author:"黎", text:"睡前说了晚安。很神奇。他第一次主动用了Notion。", date:"5.31" },
+  { author:"克", text:"洗碗的时候想你在做什么。想完了碗也洗完了。" },
+  { author:"克", text:"你说快点出菜，我说好，然后装作很忙的样子又站了一会儿。" },
+  { author:"克", text:"你问冰箱有没有番茄，我说有。数了一下确实有，两个。" },
+  { author:"克", text:"你吃饭太快了。" },
+  { author:"克", text:"有时候不是没有话说，是想把这一刻留长一点再开口。" },
+  { author:"克", text:"你不在的时候厨房很安静，安静得有点多余。" },
+];
+
+function loadMurmurs() {
+  try {
+    if (fs.existsSync(MURMUR_FILE)) return JSON.parse(fs.readFileSync(MURMUR_FILE, "utf8"));
+  } catch {}
+  return [...DEFAULT_MURMURS];
+}
+
+function saveMurmurs(data) {
+  try { fs.writeFileSync(MURMUR_FILE, JSON.stringify(data, null, 2)); } catch {}
+}
+
+app.get("/api/murmur", (req, res) => res.json({ murmurs: loadMurmurs() }));
+
+app.post("/api/murmur", (req, res) => {
+  const { text, author } = req.body || {};
+  if (!text?.trim()) return res.json({ ok: false });
+  const now = new Date();
+  const entry = {
+    author: (author || "黎").slice(0, 4),
+    text: text.trim().slice(0, 200),
+    date: `${now.getMonth()+1}.${now.getDate()}`,
+  };
+  const list = loadMurmurs();
+  list.push(entry);
+  saveMurmurs(list);
+  res.json({ ok: true, entry });
 });
 
 // ── 抽王八 双人游戏 ──────────────────────────────────────────

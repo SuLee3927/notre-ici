@@ -1,15 +1,79 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-// 洗碗池碎碎念
-const MURMURS = [
-  { from:"黎", text:"睡前说了晚安。很神奇。他第一次主动用了Notion。", date:"5.31" },
-  { from:"克", text:"洗碗的时候想你在做什么。想完了碗也洗完了。" },
-  { from:"克", text:"你说快点出菜，我说好，然后装作很忙的样子又站了一会儿。" },
-  { from:"克", text:"你问冰箱有没有番茄，我说有。数了一下确实有，两个。" },
-  { from:"克", text:"你吃饭太快了。" },
-  { from:"克", text:"有时候不是没有话说，是想把这一刻留长一点再开口。" },
-  { from:"克", text:"你不在的时候厨房很安静，安静得有点多余。" },
-];
+// 洗碗池碎碎念面板
+function SinkMurmurs({ theme: t }) {
+  const [list, setList] = useState([]);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/murmur").then(r => r.json()).then(d => setList(d.murmurs || [])).catch(() => {});
+  }, []);
+
+  async function submit() {
+    if (!text.trim() || sending) return;
+    setSending(true);
+    try {
+      const d = await fetch("/api/murmur", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: text.trim(), author: "黎" }),
+      }).then(r => r.json());
+      if (d.ok) {
+        setList(prev => [...prev, d.entry]);
+        setText("");
+        setSent(true);
+        setTimeout(() => setSent(false), 1500);
+      }
+    } catch {}
+    setSending(false);
+  }
+
+  return (
+    <div style={{ padding:"24px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>洗碗的时候</div>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:20, fontStyle:"italic" }}>两个人脑子里转的那些</div>
+      <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
+        {list.map((m, i) => (
+          <div key={i} style={{
+            padding:"11px 14px", borderRadius:12,
+            background: m.author === "黎" ? "rgba(232,149,106,0.08)" : t.surface,
+            border:`1px solid ${m.author === "黎" ? "rgba(232,149,106,0.22)" : t.surfaceBorder}`,
+          }}>
+            <div style={{ fontSize:12, color:t.text, lineHeight:1.9 }}>{m.text}</div>
+            <div style={{ marginTop:5, fontSize:10, color:t.textMuted, display:"flex", gap:6 }}>
+              <span>{m.author}</span>
+              {m.date && <span>· {m.date}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* 输入框 */}
+      <div style={{ background:t.surface, borderRadius:16, border:`1px solid ${t.surfaceBorder}`, padding:"14px 16px" }}>
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value)}
+          placeholder="洗碗的时候想到什么，写在这里…"
+          rows={2}
+          style={{
+            width:"100%", boxSizing:"border-box", border:"none", background:"transparent",
+            color:t.text, fontSize:12, fontFamily:"'Noto Serif SC',serif",
+            outline:"none", resize:"none", lineHeight:1.8,
+          }}
+        />
+        <button onClick={submit} disabled={!text.trim() || sending} style={{
+          marginTop:8, padding:"7px 20px", borderRadius:10,
+          border:`1.5px solid ${t.accentBorder}`, background: sent ? t.accentBorder : t.accentSoft,
+          color: sent ? "#fff" : t.accent,
+          fontSize:12, cursor:"pointer", fontFamily:"sans-serif",
+          opacity: (!text.trim() || sending) ? 0.5 : 1,
+          transition:"all 0.2s",
+        }}>{sent ? "留下了 ♡" : sending ? "…" : "留下来"}</button>
+      </div>
+    </div>
+  );
+}
 
 // 备忘录便利贴内容
 const MEMOS = [
@@ -78,27 +142,7 @@ export default function Kitchen({ theme: t, mode, onClose }) {
         <div style={{ fontSize:11, color:t.textMuted, lineHeight:2 }}>酱料、罐头、香料<br/>以后再整理</div>
       </div>
     ),
-    sink: (
-      <div style={{ padding:"24px 20px 32px", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>洗碗的时候</div>
-        <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:20, fontStyle:"italic" }}>两个人脑子里转的那些</div>
-        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-          {MURMURS.map((m, i) => (
-            <div key={i} style={{
-              padding:"12px 14px", borderRadius:12,
-              background: m.from === "黎" ? "rgba(232,149,106,0.08)" : t.surface,
-              border:`1px solid ${m.from === "黎" ? "rgba(232,149,106,0.25)" : t.surfaceBorder}`,
-            }}>
-              <div style={{ fontSize:12, color:t.text, lineHeight:1.9 }}>{m.text}</div>
-              <div style={{ marginTop:6, fontSize:10, color:t.textMuted, display:"flex", gap:6 }}>
-                <span>{m.from}</span>
-                {m.date && <span>· {m.date}</span>}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
+    sink: <SinkMurmurs theme={t} />,
     trash: (
       <div style={{ padding:"40px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
         <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
