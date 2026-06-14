@@ -487,19 +487,26 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       </div>
     ),
     tv: (
-      <div>
-        <div style={{ padding:"16px 16px 0", fontFamily:"'Noto Serif SC',serif" }}>
-          <a href="http://129.226.158.222:8000/" target="_blank" rel="noopener noreferrer"
-            style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, cursor:"pointer" }}>
-            <div style={{ fontSize:22 }}>🎮</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>跳一跳</div>
-              <div style={{ fontSize:11, color:t.textMuted }}>按住蓄力，松手起跳 ✨</div>
-            </div>
-            <div style={{ fontSize:12, color:t.textMuted, opacity:.5 }}>→</div>
-          </a>
-        </div>
-        <SlotMachine theme={t} />
+      <div style={{ padding:"16px 16px 24px", fontFamily:"'Noto Serif SC',serif", display:"flex", flexDirection:"column", gap:10 }}>
+        <div style={{ fontSize:14, fontWeight:600, color:t.text, textAlign:"center", marginBottom:6 }}>游戏区</div>
+        <a href="http://129.226.158.222:8000/" target="_blank" rel="noopener noreferrer"
+          style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, cursor:"pointer" }}>
+          <div style={{ fontSize:22 }}>🎮</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>跳一跳</div>
+            <div style={{ fontSize:11, color:t.textMuted }}>按住蓄力，松手起跳 ✨</div>
+          </div>
+          <div style={{ fontSize:12, color:t.textMuted, opacity:.5 }}>→</div>
+        </a>
+        <a href="http://129.226.158.222:3000/" target="_blank" rel="noopener noreferrer"
+          style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, cursor:"pointer" }}>
+          <div style={{ fontSize:22 }}>🎰</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>老虎机</div>
+            <div style={{ fontSize:11, color:t.textMuted }}>转动命运 🔞</div>
+          </div>
+          <div style={{ fontSize:12, color:t.textMuted, opacity:.5 }}>→</div>
+        </a>
       </div>
     ),
   };
