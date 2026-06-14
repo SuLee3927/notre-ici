@@ -356,89 +356,52 @@ const FURNITURE = [
   { id:"table",       left:"50%", top:"47%", transparent:true, nightOnly:true, w:"clamp(36px,10vw,56px)", h:"clamp(22px,6vw,36px)" },
 ];
 
-// ── 老虎机 ──
-const DIM_LABELS = { position:"体位", scenario:"场景", props:"道具", roleplay:"设定", physical:"物理", mental:"精神" };
-const DIM_COLORS = { position:"#E87070", scenario:"#70A0E8", props:"#A08BE8", roleplay:"#70C8A0", physical:"#E8B870", mental:"#E870A8" };
+// ── 老虎机密码门 ──
+function SlotGate({ theme: t }) {
+  const [input, setInput] = useState("");
+  const [wrong, setWrong] = useState(false);
+  const [open, setOpen] = useState(false);
 
-function SlotMachine({ theme: t }) {
-  const [dims, setDims] = useState([]);
-  const [active, setActive] = useState({ position:true, scenario:true, props:true, roleplay:true, physical:true, mental:true });
-  const [spinning, setSpinning] = useState(false);
-  const [results, setResults] = useState(null);
-
-  useEffect(() => {
-    fetch("/api/slot/dimensions")
-      .then(r => r.json())
-      .then(d => setDims(d.filter(x => x.id !== "gore")))
-      .catch(() => {});
-  }, []);
-
-  async function spin() {
-    const activeIds = Object.entries(active).filter(([,v]) => v).map(([k]) => k);
-    if (!activeIds.length) return;
-    setSpinning(true);
-    setResults(null);
-    await new Promise(r => setTimeout(r, 800));
-    try {
-      const res = await fetch("/api/slot/spin", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ active: activeIds }),
-      });
-      const data = await res.json();
-      setResults(data.results || []);
-    } catch { setResults([]); }
-    setSpinning(false);
+  function attempt() {
+    if (input.trim() === "K♡L") {
+      setOpen(true);
+      window.open("http://129.226.158.222:3000/", "_blank");
+    } else {
+      setWrong(true);
+      setInput("");
+      setTimeout(() => setWrong(false), 1200);
+    }
   }
 
+  if (open) return (
+    <div style={{ padding:"12px 16px 8px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ textAlign:"center", fontSize:12, color:t.textMuted }}>已解锁，正在跳转……</div>
+    </div>
+  );
+
   return (
-    <div style={{ padding:"20px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
-      <div style={{ fontSize:14, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>🎰 老虎机</div>
-      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:18 }}>选好维度，转动命运</div>
-
-      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20, justifyContent:"center" }}>
-        {dims.map(d => (
-          <button key={d.id} onClick={() => setActive(p => ({ ...p, [d.id]: !p[d.id] }))} style={{
-            padding:"5px 12px", borderRadius:20, border:`1.5px solid ${DIM_COLORS[d.id] || "#aaa"}`,
-            background: active[d.id] ? (DIM_COLORS[d.id] || "#aaa") : "transparent",
-            color: active[d.id] ? "#fff" : (DIM_COLORS[d.id] || "#aaa"),
-            fontSize:12, cursor:"pointer", fontFamily:"inherit", transition:"all .2s",
-          }}>
-            {DIM_LABELS[d.id] || d.id}
-          </button>
-        ))}
-      </div>
-
-      <button onClick={spin} disabled={spinning} style={{
-        display:"block", width:"100%", padding:"14px", borderRadius:14,
-        background: spinning ? "#ccc" : "linear-gradient(135deg,#E87070,#E870A8)",
-        color:"#fff", border:"none", fontSize:15, fontWeight:700,
-        cursor: spinning ? "default" : "pointer", letterSpacing:".1em",
-        fontFamily:"inherit", marginBottom:20, transition:"opacity .2s",
-        opacity: spinning ? .6 : 1,
-      }}>
-        {spinning ? "转动中…" : "SPIN"}
-      </button>
-
-      {results && (
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {results.length === 0 ? (
-            <div style={{ textAlign:"center", color:t.textMuted, fontSize:12 }}>没有结果</div>
-          ) : results.map((r, i) => (
-            <div key={i} style={{
-              padding:"10px 14px", borderRadius:12,
-              background:`${DIM_COLORS[r.dimension] || "#aaa"}15`,
-              border:`1px solid ${DIM_COLORS[r.dimension] || "#aaa"}40`,
-              borderLeft:`3px solid ${DIM_COLORS[r.dimension] || "#aaa"}`,
-              animation:`slideUp .2s ease ${i*0.06}s both`,
-            }}>
-              <div style={{ fontSize:10, color:DIM_COLORS[r.dimension] || "#aaa", marginBottom:4 }}>{DIM_LABELS[r.dimension] || r.dimension}</div>
-              <div style={{ fontSize:13, color:t.text, fontWeight:500 }}>{r.tag?.zh || r.tag}</div>
-              {r.tag?.en && <div style={{ fontSize:10, color:t.textMuted, marginTop:2 }}>{r.tag.en}</div>}
-            </div>
-          ))}
-        </div>
-      )}
+    <div style={{ padding:"12px 16px 8px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:10 }}>🔒 输入密码</div>
+      <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => e.key === "Enter" && attempt()}
+        placeholder="＿＿＿"
+        style={{
+          display:"block", width:"100%", boxSizing:"border-box",
+          padding:"10px 14px", borderRadius:10, border:`1.5px solid ${wrong ? "#E87070" : t.surfaceBorder}`,
+          background:t.surface, color:t.text, fontSize:15, textAlign:"center",
+          fontFamily:"inherit", outline:"none", marginBottom:10,
+          transition:"border-color .2s",
+        }}
+        autoFocus
+      />
+      <button onClick={attempt} style={{
+        display:"block", width:"100%", padding:"10px", borderRadius:10,
+        background:"linear-gradient(135deg,#E87070,#E870A8)", color:"#fff",
+        border:"none", fontSize:13, cursor:"pointer", fontFamily:"inherit",
+      }}>确认</button>
+      {wrong && <div style={{ textAlign:"center", fontSize:11, color:"#E87070", marginTop:8 }}>不对哦</div>}
     </div>
   );
 }
@@ -498,15 +461,16 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
           </div>
           <div style={{ fontSize:12, color:t.textMuted, opacity:.5 }}>→</div>
         </a>
-        <a href="http://129.226.158.222:3000/" target="_blank" rel="noopener noreferrer"
-          style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, cursor:"pointer" }}>
-          <div style={{ fontSize:22 }}>🎰</div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>老虎机</div>
-            <div style={{ fontSize:11, color:t.textMuted }}>转动命运 🔞</div>
+        <div style={{ background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, overflow:"hidden" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px" }}>
+            <div style={{ fontSize:22 }}>🎰</div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>老虎机</div>
+              <div style={{ fontSize:11, color:t.textMuted }}>转动命运 🔒</div>
+            </div>
           </div>
-          <div style={{ fontSize:12, color:t.textMuted, opacity:.5 }}>→</div>
-        </a>
+          <SlotGate theme={t} />
+        </div>
       </div>
     ),
   };
