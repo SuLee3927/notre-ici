@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import CookingGame, { PantryPanel } from "./CookingGame.jsx";
 
 // 洗碗池碎碎念面板
 function SinkMurmurs({ theme: t }) {
@@ -134,14 +135,8 @@ export default function Kitchen({ theme: t, mode, onClose }) {
 
   const contentMap = {
     fridge: <MemoBoard theme={t} />,
-    stove:  <StovePlaceholder theme={t} />,
-    shelf: (
-      <div style={{ padding:"40px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:32, marginBottom:12 }}>🫙</div>
-        <div style={{ fontSize:13, color:t.text, marginBottom:8 }}>置物架</div>
-        <div style={{ fontSize:11, color:t.textMuted, lineHeight:2 }}>酱料、罐头、香料<br/>以后再整理</div>
-      </div>
-    ),
+    stove:  <CookingGame theme={t} />,
+    shelf: <PantryPanel theme={t} />,
     sink: <SinkMurmurs theme={t} />,
     trash: (
       <div style={{ padding:"40px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>

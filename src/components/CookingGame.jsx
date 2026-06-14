@@ -1,0 +1,308 @@
+import { useState, useEffect } from "react";
+
+// 全部食材
+const INGREDIENTS = [
+  { id:"egg",     emoji:"🥚", name:"鸡蛋" },
+  { id:"tomato",  emoji:"🍅", name:"番茄" },
+  { id:"rice",    emoji:"🌾", name:"大米" },
+  { id:"broccoli",emoji:"🥦", name:"西兰花" },
+  { id:"garlic",  emoji:"🧄", name:"大蒜" },
+  { id:"pork",    emoji:"🍖", name:"猪肉" },
+  { id:"spring",  emoji:"🧅", name:"葱" },
+  { id:"water",   emoji:"💧", name:"水" },
+  { id:"oyster",  emoji:"🦪", name:"生蚝" },
+  { id:"noodle",  emoji:"🍜", name:"粉丝" },
+  { id:"ribs",    emoji:"🥩", name:"排骨" },
+  { id:"claw",    emoji:"🐓", name:"凤爪" },
+  { id:"beef",    emoji:"🥩", name:"牛肉" },
+  { id:"lamb",    emoji:"🐑", name:"羊肉" },
+  { id:"pasta",   emoji:"🍝", name:"面条" },
+  { id:"instant", emoji:"📦", name:"方便面" },
+  { id:"chili",   emoji:"🌶️", name:"辣椒" },
+  { id:"bread",   emoji:"🍞", name:"面包" },
+  { id:"lettuce", emoji:"🥬", name:"生菜" },
+  { id:"sausage", emoji:"🥓", name:"火腿肠" },
+  { id:"lobster", emoji:"🦞", name:"小龙虾" },
+];
+
+// 食材在置物架上的初始数量（无限用water，其他有限）
+const DEFAULT_QTY = {
+  egg:3, tomato:2, rice:4, broccoli:2, garlic:3, pork:2, spring:3, water:99,
+  oyster:2, noodle:2, ribs:2, claw:2, beef:2, lamb:2, pasta:2, instant:3, chili:3, bread:2, lettuce:2, sausage:2, lobster:2,
+};
+
+// 配方表：ingredients（无序匹配）+ heat(低/中/旺) → 菜名+emoji
+const RECIPES = [
+  { ids:["egg","tomato"],            heat:"中", dish:"番茄炒蛋",     emoji:"🍳" },
+  { ids:["egg","water"],             heat:"低", dish:"蒸蛋",         emoji:"🥣" },
+  { ids:["rice","water"],            heat:"低", dish:"白粥",         emoji:"🍚" },
+  { ids:["pork","rice","water"],     heat:"低", dish:"肉粥",         emoji:"🍲" },
+  { ids:["broccoli","garlic"],       heat:"旺", dish:"蒜蓉西兰花",   emoji:"🥦" },
+  { ids:["egg","rice"],              heat:"旺", dish:"蛋炒饭",        emoji:"🍚" },
+  { ids:["oyster","noodle","garlic"],heat:"中", dish:"蒜蓉粉丝生蚝", emoji:"🦪" },
+  { ids:["ribs"],                    heat:"低", dish:"红烧排骨",      emoji:"🍖" },
+  { ids:["claw","chili"],            heat:"低", dish:"酸辣凤爪",      emoji:"🐓" },
+  { ids:["beef","pasta","water"],    heat:"中", dish:"牛肉面",        emoji:"🍜" },
+  { ids:["lamb","spring"],           heat:"旺", dish:"羊肉串",        emoji:"🐑" },
+  { ids:["bread","pork","lettuce"],  heat:"中", dish:"汉堡包",        emoji:"🍔" },
+  { ids:["pasta","tomato","garlic"], heat:"中", dish:"意大利面",      emoji:"🍝" },
+  { ids:["instant","egg","sausage"], heat:"中", dish:"升华方便面",    emoji:"🍜" },
+  { ids:["lobster","chili","spring"],heat:"中", dish:"麻辣小龙虾",    emoji:"🦞" },
+];
+
+const HEAT_LABELS = ["低火", "中火", "旺火"];
+const HEAT_KEYS   = ["低",   "中",   "旺"];
+
+const STORAGE_KEY = "kitchen_qty";
+const UNLOCK_KEY  = "kitchen_unlocked";
+
+function loadQty() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { ...DEFAULT_QTY }; }
+  catch { return { ...DEFAULT_QTY }; }
+}
+function saveQty(q) { localStorage.setItem(STORAGE_KEY, JSON.stringify(q)); }
+function loadUnlocked() {
+  try { return JSON.parse(localStorage.getItem(UNLOCK_KEY)) || []; }
+  catch { return []; }
+}
+function saveUnlocked(u) { localStorage.setItem(UNLOCK_KEY, JSON.stringify(u)); }
+
+function matchRecipe(selected, heatIdx) {
+  const heatKey = HEAT_KEYS[heatIdx];
+  const selSet = selected.slice().sort().join(",");
+  for (const r of RECIPES) {
+    const rSet = r.ids.slice().sort().join(",");
+    if (rSet === selSet && r.heat === heatKey) return r;
+  }
+  return null;
+}
+
+// 置物架面板
+export function PantryPanel({ theme: t }) {
+  const [qty, setQty] = useState(loadQty);
+  const unlocked = loadUnlocked();
+
+  return (
+    <div style={{ padding:"20px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>置物架</div>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:18, fontStyle:"italic" }}>进灶台用这里的食材做菜</div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center" }}>
+        {INGREDIENTS.map(ing => {
+          const q = qty[ing.id] ?? 0;
+          return (
+            <div key={ing.id} style={{
+              width:60, textAlign:"center",
+              opacity: q === 0 ? 0.4 : 1,
+            }}>
+              <div style={{ fontSize:26 }}>{ing.emoji}</div>
+              <div style={{ fontSize:10, color:t.textSub, marginTop:2 }}>{ing.name}</div>
+              <div style={{ fontSize:10, color: q === 0 ? "#E87070" : t.textMuted, marginTop:1 }}>
+                {q === 99 ? "∞" : q === 0 ? "缺货" : `×${q}`}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {unlocked.length > 0 && (
+        <div style={{ marginTop:24, padding:"14px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}` }}>
+          <div style={{ fontSize:11, color:t.textMuted, marginBottom:8, textAlign:"center" }}>已解锁配方</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+            {unlocked.map((d, i) => (
+              <span key={i} style={{ fontSize:12, padding:"3px 8px", background:`${t.accent}18`, borderRadius:8, color:t.accent }}>
+                {d}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 灶台游戏
+export default function CookingGame({ theme: t }) {
+  const [qty, setQty] = useState(loadQty);
+  const [selected, setSelected] = useState([]);
+  const [heatIdx, setHeatIdx] = useState(1); // 0低 1中 2旺
+  const [phase, setPhase] = useState("select"); // select cooking result
+  const [result, setResult] = useState(null);
+  const [unlocked, setUnlocked] = useState(loadUnlocked);
+
+  function toggleIngredient(id) {
+    if (phase !== "select") return;
+    if ((qty[id] ?? 0) === 0 && id !== "water") return;
+    setSelected(prev => {
+      if (prev.includes(id)) return prev.filter(x => x !== id);
+      if (prev.length >= 3) return prev;
+      return [...prev, id];
+    });
+  }
+
+  function cook() {
+    if (selected.length === 0 || phase !== "select") return;
+    setPhase("cooking");
+    setTimeout(() => {
+      const recipe = matchRecipe(selected, heatIdx);
+      if (recipe) {
+        // 消耗食材
+        const newQty = { ...qty };
+        selected.forEach(id => { if (newQty[id] !== 99) newQty[id] = Math.max(0, (newQty[id]||0) - 1); });
+        saveQty(newQty);
+        setQty(newQty);
+        // 解锁配方
+        const label = `${recipe.emoji} ${recipe.dish}`;
+        if (!unlocked.includes(label)) {
+          const newU = [...unlocked, label];
+          saveUnlocked(newU);
+          setUnlocked(newU);
+        }
+        setResult({ success:true, recipe, isNew: !unlocked.includes(label) });
+      } else {
+        // 失败：随机原因
+        const reasons = [
+          "火候不对，烧糊了", "食材搭配有点奇怪", "这个配方还没找到",
+          "灶台抗议了", "好像少了什么食材",
+        ];
+        setResult({ success:false, reason: reasons[Math.floor(Math.random()*reasons.length)] });
+      }
+      setPhase("result");
+    }, 1200);
+  }
+
+  function reset() {
+    setSelected([]);
+    setPhase("select");
+    setResult(null);
+  }
+
+  return (
+    <div style={{ padding:"16px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>灶台</div>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:16, fontStyle:"italic" }}>
+        选食材 · 调火候 · 下锅
+      </div>
+
+      {/* 已选食材槽 */}
+      <div style={{
+        display:"flex", gap:10, justifyContent:"center", alignItems:"center",
+        padding:"14px 12px", marginBottom:14,
+        background:t.surface, borderRadius:14, border:`1px solid ${t.surfaceBorder}`,
+        minHeight:64,
+      }}>
+        {selected.length === 0 ? (
+          <div style={{ fontSize:11, color:t.textMuted }}>从下方选食材（最多3样）</div>
+        ) : (
+          selected.map(id => {
+            const ing = INGREDIENTS.find(x => x.id === id);
+            return (
+              <div key={id} onClick={() => toggleIngredient(id)}
+                style={{ textAlign:"center", cursor:"pointer" }}>
+                <div style={{ fontSize:26 }}>{ing.emoji}</div>
+                <div style={{ fontSize:9, color:t.textMuted }}>{ing.name}</div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* 火候滑块 */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:11, color:t.textMuted, marginBottom:8, textAlign:"center" }}>
+          火候：{HEAT_LABELS[heatIdx]}
+        </div>
+        <div style={{ display:"flex", gap:6 }}>
+          {HEAT_LABELS.map((label, i) => (
+            <button key={i} onClick={() => phase === "select" && setHeatIdx(i)}
+              style={{
+                flex:1, padding:"8px 0", borderRadius:10,
+                border:`1.5px solid ${i === heatIdx ? t.accentBorder : t.surfaceBorder}`,
+                background: i === heatIdx ? t.accentSoft : "transparent",
+                color: i === heatIdx ? t.accent : t.textMuted,
+                fontSize:12, cursor: phase === "select" ? "pointer" : "default",
+                fontFamily:"'Noto Serif SC',serif",
+              }}
+            >{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* 食材选择器 */}
+      {phase === "select" && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:16, justifyContent:"center" }}>
+          {INGREDIENTS.map(ing => {
+            const q = qty[ing.id] ?? 0;
+            const isSelected = selected.includes(ing.id);
+            const isEmpty = q === 0 && ing.id !== "water";
+            return (
+              <div key={ing.id} onClick={() => !isEmpty && toggleIngredient(ing.id)}
+                style={{
+                  padding:"6px 8px", borderRadius:10, textAlign:"center",
+                  border:`1.5px solid ${isSelected ? t.accentBorder : t.surfaceBorder}`,
+                  background: isSelected ? t.accentSoft : "transparent",
+                  opacity: isEmpty ? 0.3 : 1,
+                  cursor: isEmpty ? "not-allowed" : "pointer",
+                  minWidth:44,
+                }}>
+                <div style={{ fontSize:20 }}>{ing.emoji}</div>
+                <div style={{ fontSize:9, color: isSelected ? t.accent : t.textMuted }}>{ing.name}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 下锅按钮 */}
+      {phase === "select" && (
+        <button onClick={cook} disabled={selected.length === 0}
+          style={{
+            width:"100%", padding:"12px 0", borderRadius:12,
+            border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
+            color:t.accent, fontSize:13, cursor: selected.length ? "pointer" : "default",
+            fontFamily:"'Noto Serif SC',serif", fontWeight:600,
+            opacity: selected.length ? 1 : 0.4,
+          }}>
+          下锅 🔥
+        </button>
+      )}
+
+      {/* 烹饪中 */}
+      {phase === "cooking" && (
+        <div style={{ textAlign:"center", padding:"24px 0" }}>
+          <div style={{ fontSize:32, animation:"spin 0.8s linear infinite" }}>🍳</div>
+          <div style={{ fontSize:12, color:t.textMuted, marginTop:10 }}>在做了在做了…</div>
+        </div>
+      )}
+
+      {/* 结果 */}
+      {phase === "result" && result && (
+        <div style={{ textAlign:"center", padding:"10px 0 16px" }}>
+          {result.success ? (
+            <>
+              <div style={{ fontSize:48, marginBottom:8 }}>{result.recipe.emoji}</div>
+              <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:4 }}>{result.recipe.dish}</div>
+              {result.isNew && (
+                <div style={{ fontSize:11, color:"#E8956A", marginBottom:8 }}>✨ 新配方解锁！</div>
+              )}
+              <div style={{ fontSize:11, color:t.textMuted, marginBottom:20 }}>做好了~</div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize:36, marginBottom:8 }}>💨</div>
+              <div style={{ fontSize:13, color:t.text, marginBottom:4 }}>失败了</div>
+              <div style={{ fontSize:11, color:t.textMuted, marginBottom:20 }}>{result.reason}</div>
+            </>
+          )}
+          <button onClick={reset} style={{
+            padding:"10px 28px", borderRadius:12,
+            border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
+            color:t.accent, fontSize:13, cursor:"pointer",
+          }}>再做一次</button>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+      `}</style>
+    </div>
+  );
+}
