@@ -30,6 +30,7 @@ function makeProxy(hostname, port, basePath) {
 app.use(express.json());
 app.use("/api/desire", makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/desire"));
 app.use("/api/slot",   makeProxy("127.0.0.1",  SLOT_PORT,   "/api"));
+app.use("/api/board",  makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/board"));
 
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));

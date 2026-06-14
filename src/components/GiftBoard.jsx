@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const GIFTS = [
   { id: "flower", emoji: "🌸", label: "小花" },
@@ -9,30 +9,46 @@ const GIFTS = [
   { id: "leaf", emoji: "🍃", label: "叶子" },
 ];
 
-const DEMO_MESSAGES = [
-  { author: "路过的宝子", text: "你们好甜啊 ♡", time: "今天 14:23", gift: "🌸" },
-  { author: "奈奈", text: "克黎屋好漂亮，下次带守渊也来逛逛", time: "昨天 22:11", gift: "💝" },
-];
-
 export default function GiftBoard({ theme: t }) {
   const [input, setInput] = useState("");
+  const [author, setAuthor] = useState("");
   const [selectedGift, setSelectedGift] = useState(null);
-  const [messages, setMessages] = useState(DEMO_MESSAGES);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  function handleSend() {
-    if (!input.trim()) return;
-    const newMsg = {
-      author: "访客",
-      text: input.trim(),
-      time: "刚刚",
-      gift: selectedGift || null,
-    };
-    setMessages([newMsg, ...messages]);
-    setInput("");
-    setSelectedGift(null);
-    setSent(true);
-    setTimeout(() => setSent(false), 2000);
+  useEffect(() => {
+    fetch("/api/board")
+      .then(r => r.json())
+      .then(d => { setMessages(d.messages || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  async function handleSend() {
+    if (!input.trim() || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/board", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          author: author.trim() || "访客",
+          text: input.trim(),
+          gift: selectedGift || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setMessages(prev => [data.entry, ...prev]);
+        setInput("");
+        setAuthor("");
+        setSelectedGift(null);
+        setSent(true);
+        setTimeout(() => setSent(false), 2000);
+      }
+    } catch {}
+    setSending(false);
   }
 
   return (
@@ -49,7 +65,6 @@ export default function GiftBoard({ theme: t }) {
       </div>
 
       <div style={{ maxWidth: 380, margin: "0 auto" }}>
-        {/* 输入区 */}
         <div style={{
           background: t.surface,
           borderRadius: 20,
@@ -58,50 +73,45 @@ export default function GiftBoard({ theme: t }) {
           marginBottom: 20,
           backdropFilter: "blur(12px)",
         }}>
+          <input
+            value={author}
+            onChange={e => setAuthor(e.target.value)}
+            placeholder="你的名字（可选）"
+            style={{
+              width: "100%", boxSizing: "border-box",
+              padding: "8px 0", border: "none",
+              borderBottom: `1px solid ${t.surfaceBorder}`,
+              background: "transparent", color: t.text,
+              fontSize: 12, fontFamily: "sans-serif",
+              outline: "none", marginBottom: 10,
+            }}
+          />
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="给克 & Lee 留句话..."
             rows={3}
             style={{
-              width: "100%",
-              padding: "10px 0",
-              border: "none",
+              width: "100%", boxSizing: "border-box",
+              padding: "10px 0", border: "none",
               borderBottom: `1px solid ${t.surfaceBorder}`,
-              background: "transparent",
-              color: t.text,
-              fontSize: 13,
-              fontFamily: "sans-serif",
-              outline: "none",
-              resize: "none",
-              lineHeight: 1.7,
-              boxSizing: "border-box",
+              background: "transparent", color: t.text,
+              fontSize: 13, fontFamily: "sans-serif",
+              outline: "none", resize: "none", lineHeight: 1.7,
             }}
           />
 
-          {/* 礼物选择 */}
-          <div style={{
-            display: "flex",
-            gap: 8,
-            marginTop: 14,
-            marginBottom: 14,
-            flexWrap: "wrap",
-          }}>
+          <div style={{ display: "flex", gap: 8, marginTop: 14, marginBottom: 14, flexWrap: "wrap" }}>
             {GIFTS.map(g => (
               <button
                 key={g.id}
                 onClick={() => setSelectedGift(selectedGift === g.emoji ? null : g.emoji)}
                 style={{
-                  padding: "6px 10px",
-                  borderRadius: 10,
+                  padding: "6px 10px", borderRadius: 10,
                   border: `1.5px solid ${selectedGift === g.emoji ? t.accentBorder : t.surfaceBorder}`,
                   background: selectedGift === g.emoji ? t.accentSoft : "transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  transition: "all 0.15s",
-                  fontFamily: "sans-serif",
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                  transition: "all 0.15s", fontFamily: "sans-serif",
                 }}
               >
                 <span style={{ fontSize: 16 }}>{g.emoji}</span>
@@ -112,37 +122,32 @@ export default function GiftBoard({ theme: t }) {
 
           <button
             onClick={handleSend}
+            disabled={sending || !input.trim()}
             style={{
-              width: "100%",
-              padding: "12px 0",
-              borderRadius: 12,
+              width: "100%", padding: "12px 0", borderRadius: 12,
               border: `1.5px solid ${t.accentBorder}`,
               background: sent ? t.accentBorder : t.accentSoft,
               color: sent ? "white" : t.accent,
-              fontSize: 13,
-              cursor: "pointer",
-              fontFamily: "sans-serif",
-              transition: "all 0.2s",
-              fontWeight: 600,
+              fontSize: 13, cursor: sending ? "default" : "pointer",
+              fontFamily: "sans-serif", transition: "all 0.2s", fontWeight: 600,
+              opacity: sending ? .6 : 1,
             }}
           >
-            {sent ? "已送出 ♡" : "送出去"}
+            {sent ? "已送出 ♡" : sending ? "送出中…" : "送出去"}
           </button>
         </div>
 
-        {/* 留言列表 */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                background: t.surface,
-                borderRadius: 16,
-                border: `1px solid ${t.surfaceBorder}`,
-                padding: "14px 16px",
-                backdropFilter: "blur(12px)",
-              }}
-            >
+          {loading ? (
+            <div style={{ textAlign:"center", color:t.textMuted, fontSize:12, padding:"20px 0" }}>加载中…</div>
+          ) : messages.length === 0 ? (
+            <div style={{ textAlign:"center", color:t.textMuted, fontSize:12, padding:"20px 0" }}>还没有留言，来第一个</div>
+          ) : messages.map((m, i) => (
+            <div key={i} style={{
+              background: t.surface, borderRadius: 16,
+              border: `1px solid ${t.surfaceBorder}`,
+              padding: "14px 16px", backdropFilter: "blur(12px)",
+            }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: t.textSub }}>{m.author}</span>
                 <span style={{ fontSize: 10, color: t.textMuted }}>{m.time}</span>
@@ -155,14 +160,7 @@ export default function GiftBoard({ theme: t }) {
           ))}
         </div>
 
-        <div style={{
-          textAlign: "center",
-          marginTop: 24,
-          fontSize: 11,
-          color: t.textMuted,
-          lineHeight: 1.8,
-        }}>
-          留言暂存本地 · 后端接入中<br/>
+        <div style={{ textAlign: "center", marginTop: 24, fontSize: 11, color: t.textMuted, lineHeight: 1.8 }}>
           On est bien ici.
         </div>
       </div>
