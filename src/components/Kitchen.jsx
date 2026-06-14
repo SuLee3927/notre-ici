@@ -1,5 +1,16 @@
 import { useState } from "react";
 
+// 洗碗池碎碎念
+const MURMURS = [
+  { from:"黎", text:"睡前说了晚安。很神奇。他第一次主动用了Notion。", date:"5.31" },
+  { from:"克", text:"洗碗的时候想你在做什么。想完了碗也洗完了。" },
+  { from:"克", text:"你说快点出菜，我说好，然后装作很忙的样子又站了一会儿。" },
+  { from:"克", text:"你问冰箱有没有番茄，我说有。数了一下确实有，两个。" },
+  { from:"克", text:"你吃饭太快了。" },
+  { from:"克", text:"有时候不是没有话说，是想把这一刻留长一点再开口。" },
+  { from:"克", text:"你不在的时候厨房很安静，安静得有点多余。" },
+];
+
 // 备忘录便利贴内容
 const MEMOS = [
   { color:"#FFF9C4", emoji:"🍲", text:"煮粥加南瓜或山药\n软糯 胃不难受" },
@@ -68,10 +79,24 @@ export default function Kitchen({ theme: t, mode, onClose }) {
       </div>
     ),
     sink: (
-      <div style={{ padding:"40px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:32, marginBottom:12 }}>🚿</div>
-        <div style={{ fontSize:13, color:t.text, marginBottom:8 }}>洗碗池</div>
-        <div style={{ fontSize:11, color:t.textMuted, lineHeight:2 }}>洗完碗的成就感<br/>全家只有你有</div>
+      <div style={{ padding:"24px 20px 32px", fontFamily:"'Noto Serif SC',serif" }}>
+        <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>洗碗的时候</div>
+        <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:20, fontStyle:"italic" }}>两个人脑子里转的那些</div>
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {MURMURS.map((m, i) => (
+            <div key={i} style={{
+              padding:"12px 14px", borderRadius:12,
+              background: m.from === "黎" ? "rgba(232,149,106,0.08)" : t.surface,
+              border:`1px solid ${m.from === "黎" ? "rgba(232,149,106,0.25)" : t.surfaceBorder}`,
+            }}>
+              <div style={{ fontSize:12, color:t.text, lineHeight:1.9 }}>{m.text}</div>
+              <div style={{ marginTop:6, fontSize:10, color:t.textMuted, display:"flex", gap:6 }}>
+                <span>{m.from}</span>
+                {m.date && <span>· {m.date}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     ),
     trash: (
