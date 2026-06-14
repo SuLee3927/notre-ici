@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const DESIRE_API = "/api/desire/state";
 
@@ -375,6 +375,69 @@ function LettersPanel({ theme: t }) {
   );
 }
 
+// ── 密码解锁面板 ──
+function UnlockPanel({ theme: t, onUnlock }) {
+  const [pw, setPw] = useState("");
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  async function attempt() {
+    if (!pw.trim() || loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/unlock", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password: pw }),
+      });
+      const d = await res.json();
+      if (d.ok) { onUnlock(); return; }
+      setError(true); setPw("");
+      setTimeout(() => setError(false), 1200);
+    } catch {}
+    setLoading(false);
+  }
+
+  return (
+    <div style={{ padding:"44px 24px 36px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:28, marginBottom:14 }}>🔒</div>
+      <div style={{ fontSize:13, color:t.text, marginBottom:4 }}>K &amp; L 私密区域</div>
+      <div style={{ fontSize:11, color:t.textMuted, marginBottom:24 }}>输入密码解锁</div>
+      <input
+        ref={inputRef}
+        value={pw}
+        onChange={e => setPw(e.target.value)}
+        onKeyDown={e => e.key === "Enter" && attempt()}
+        type="password"
+        placeholder="密码"
+        style={{
+          width:"100%", boxSizing:"border-box", padding:"10px 14px", borderRadius:10,
+          border:`1.5px solid ${error ? "#E87070" : t.surfaceBorder}`,
+          background:t.surface, color:t.text, fontSize:14, fontFamily:"sans-serif",
+          outline:"none", textAlign:"center", transition:"border-color 0.2s",
+          animation: error ? "shake 0.3s ease" : "none",
+        }}
+      />
+      <button
+        onClick={attempt}
+        disabled={!pw.trim() || loading}
+        style={{
+          marginTop:10, width:"100%", padding:"10px 0", borderRadius:10,
+          border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
+          color:t.accent, fontSize:13, cursor:"pointer", fontFamily:"sans-serif",
+          opacity: (!pw.trim() || loading) ? 0.5 : 1,
+        }}
+      >
+        {loading ? "验证中…" : "进入"}
+      </button>
+      {error && <div style={{ marginTop:10, fontSize:11, color:"#E87070" }}>密码不对</div>}
+    </div>
+  );
+}
+
 // ── 家具热点 ──
 // 坐标基于 941×1672 图片百分比
 const FURNITURE = [
@@ -388,14 +451,30 @@ const FURNITURE = [
 // ── 主组件 ──
 export default function Bedroom({ theme: t, mode, onClose }) {
   const [active, setActive] = useState(null);
+  const [authorized, setAuthorized] = useState(null);
   const isDay = mode === "day";
   const hour = new Date().getHours();
   const isDusk = isDay && hour >= 17 && hour < 19;
 
+  useEffect(() => {
+    fetch("/api/auth/check")
+      .then(r => r.json())
+      .then(d => setAuthorized(d.ok))
+      .catch(() => setAuthorized(false));
+  }, []);
+
+  function locked(content) {
+    if (authorized === null) return (
+      <div style={{ padding:"48px 24px", textAlign:"center", color:t.textMuted, fontSize:12 }}>验证中…</div>
+    );
+    if (!authorized) return <UnlockPanel theme={t} onUnlock={() => setAuthorized(true)} />;
+    return content;
+  }
+
   const contentMap = {
-    mirror:     <MirrorPanel     theme={t} />,
-    pillow:     <DesirePanel     theme={t} />,
-    nightstand: <LettersPanel    theme={t} />,
+    mirror:     locked(<MirrorPanel     theme={t} />),
+    pillow:     locked(<DesirePanel     theme={t} />),
+    nightstand: locked(<LettersPanel    theme={t} />),
     chair: (
       <div style={{ padding:"28px 20px 32px", fontFamily:"'Noto Serif SC',serif", textAlign:"center" }}>
         <div style={{ fontSize:32, marginBottom:12 }}>🎵</div>
@@ -476,6 +555,7 @@ export default function Bedroom({ theme: t, mode, onClose }) {
       <style>{`
         @keyframes slideUp  { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
         @keyframes floatIn  { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shake    { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
       `}</style>
     </div>
   );
