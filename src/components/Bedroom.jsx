@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const DESIRE_API = "http://129.226.158.222:8765/api/desire/state";
+const DESIRE_API = "/api/desire/state";
 
 const DRIVE_LABELS = {
   attachment: "依恋",
