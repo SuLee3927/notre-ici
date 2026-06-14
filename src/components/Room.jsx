@@ -408,7 +408,7 @@ function SlotGate({ theme: t }) {
 }
 
 // ── 主组件 ──
-export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, onEnterNuonuo, onEnterBedroom }) {
+export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, onEnterNuonuo, onEnterBedroom, onEnterKitchen }) {
   const [active, setActive] = useState(null);
   const [hovered, setHovered] = useState(null);
   const [weatherKey, setWeatherKey] = useState(null); // null=sunny; "cloudy"/"rain"/"rain-light" from API (TODO)
@@ -489,6 +489,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
   function handleClick(id) {
     if (id === "door")        { onEnterPrivate(); return; }
     if (id === "kitchendoor") { onEnterBedroom(); return; }
+    if (id === "kitchen")     { onEnterKitchen(); return; }
     if (id === "record")      { setBgmOn(!bgmOn); return; }
     if (id === "table")       { if (!isDay) onEnterNuonuo(); return; }
     setActive(id);
