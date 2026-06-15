@@ -4,12 +4,12 @@ const PASSWORD = "0508";
 
 // 坐标基于 study-bg.jpg 图内百分比（941×1672，paddingBottom:177.7% 对齐层）
 const STUDY_ITEMS = [
-  { id:"bookshelf", left:"12%", top:"30%", label:"书架",     w:"clamp(60px,16vw,96px)",  h:"clamp(140px,37vw,220px)" },
+  { id:"bookshelf", left:"16%", top:"25%", label:"书架",     w:"clamp(60px,16vw,96px)",  h:"clamp(140px,37vw,220px)" },
   { id:"desk",      left:"62%", top:"18%", label:"书桌",     w:"clamp(70px,18vw,110px)", h:"clamp(50px,13vw,80px)"  },
   { id:"diary",     left:"47%", top:"22%", label:"日记本",   w:"clamp(36px,10vw,60px)",  h:"clamp(26px,7vw,44px)"   },
-  { id:"cabinet",   left:"86%", top:"22%", label:"带锁小柜", w:"clamp(36px,10vw,56px)",  h:"clamp(44px,12vw,70px)"  },
+  { id:"cabinet",   left:"84%", top:"47%", label:"带锁小柜", w:"clamp(36px,10vw,56px)",  h:"clamp(44px,12vw,70px)"  },
   { id:"photos",    left:"80%", top:"54%", label:"相册",     w:"clamp(28px,8vw,48px)",   h:"clamp(28px,8vw,48px)"   },
-  { id:"bear",      left:"73%", top:"44%", label:"大熊椅",   w:"clamp(60px,16vw,96px)",  h:"clamp(60px,16vw,96px)"  },
+  { id:"bear",      left:"76%", top:"40%", label:"大熊椅",   w:"clamp(60px,16vw,96px)",  h:"clamp(60px,16vw,96px)"  },
 ];
 
 function StudyBg({ isDay }) {
