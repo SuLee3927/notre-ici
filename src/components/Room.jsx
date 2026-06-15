@@ -355,6 +355,58 @@ const FURNITURE = [
   { id:"kitchen",     left:"5%",  top:"51%", transparent:true, w:"clamp(22px,6vw,36px)", h:"clamp(80px,22vw,132px)" },
 ];
 
+// ── 游戏面板 ──
+function GamePanel({ theme: t }) {
+  const [open, setOpen] = useState(null); // null | 'slot' | 'turtle'
+
+  const GAMES = [
+    { id:"jump",   emoji:"🎮", name:"跳一跳",  desc:"按住蓄力，松手起跳 ✨", href:"http://129.226.158.222:8000/" },
+    { id:"slot",   emoji:"🎰", name:"老虎机",  desc:"转动命运 🔒" },
+    { id:"turtle", emoji:"🐢", name:"抽王八",  desc:"别被留下乌龟牌" },
+  ];
+
+  if (open === "slot") return (
+    <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
+      <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
+      <SlotGate theme={t} />
+    </div>
+  );
+
+  if (open === "turtle") return (
+    <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
+      <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
+      <DrawTurtle theme={t} />
+    </div>
+  );
+
+  return (
+    <div style={{ padding:"16px 16px 24px", fontFamily:"'Noto Serif SC',serif", display:"flex", flexDirection:"column", gap:10 }}>
+      <div style={{ fontSize:14, fontWeight:600, color:t.text, textAlign:"center", marginBottom:6 }}>游戏区</div>
+      {GAMES.map(g => g.href ? (
+        <a key={g.id} href={g.href} target="_blank" rel="noopener noreferrer"
+          style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}` }}>
+          <div style={{ fontSize:22 }}>{g.emoji}</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>{g.name}</div>
+            <div style={{ fontSize:11, color:t.textMuted }}>{g.desc}</div>
+          </div>
+          <div style={{ fontSize:12, color:t.textMuted, opacity:.5 }}>→</div>
+        </a>
+      ) : (
+        <button key={g.id} onClick={() => setOpen(g.id)}
+          style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, cursor:"pointer", width:"100%", textAlign:"left" }}>
+          <div style={{ fontSize:22 }}>{g.emoji}</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>{g.name}</div>
+            <div style={{ fontSize:11, color:t.textMuted }}>{g.desc}</div>
+          </div>
+          <div style={{ fontSize:12, color:t.textMuted, opacity:.5 }}>→</div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── 老虎机密码门 ──
 function SlotGate({ theme: t }) {
   const [input, setInput] = useState("");
@@ -448,40 +500,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在布置中……</div>
       </div>
     ),
-    tv: (
-      <div style={{ padding:"16px 16px 24px", fontFamily:"'Noto Serif SC',serif", display:"flex", flexDirection:"column", gap:10 }}>
-        <div style={{ fontSize:14, fontWeight:600, color:t.text, textAlign:"center", marginBottom:6 }}>游戏区</div>
-        <a href="http://129.226.158.222:8000/" target="_blank" rel="noopener noreferrer"
-          style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, cursor:"pointer" }}>
-          <div style={{ fontSize:22 }}>🎮</div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>跳一跳</div>
-            <div style={{ fontSize:11, color:t.textMuted }}>按住蓄力，松手起跳 ✨</div>
-          </div>
-          <div style={{ fontSize:12, color:t.textMuted, opacity:.5 }}>→</div>
-        </a>
-        <div style={{ background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, overflow:"hidden" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px" }}>
-            <div style={{ fontSize:22 }}>🎰</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>老虎机</div>
-              <div style={{ fontSize:11, color:t.textMuted }}>转动命运 🔒</div>
-            </div>
-          </div>
-          <SlotGate theme={t} />
-        </div>
-        <div style={{ background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}`, overflow:"hidden" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px" }}>
-            <div style={{ fontSize:22 }}>🐢</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, color:t.text, marginBottom:1 }}>抽王八</div>
-              <div style={{ fontSize:11, color:t.textMuted }}>别被留下乌龟牌</div>
-            </div>
-          </div>
-          <DrawTurtle theme={t} />
-        </div>
-      </div>
-    ),
+    tv: <GamePanel theme={t} />,
   };
 
   function handleClick(id) {
