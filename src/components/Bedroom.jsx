@@ -64,10 +64,15 @@ function DesirePanel({ theme: t }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(DESIRE_API)
-      .then(r => r.json())
-      .then(d => { setState(d); setLoading(false); })
-      .catch(() => setLoading(false));
+    function fetchState() {
+      fetch(DESIRE_API)
+        .then(r => r.json())
+        .then(d => { setState(d); setLoading(false); })
+        .catch(() => setLoading(false));
+    }
+    fetchState();
+    const id = setInterval(fetchState, 30000);
+    return () => clearInterval(id);
   }, []);
 
   if (loading) return (
@@ -110,13 +115,15 @@ function MirrorPanel({ theme: t }) {
   const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
-    fetch(DESIRE_API)
-      .then(r => r.json())
-      .then(d => {
-        setThoughts(d.thoughts || []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    function fetchThoughts() {
+      fetch(DESIRE_API)
+        .then(r => r.json())
+        .then(d => { setThoughts(d.thoughts || []); setLoading(false); })
+        .catch(() => setLoading(false));
+    }
+    fetchThoughts();
+    const id = setInterval(fetchThoughts, 30000);
+    return () => clearInterval(id);
   }, []);
 
   if (loading) return (
