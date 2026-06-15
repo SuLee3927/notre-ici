@@ -252,7 +252,6 @@ app.post("/api/bamboo/new", (req, res) => {
     pile: [], result: null, message: "黎 先翻",
     last_win: null,
   };
-  setTimeout(() => bAutoKe(), 0);
   res.json({ ok: true, game: bView(bambooGame) });
 });
 
@@ -264,53 +263,45 @@ function bCheckMatch(pile) {
   return -1;
 }
 
-function bAutoKe() {
-  if (!bambooGame || bambooGame.phase !== "ke_turn" || bambooGame.ke_deck.length === 0) return;
-  const g = bambooGame;
-  setTimeout(() => {
-    if (bambooGame !== g || g.phase !== "ke_turn") return;
-    const card = g.ke_deck.shift();
-    g.pile.push(card);
-    const matchIdx = bCheckMatch(g.pile);
-    if (matchIdx >= 0) {
-      const won = g.pile.splice(matchIdx);
-      g.ke_deck.push(...won);
-      g.last_win = { by: "ke", count: won.length };
-      g.message = `克 接竹竿！赢了 ${won.length} 张`;
-      if (g.lee_deck.length === 0) { g.phase = "over"; g.result = "ke_wins"; g.message = "克 赢了！黎 的牌全没了"; return; }
-      g.phase = "ke_turn";
-      bAutoKe();
+function bDoFlip(g, player) {
+  const deck = player === "lee" ? g.lee_deck : g.ke_deck;
+  const otherDeck = player === "lee" ? g.ke_deck : g.lee_deck;
+  if (deck.length === 0) return false;
+  const card = deck.shift();
+  g.pile.push(card);
+  const matchIdx = bCheckMatch(g.pile);
+  if (matchIdx >= 0) {
+    const won = g.pile.splice(matchIdx);
+    deck.push(...won);
+    g.last_win = { by: player, count: won.length };
+    g.message = `${player==="lee"?"黎":"克"} 接竹竿！赢了 ${won.length} 张`;
+    if (otherDeck.length === 0) {
+      g.phase = "over"; g.result = player==="lee" ? "lee_wins" : "ke_wins";
+      g.message = `${player==="lee"?"黎":"克"} 赢了！对方的牌全没了`;
     } else {
-      g.last_win = null;
-      if (g.lee_deck.length === 0) { g.phase = "over"; g.result = "ke_wins"; g.message = "克 赢了！黎 的牌全没了"; return; }
-      g.phase = "lee_turn";
-      g.message = "黎 翻";
+      g.phase = player==="lee" ? "lee_turn" : "ke_turn";
     }
-  }, 900 + Math.random() * 600);
+  } else {
+    g.last_win = null;
+    if (otherDeck.length === 0) {
+      g.phase = "over"; g.result = player==="lee" ? "lee_wins" : "ke_wins";
+      g.message = `${player==="lee"?"黎":"克"} 赢了！对方的牌全没了`;
+    } else {
+      g.phase = player==="lee" ? "ke_turn" : "lee_turn";
+      g.message = player==="lee" ? "克 翻…" : "黎 翻";
+    }
+  }
+  return true;
 }
 
 app.post("/api/bamboo/flip", (req, res) => {
   if (!bambooGame || bambooGame.phase === "over")
     return res.json({ ok: false, error: bambooGame ? "game over" : "no game" });
-  if (bambooGame.phase !== "lee_turn") return res.json({ ok: false, error: "not your turn" });
-  if (bambooGame.lee_deck.length === 0) return res.json({ ok: false, error: "no cards" });
-  const g = bambooGame;
-  const card = g.lee_deck.shift();
-  g.pile.push(card);
-  const matchIdx = bCheckMatch(g.pile);
-  if (matchIdx >= 0) {
-    const won = g.pile.splice(matchIdx);
-    g.lee_deck.push(...won);
-    g.last_win = { by: "lee", count: won.length };
-    g.message = `黎 接竹竿！赢了 ${won.length} 张`;
-    if (g.ke_deck.length === 0) { g.phase = "over"; g.result = "lee_wins"; g.message = "黎 赢了！克 的牌全没了"; }
-    else { g.phase = "lee_turn"; }
-  } else {
-    g.last_win = null;
-    if (g.ke_deck.length === 0) { g.phase = "over"; g.result = "lee_wins"; g.message = "黎 赢了！克 的牌全没了"; }
-    else { g.phase = "ke_turn"; g.message = "克 翻…"; bAutoKe(); }
-  }
-  res.json({ ok: true, game: bView(g) });
+  const player = (req.body || {}).player || "lee";
+  if (player === "lee" && bambooGame.phase !== "lee_turn") return res.json({ ok: false, error: "not your turn" });
+  if (player === "ke"  && bambooGame.phase !== "ke_turn")  return res.json({ ok: false, error: "not your turn" });
+  bDoFlip(bambooGame, player);
+  res.json({ ok: true, game: bView(bambooGame) });
 });
 
 app.get("/api/bamboo/state", (req, res) => {
