@@ -128,7 +128,7 @@ function tDiscard(hand) {
 function tView(g, player) {
   if (!g) return null;
   return {
-    phase: g.phase, result: g.result, message: g.message,
+    phase: g.phase, result: g.result, message: g.message, bot: g.bot,
     lee_hand:       player === "lee" ? g.lee_hand : undefined,
     lee_hand_count: g.lee_hand.length,
     ke_hand_count:  g.ke_hand.length,
@@ -143,11 +143,22 @@ function tCheckOver(g) {
   else if (g.ke_hand.length === 0) { g.phase = "over"; g.result = "ke_wins"; g.message = "克 赢了！黎 抱着王八 🐢"; }
 }
 
+function tBotMove(g) {
+  if (!g || g.phase !== "ke_turn" || g.lee_hand.length === 0) return;
+  const i = Math.floor(Math.random() * g.lee_hand.length);
+  const d = g.lee_hand.splice(i, 1)[0];
+  g.last_drawn = d; g.last_drawn_by = "ke";
+  g.ke_hand = tDiscard([...g.ke_hand, d]);
+  tCheckOver(g);
+  if (g.phase !== "over") { g.phase = "lee_turn"; g.message = "黎 来了，从克的牌里抽一张"; }
+}
+
 app.post("/api/turtle/new", (req, res) => {
   const deck = tShuffle([...T_PAIRS, ...T_PAIRS, T_CARD]);
   const mid = Math.ceil(deck.length / 2);
+  const botMode = (req.body || {}).bot === true;
   turtleGame = {
-    phase: "lee_turn",
+    phase: "lee_turn", bot: botMode,
     lee_hand: tDiscard(deck.slice(0, mid)),
     ke_hand:  tDiscard(deck.slice(mid)),
     result: null, message: "黎 先来，从克的牌里抽一张",
@@ -177,6 +188,10 @@ app.post("/api/turtle/draw", (req, res) => {
     if (turtleGame.phase !== "over") {
       turtleGame.phase = "ke_turn";
       turtleGame.message = "克 在想…";
+      if (turtleGame.bot) {
+        const g = turtleGame;
+        setTimeout(() => { if (turtleGame === g) tBotMove(g); }, 1200 + Math.random() * 800);
+      }
     }
   } else if (player === "ke") {
     if (turtleGame.phase !== "ke_turn") return res.json({ ok: false, error: "not your turn" });

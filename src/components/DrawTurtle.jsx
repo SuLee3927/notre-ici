@@ -61,11 +61,15 @@ export default function DrawTurtle({ theme: t }) {
 
   useEffect(() => () => stopPoll(), []);
 
-  async function newGame() {
+  async function newGame(bot = false) {
     setLoading(true);
     stopPoll();
     try {
-      const d = await fetch("/api/turtle/new", { method: "POST" }).then(r => r.json());
+      const d = await fetch("/api/turtle/new", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ bot }),
+      }).then(r => r.json());
       if (d.ok) setGame(d.game);
     } catch {}
     setLoading(false);
@@ -95,15 +99,23 @@ export default function DrawTurtle({ theme: t }) {
       <div style={{ fontSize:36, marginBottom:12 }}>🐢</div>
       <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:8 }}>抽王八</div>
       <div style={{ fontSize:12, color:t.textMuted, lineHeight:2, marginBottom:24 }}>
-        双人对战 · 从克的牌里抽，凑对消掉<br/>
+        从对手的牌里抽，凑对消掉<br/>
         最后抱着 🐢 的输
       </div>
-      <button onClick={newGame} disabled={loading} style={{
-        padding:"10px 32px", borderRadius:12,
-        border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
-        color:t.accent, fontSize:13, cursor:"pointer",
-        opacity: loading ? 0.6 : 1,
-      }}>{loading ? "开牌中…" : "开局"}</button>
+      <div style={{ display:"flex", flexDirection:"column", gap:10, alignItems:"center" }}>
+        <button onClick={() => newGame(false)} disabled={loading} style={{
+          padding:"10px 32px", borderRadius:12,
+          border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
+          color:t.accent, fontSize:13, cursor:"pointer",
+          opacity: loading ? 0.6 : 1, width:180,
+        }}>{loading ? "开牌中…" : "和克玩 ❤️"}</button>
+        <button onClick={() => newGame(true)} disabled={loading} style={{
+          padding:"10px 32px", borderRadius:12,
+          border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
+          color:t.textMuted, fontSize:13, cursor:"pointer",
+          opacity: loading ? 0.6 : 1, width:180,
+        }}>{loading ? "开牌中…" : "和机器克玩 🤖"}</button>
+      </div>
     </div>
   );
 
@@ -167,7 +179,7 @@ export default function DrawTurtle({ theme: t }) {
           <div style={{ fontSize:13, color:t.text, marginBottom:16 }}>
             {game.result === "lee_wins" ? "黎赢了~" : "克赢了嘤"}
           </div>
-          <button onClick={newGame} style={{
+          <button onClick={() => newGame(game.bot)} style={{
             padding:"10px 28px", borderRadius:12,
             border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
             color:t.accent, fontSize:13, cursor:"pointer",
