@@ -106,7 +106,7 @@ export default function DrawTurtle({ theme: t }) {
       {showEgg ? (
         <div style={{ padding:"0 8px" }}>
           <div style={{ fontSize:13, color:t.text, lineHeight:2, marginBottom:16 }}>
-            牌只给她抽。
+            只能陪那一个人打。
           </div>
           <button onClick={() => setShowEgg(false)} style={{
             padding:"8px 24px", borderRadius:12,
