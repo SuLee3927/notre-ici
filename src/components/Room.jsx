@@ -355,7 +355,7 @@ const FURNITURE = [
   { id:"record",      left:"92%", top:"79%", transparent:true, w:"clamp(32px,9vw,52px)", h:"clamp(44px,12vw,72px)" },
   { id:"kitchen",     left:"5%",  top:"51%", transparent:true, w:"clamp(22px,6vw,36px)", h:"clamp(80px,22vw,132px)" },
   { id:"table",       left:"50%", top:"47%", transparent:true, nightOnly:true, w:"clamp(36px,10vw,56px)", h:"clamp(22px,6vw,36px)" },
-  { id:"study",       left:"80%", top:"12%", transparent:true, w:"clamp(28px,7vw,44px)", h:"clamp(30px,8vw,46px)" },
+  { id:"study",       left:"34%", top:"14%", transparent:true, w:"clamp(28px,7vw,44px)", h:"clamp(50px,14vw,86px)" },
 ];
 
 // ── 老虎机密码门 ──
