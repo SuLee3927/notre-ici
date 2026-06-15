@@ -6,6 +6,7 @@ import PrivateLayer from "./components/PrivateLayer.jsx";
 import NuonuoSpace from "./components/NuonuoSpace.jsx";
 import Bedroom from "./components/Bedroom.jsx";
 import Kitchen from "./components/Kitchen.jsx";
+import Study from "./components/Study.jsx";
 
 const BGM = {
   day: "/bgm-day.mp3",
@@ -19,6 +20,7 @@ export default function App() {
   const [showNuonuo, setShowNuonuo] = useState(false);
   const [showBedroom, setShowBedroom] = useState(false);
   const [showKitchen, setShowKitchen] = useState(false);
+  const [showStudy, setShowStudy] = useState(false);
   const [bgmOn, setBgmOn] = useState(false);
   const audioRef = useRef(null);
   const bedroomAudioRef = useRef(null);
@@ -33,7 +35,7 @@ export default function App() {
   // 客厅 BGM
   useEffect(() => {
     if (!audioRef.current) return;
-    if (bgmOn && !showNuonuo && !showPrivate && !showBedroom && !showKitchen) {
+    if (bgmOn && !showNuonuo && !showPrivate && !showBedroom && !showKitchen && !showStudy) {
       audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
@@ -65,11 +67,12 @@ export default function App() {
       {showNuonuo && <NuonuoSpace onClose={() => setShowNuonuo(false)} mode={mode} />}
       {!showNuonuo && showBedroom && <Bedroom theme={t} mode={mode} onClose={() => setShowBedroom(false)} />}
       {!showNuonuo && !showBedroom && showKitchen && <Kitchen theme={t} mode={mode} onClose={() => setShowKitchen(false)} />}
-      {!showNuonuo && !showBedroom && !showKitchen && showPrivate && <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />}
-      {!showNuonuo && !showBedroom && !showKitchen && !showPrivate && !entered && (
+      {!showNuonuo && !showBedroom && !showKitchen && showStudy && <Study theme={t} mode={mode} onClose={() => setShowStudy(false)} />}
+      {!showNuonuo && !showBedroom && !showKitchen && !showStudy && showPrivate && <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />}
+      {!showNuonuo && !showBedroom && !showKitchen && !showStudy && !showPrivate && !entered && (
         <Gate theme={t} onEnter={() => { setEntered(true); setBgmOn(true); }} />
       )}
-      {!showNuonuo && !showBedroom && !showKitchen && !showPrivate && entered && (
+      {!showNuonuo && !showBedroom && !showKitchen && !showStudy && !showPrivate && entered && (
         <Room
           theme={t}
           bgmOn={bgmOn}
@@ -79,6 +82,7 @@ export default function App() {
           onEnterNuonuo={() => setShowNuonuo(true)}
           onEnterBedroom={() => setShowBedroom(true)}
           onEnterKitchen={() => setShowKitchen(true)}
+          onEnterStudy={() => setShowStudy(true)}
         />
       )}
     </>
