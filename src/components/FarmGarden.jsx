@@ -1,15 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
+// 只种植物
 const CROPS = [
   { id:"tomato",   emoji:"🍅", name:"番茄",   grow:20*60*1000 },
-  { id:"egg",      emoji:"🥚", name:"鸡蛋",   grow:40*60*1000 },
   { id:"broccoli", emoji:"🥦", name:"西兰花", grow:25*60*1000 },
   { id:"spring",   emoji:"🧅", name:"葱",     grow:15*60*1000 },
   { id:"lettuce",  emoji:"🥬", name:"生菜",   grow:18*60*1000 },
   { id:"chili",    emoji:"🌶️", name:"辣椒",  grow:30*60*1000 },
   { id:"garlic",   emoji:"🧄", name:"大蒜",   grow:20*60*1000 },
   { id:"rice",     emoji:"🌾", name:"大米",   grow:25*60*1000 },
-  { id:"pork",     emoji:"🍖", name:"猪肉",   grow:60*60*1000 },
+];
+
+// 动物产出
+const ANIMALS = [
+  { id:"chicken", emoji:"🐓", name:"鸡",   product:"egg",  productEmoji:"🥚", productName:"鸡蛋", cooldown:40*60*1000 },
+  { id:"pig",     emoji:"🐷", name:"猪",   product:"pork", productEmoji:"🍖", productName:"猪肉", cooldown:60*60*1000 },
 ];
 
 const PLOT_COUNT = 4;
@@ -18,11 +23,20 @@ const QTY_KEY  = "kitchen_qty";
 
 const DEFAULT_STATE = {
   plots: Array.from({ length: PLOT_COUNT }, () => ({ crop: null, plantedAt: null })),
+  animals: Object.fromEntries(ANIMALS.map(a => [a.id, { readyAt: null }])),
 };
 
 function loadFarm() {
-  try { return JSON.parse(localStorage.getItem(FARM_KEY)) || DEFAULT_STATE; }
-  catch { return DEFAULT_STATE; }
+  try {
+    const s = JSON.parse(localStorage.getItem(FARM_KEY)) || DEFAULT_STATE;
+    // 兼容旧数据（没有animals字段）
+    if (!s.animals) s.animals = DEFAULT_STATE.animals;
+    // 清理旧版地块里可能有的 egg/pork crop
+    s.plots = s.plots.map(p =>
+      (p.crop === "egg" || p.crop === "pork") ? { crop: null, plantedAt: null } : p
+    );
+    return s;
+  } catch { return DEFAULT_STATE; }
 }
 function saveFarm(s) { localStorage.setItem(FARM_KEY, JSON.stringify(s)); }
 function loadQty() {
@@ -31,17 +45,26 @@ function loadQty() {
 }
 function saveQty(q) { localStorage.setItem(QTY_KEY, JSON.stringify(q)); }
 
-function isReady(plot) {
+function isPlotReady(plot) {
   if (!plot.crop || !plot.plantedAt) return false;
   const crop = CROPS.find(c => c.id === plot.crop);
   return crop && Date.now() - plot.plantedAt >= crop.grow;
 }
 
-function timeLeft(plot) {
+function plotTimeLeft(plot) {
   if (!plot.crop || !plot.plantedAt) return 0;
   const crop = CROPS.find(c => c.id === plot.crop);
   if (!crop) return 0;
   return Math.max(0, crop.grow - (Date.now() - plot.plantedAt));
+}
+
+function animalTimeLeft(animalState, animal) {
+  if (!animalState.readyAt) return 0;
+  return Math.max(0, animalState.readyAt - Date.now());
+}
+
+function isAnimalReady(animalState) {
+  return !animalState.readyAt || Date.now() >= animalState.readyAt;
 }
 
 function fmtTime(ms) {
@@ -52,7 +75,6 @@ function fmtTime(ms) {
   return `${s}秒`;
 }
 
-// 浣熊偷菜概率：收成超时15分钟后，有25%被偷
 function raccoonStole(plot) {
   if (!plot.crop || !plot.plantedAt) return false;
   const crop = CROPS.find(c => c.id === plot.crop);
@@ -63,14 +85,14 @@ function raccoonStole(plot) {
 }
 
 function PlotCard({ plot, index, theme: t, onPlant, onHarvest }) {
-  const [ms, setMs] = useState(() => timeLeft(plot));
-  const ready = isReady(plot);
+  const [ms, setMs] = useState(() => plotTimeLeft(plot));
+  const ready = isPlotReady(plot);
   const growing = plot.crop && !ready;
   const crop = plot.crop ? CROPS.find(c => c.id === plot.crop) : null;
 
   useEffect(() => {
     if (!growing) return;
-    const id = setInterval(() => setMs(timeLeft(plot)), 1000);
+    const id = setInterval(() => setMs(plotTimeLeft(plot)), 1000);
     return () => clearInterval(id);
   }, [plot, growing]);
 
@@ -85,7 +107,6 @@ function PlotCard({ plot, index, theme: t, onPlant, onHarvest }) {
       borderRadius:14, padding:"14px 10px",
       cursor: plot.crop ? (ready ? "pointer" : "default") : "pointer",
       textAlign:"center", transition:"all 0.2s",
-      position:"relative", overflow:"hidden",
     }}>
       {!plot.crop && (
         <>
@@ -112,6 +133,39 @@ function PlotCard({ plot, index, theme: t, onPlant, onHarvest }) {
   );
 }
 
+function AnimalCard({ animal, animalState, theme: t, onCollect }) {
+  const ready = isAnimalReady(animalState);
+  const [ms, setMs] = useState(() => animalTimeLeft(animalState, animal));
+
+  useEffect(() => {
+    if (ready) return;
+    const id = setInterval(() => setMs(animalTimeLeft(animalState, animal)), 1000);
+    return () => clearInterval(id);
+  }, [animalState, ready, animal]);
+
+  return (
+    <div onClick={() => ready && onCollect(animal.id)} style={{
+      flex:"1 1 calc(50% - 6px)", minWidth:0,
+      background: ready ? "rgba(255,200,80,0.12)" : t.surface,
+      border:`1.5px solid ${ready ? "rgba(220,170,60,0.5)" : t.surfaceBorder}`,
+      borderRadius:14, padding:"14px 10px",
+      cursor: ready ? "pointer" : "default",
+      textAlign:"center", transition:"all 0.2s",
+    }}>
+      <div style={{ fontSize:26, marginBottom:4 }}>{animal.emoji}</div>
+      <div style={{ fontSize:11, color:t.text }}>{animal.name}</div>
+      {ready ? (
+        <>
+          <div style={{ fontSize:16, margin:"6px 0 2px" }}>{animal.productEmoji}</div>
+          <div style={{ fontSize:10, color:"#c8a030", fontWeight:600 }}>点击收取{animal.productName}</div>
+        </>
+      ) : (
+        <div style={{ fontSize:10, color:t.textMuted, marginTop:6 }}>{fmtTime(ms)}</div>
+      )}
+    </div>
+  );
+}
+
 function SeedPicker({ theme: t, onPick, onClose }) {
   return (
     <div style={{
@@ -125,6 +179,7 @@ function SeedPicker({ theme: t, onPick, onClose }) {
         animation:"slideUp .22s ease",
       }}>
         <div style={{ width:36, height:4, background:t.surfaceBorder, borderRadius:2, margin:"0 auto 18px" }} />
+        <button onClick={onClose} style={{ position:"absolute", top:10, right:16, background:"none", border:"none", color:t.textMuted, fontSize:22, cursor:"pointer" }}>×</button>
         <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>选种子</div>
         <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:18 }}>种什么？</div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center" }}>
@@ -150,27 +205,12 @@ function SeedPicker({ theme: t, onPick, onClose }) {
 
 export default function FarmGarden({ theme: t }) {
   const [farm, setFarm] = useState(loadFarm);
-  const [picking, setPicking] = useState(null); // plot index being planted
+  const [picking, setPicking] = useState(null);
   const [toast, setToast] = useState(null);
 
   function showToast(msg) {
     setToast(msg);
     setTimeout(() => setToast(null), 2200);
-  }
-
-  function handlePlant(index) {
-    setPicking(index);
-  }
-
-  function handleSeed(cropId) {
-    const next = { ...farm, plots: farm.plots.map((p, i) =>
-      i === picking ? { crop: cropId, plantedAt: Date.now() } : p
-    )};
-    saveFarm(next);
-    setFarm(next);
-    setPicking(null);
-    const crop = CROPS.find(c => c.id === cropId);
-    showToast(`${crop.emoji} ${crop.name} 种下去了 🌱`);
   }
 
   function handleHarvest(index) {
@@ -179,7 +219,6 @@ export default function FarmGarden({ theme: t }) {
     if (!crop) return;
 
     if (raccoonStole(plot)) {
-      // 浣熊偷了
       const next = { ...farm, plots: farm.plots.map((p, i) =>
         i === index ? { crop: null, plantedAt: null } : p
       )};
@@ -189,7 +228,6 @@ export default function FarmGarden({ theme: t }) {
       return;
     }
 
-    // 正常收获 → 加入厨房库存
     const qty = loadQty();
     qty[crop.id] = (qty[crop.id] || 0) + 1;
     saveQty(qty);
@@ -202,21 +240,49 @@ export default function FarmGarden({ theme: t }) {
     showToast(`${crop.emoji} 收获了一份${crop.name}！放进厨房了`);
   }
 
+  function handleCollectAnimal(animalId) {
+    const animal = ANIMALS.find(a => a.id === animalId);
+    if (!animal) return;
+
+    const qty = loadQty();
+    qty[animal.product] = (qty[animal.product] || 0) + 1;
+    saveQty(qty);
+
+    const next = {
+      ...farm,
+      animals: {
+        ...farm.animals,
+        [animalId]: { readyAt: Date.now() + animal.cooldown },
+      },
+    };
+    saveFarm(next);
+    setFarm(next);
+    showToast(`${animal.productEmoji} 收了一份${animal.productName}！放进厨房了`);
+  }
+
   return (
     <div style={{ padding:"20px 16px 36px", fontFamily:"'Noto Serif SC',serif", position:"relative" }}>
       <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>窗外菜园</div>
-      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:4, fontStyle:"italic" }}>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:20, fontStyle:"italic" }}>
         厨房窗户外面那一片
       </div>
-      <div style={{ fontSize:10, color:t.textMuted, textAlign:"center", marginBottom:20, opacity:0.7 }}>
-        收成放进厨房 · 小心浣熊
-      </div>
 
-      {/* 地块 */}
-      <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:24 }}>
+      {/* 菜地 */}
+      <div style={{ fontSize:11, color:t.textMuted, marginBottom:8, fontWeight:500 }}>🌱 菜地</div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:20 }}>
         {farm.plots.map((plot, i) => (
           <PlotCard key={i} plot={plot} index={i} theme={t}
-            onPlant={handlePlant} onHarvest={handleHarvest} />
+            onPlant={i => setPicking(i)} onHarvest={handleHarvest} />
+        ))}
+      </div>
+
+      {/* 动物区 */}
+      <div style={{ fontSize:11, color:t.textMuted, marginBottom:8, fontWeight:500 }}>🐾 动物区</div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:20 }}>
+        {ANIMALS.map(a => (
+          <AnimalCard key={a.id} animal={a}
+            animalState={farm.animals?.[a.id] || { readyAt: null }}
+            theme={t} onCollect={handleCollectAnimal} />
         ))}
       </div>
 
@@ -229,7 +295,6 @@ export default function FarmGarden({ theme: t }) {
         🦝 附近有浣熊出没<br/>熟了别放太久，它会来偷的
       </div>
 
-      {/* Toast */}
       {toast && (
         <div style={{
           position:"fixed", bottom:80, left:"50%", transform:"translateX(-50%)",
@@ -240,9 +305,17 @@ export default function FarmGarden({ theme: t }) {
         }}>{toast}</div>
       )}
 
-      {/* 种子选择器 */}
       {picking !== null && (
-        <SeedPicker theme={t} onPick={handleSeed} onClose={() => setPicking(null)} />
+        <SeedPicker theme={t} onPick={cropId => {
+          const next = { ...farm, plots: farm.plots.map((p, i) =>
+            i === picking ? { crop: cropId, plantedAt: Date.now() } : p
+          )};
+          saveFarm(next);
+          setFarm(next);
+          setPicking(null);
+          const crop = CROPS.find(c => c.id === cropId);
+          showToast(`${crop.emoji} ${crop.name} 种下去了 🌱`);
+        }} onClose={() => setPicking(null)} />
       )}
 
       <style>{`
