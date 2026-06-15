@@ -26,6 +26,7 @@ export default function BambooGame({ theme: t }) {
   const [loading, setLoading] = useState(false);
   const [flash, setFlash] = useState(null);
   const pollRef = useRef(null);
+  const lastWinKeyRef = useRef(null);
   const pileRef = useRef(null);
 
   function stopPoll() { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } }
@@ -38,8 +39,12 @@ export default function BambooGame({ theme: t }) {
         if (d.ok && d.game) {
           setGame(g => {
             if (d.game.phase !== "ke_turn") stopPoll();
-            if (d.game.last_win?.by === "ke" && g?.phase === "ke_turn") {
-              setFlash("ke"); setTimeout(() => setFlash(null), 1000);
+            if (d.game.last_win?.by === "ke") {
+              const key = `${d.game.ke_count}-${d.game.pile.length}`;
+              if (lastWinKeyRef.current !== key) {
+                lastWinKeyRef.current = key;
+                setFlash("ke"); setTimeout(() => setFlash(null), 1000);
+              }
             }
             return d.game;
           });
