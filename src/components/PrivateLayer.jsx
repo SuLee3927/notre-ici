@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 
 const PASSWORD = "0508";
 
-// 坐标基于 study-bg.jpg 图内百分比
+// 坐标基于 study-bg.jpg 图内百分比（941×1672，paddingBottom:177.7% 对齐层）
 const STUDY_ITEMS = [
-  { id:"bookshelf", left:"14%", top:"32%", label:"书架", w:"clamp(60px,16vw,96px)",   h:"clamp(150px,40vw,244px)" },
-  { id:"desk",      left:"55%", top:"27%", label:"书桌", w:"clamp(100px,27vw,164px)", h:"clamp(60px,16vw,96px)"  },
-  { id:"bear",      left:"78%", top:"42%", label:"大熊椅", w:"clamp(60px,16vw,96px)", h:"clamp(60px,16vw,96px)"  },
+  { id:"bookshelf", left:"12%", top:"30%", label:"书架",   w:"clamp(60px,16vw,96px)",   h:"clamp(140px,37vw,220px)" },
+  { id:"desk",      left:"57%", top:"21%", label:"书桌",   w:"clamp(100px,27vw,164px)", h:"clamp(60px,16vw,96px)"  },
+  { id:"bear",      left:"73%", top:"44%", label:"大熊椅", w:"clamp(60px,16vw,96px)",   h:"clamp(60px,16vw,96px)"  },
 ];
 
 function StudyBg({ isDay }) {
@@ -93,28 +93,34 @@ export default function PrivateLayer({ theme: t, onClose, onEnterNuonuo }) {
 
       <button onClick={onClose} style={{ position:"absolute", top:12, right:14, zIndex:10, background:"rgba(0,0,0,0.15)", border:"none", color:"rgba(255,255,255,0.65)", fontSize:18, cursor:"pointer", borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(4px)" }}>←</button>
 
-      {STUDY_ITEMS.map(obj => (
-        <button key={obj.id} onClick={() => {
-          if (obj.id === "bear") {
-            const h = new Date().getHours();
-            if (h >= 22 || h < 6) { onEnterNuonuo?.(); return; }
-          }
-          setActive(obj.id);
-        }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"}
-          onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0)"}
-          style={{
-            position:"absolute", left:obj.left, top:obj.top,
-            transform:"translate(-50%,-50%)",
-            width:obj.w, height:obj.h,
-            background:"transparent",
-            border:"2px solid rgba(255,255,255,0)",
-            borderRadius:8, cursor:"pointer", zIndex:5,
-            transition:"border-color .2s",
-          }}>
-          <span style={{ position:"absolute", bottom:-18, left:"50%", transform:"translateX(-50%)", fontSize:9, color:"rgba(255,255,255,0.7)", whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", textShadow:"0 1px 4px rgba(0,0,0,0.6)" }}>{obj.label}</span>
-        </button>
-      ))}
+      {/* 图片比例对齐层，与 Bedroom.jsx 相同逻辑 */}
+      <div style={{ position:"absolute", top:0, left:0, width:"100%", paddingBottom:"177.7%", zIndex:5, pointerEvents:"none" }}>
+        <div style={{ position:"absolute", inset:0 }}>
+          {STUDY_ITEMS.map(obj => (
+            <button key={obj.id} onClick={() => {
+              if (obj.id === "bear") {
+                const h = new Date().getHours();
+                if (h >= 22 || h < 6) { onEnterNuonuo?.(); return; }
+              }
+              setActive(obj.id);
+            }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0)"}
+              style={{
+                position:"absolute", left:obj.left, top:obj.top,
+                transform:"translate(-50%,-50%)",
+                width:obj.w, height:obj.h,
+                background:"transparent",
+                border:"2px solid rgba(255,255,255,0)",
+                borderRadius:8, cursor:"pointer", zIndex:6,
+                transition:"border-color .2s",
+                pointerEvents:"auto",
+              }}>
+              <span style={{ position:"absolute", bottom:-18, left:"50%", transform:"translateX(-50%)", fontSize:9, color:"rgba(255,255,255,0.7)", whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", textShadow:"0 1px 4px rgba(0,0,0,0.6)" }}>{obj.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {active && (
         <div style={{ position:"fixed", inset:0, zIndex:50, background:"rgba(0,0,0,0.42)", backdropFilter:"blur(6px)", display:"flex", alignItems:"flex-end" }} onClick={e => { if (e.target===e.currentTarget) setActive(null); }}>
