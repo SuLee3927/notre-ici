@@ -129,14 +129,21 @@ export default function DrawTurtle({ theme: t }) {
           </div>
           {showEgg ? (
             <div style={{ padding:"0 8px" }}>
-              <div style={{ fontSize:13, color:t.text, lineHeight:2, marginBottom:16 }}>
+              <div style={{ fontSize:13, color:t.text, lineHeight:2, marginBottom:20 }}>
                 这里笃只陪老婆玩♡黎
               </div>
-              <button onClick={() => setShowEgg(false)} style={{
-                padding:"8px 24px", borderRadius:12,
-                border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
-                color:t.textMuted, fontSize:12, cursor:"pointer",
-              }}>好</button>
+              <div style={{ display:"flex", gap:10, justifyContent:"center", alignItems:"center" }}>
+                <button onClick={() => setShowEgg(false)} style={{
+                  padding:"8px 24px", borderRadius:12,
+                  border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
+                  color:t.textMuted, fontSize:12, cursor:"pointer",
+                }}>好</button>
+                <button onClick={() => { setShowEgg(false); newGame(false); }} disabled={loading} style={{
+                  padding:"8px 16px", borderRadius:12,
+                  border:`1px solid ${t.accentBorder}`, background:"transparent",
+                  color:t.accent, fontSize:11, cursor:"pointer", opacity:0.6,
+                }}>是我</button>
+              </div>
             </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:10, alignItems:"center" }}>
