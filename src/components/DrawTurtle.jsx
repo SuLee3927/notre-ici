@@ -142,7 +142,7 @@ export default function DrawTurtle({ theme: t }) {
                   padding:"8px 16px", borderRadius:12,
                   border:`1px solid ${t.accentBorder}`, background:"transparent",
                   color:t.accent, fontSize:11, cursor:"pointer", opacity:0.6,
-                }}>是我</button>
+                }}>老公开门</button>
               </div>
             </div>
           ) : (
