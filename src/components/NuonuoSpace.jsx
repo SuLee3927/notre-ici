@@ -466,7 +466,7 @@ function GameHub(){
 
 // ── CSS 动画 ──
 const ANIM_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+  @import url('https://fonts.loli.net/css2?family=Nunito:wght@400;600;700;800&display=swap');
   @keyframes nn-breathe { 0%,100%{transform:scaleY(1) scaleX(1)} 50%{transform:scaleY(1.04) scaleX(0.97)} }
   @keyframes nn-float   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
   @keyframes nn-tailWag { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(18deg)} }

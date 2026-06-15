@@ -170,7 +170,7 @@ function WallClock({ isDay, c }) {
   const hand = isDay ? "#5A3020" : "#D0B8FF";
   return (
     <div style={{ pointerEvents:"none" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400&display=swap');`}</style>
+      <style>{`@import url('https://fonts.loli.net/css2?family=Caveat:wght@400&display=swap');`}</style>
       <svg width={62} height={66} viewBox="0 0 62 66">
         {/* 挂钩 */}
         <path d="M28,4 Q31,1 34,4" fill="none" stroke={rim} strokeWidth="1.8" strokeLinecap="round"/>
