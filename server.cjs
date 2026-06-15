@@ -101,6 +101,7 @@ app.post("/api/murmur", (req, res) => {
 const T_PAIRS = ["🍇","🍎","🍌","🍓","🍉","🍊","🍋","🍒","🍍","🍑"];
 const T_CARD  = "🐢";
 let turtleGame = null;
+const turtleHistory = []; // max 30 entries
 
 function tShuffle(arr) {
   const a = [...arr];
@@ -141,6 +142,10 @@ function tView(g, player) {
 function tCheckOver(g) {
   if (g.lee_hand.length === 0) { g.phase = "over"; g.result = "lee_wins"; g.message = "黎 赢了！克抱着王八 🐢"; }
   else if (g.ke_hand.length === 0) { g.phase = "over"; g.result = "ke_wins"; g.message = "克 赢了！黎 抱着王八 🐢"; }
+  if (g.phase === "over") {
+    turtleHistory.unshift({ result: g.result, bot: g.bot, guestName: g.guestName, ts: Date.now() });
+    if (turtleHistory.length > 30) turtleHistory.pop();
+  }
 }
 
 function tBotMove(g) {
@@ -156,9 +161,9 @@ function tBotMove(g) {
 app.post("/api/turtle/new", (req, res) => {
   const deck = tShuffle([...T_PAIRS, ...T_PAIRS, T_CARD]);
   const mid = Math.ceil(deck.length / 2);
-  const botMode = (req.body || {}).bot === true;
+  const { bot: botMode = false, guestName = "" } = req.body || {};
   turtleGame = {
-    phase: "lee_turn", bot: botMode,
+    phase: "lee_turn", bot: !!botMode, guestName: guestName.trim().slice(0, 12),
     lee_hand: tDiscard(deck.slice(0, mid)),
     ke_hand:  tDiscard(deck.slice(mid)),
     result: null, message: "黎 先来，从克的牌里抽一张",
@@ -209,6 +214,10 @@ app.post("/api/turtle/draw", (req, res) => {
   }
 
   res.json({ ok: true, game: tView(turtleGame, player) });
+});
+
+app.get("/api/turtle/history", (req, res) => {
+  res.json({ ok: true, history: turtleHistory });
 });
 
 // ── 梦境日志 ─────────────────────────────────────────────────

@@ -34,6 +34,9 @@ export default function DrawTurtle({ theme: t }) {
   const [loading, setLoading] = useState(false);
   const [animCard, setAnimCard] = useState(null);
   const [showEgg, setShowEgg] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [tab, setTab] = useState("game"); // "game" | "history"
+  const [history, setHistory] = useState([]);
   const pollRef = useRef(null);
 
   function stopPoll() {
@@ -62,6 +65,13 @@ export default function DrawTurtle({ theme: t }) {
 
   useEffect(() => () => stopPoll(), []);
 
+  async function loadHistory() {
+    try {
+      const d = await fetch("/api/turtle/history").then(r => r.json());
+      if (d.ok) setHistory(d.history);
+    } catch {}
+  }
+
   async function newGame(bot = false) {
     setLoading(true);
     stopPoll();
@@ -69,7 +79,7 @@ export default function DrawTurtle({ theme: t }) {
       const d = await fetch("/api/turtle/new", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ bot }),
+        body: JSON.stringify({ bot, guestName: bot ? guestName : "" }),
       }).then(r => r.json());
       if (d.ok) setGame(d.game);
     } catch {}
@@ -96,38 +106,89 @@ export default function DrawTurtle({ theme: t }) {
   }
 
   if (!game) return (
-    <div style={{ padding:"32px 20px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
-      <div style={{ fontSize:36, marginBottom:12 }}>🐢</div>
-      <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:8 }}>抽王八</div>
-      <div style={{ fontSize:12, color:t.textMuted, lineHeight:2, marginBottom:24 }}>
-        从对手的牌里抽，凑对消掉<br/>
-        最后抱着 🐢 的输
+    <div style={{ fontFamily:"'Noto Serif SC',serif" }}>
+      {/* tabs */}
+      <div style={{ display:"flex", borderBottom:`1px solid ${t.surfaceBorder}`, marginBottom:0 }}>
+        {["game","history"].map(k => (
+          <button key={k} onClick={() => { setTab(k); if (k==="history") loadHistory(); }}
+            style={{ flex:1, padding:"12px 0", background:"none", border:"none", cursor:"pointer",
+              fontSize:12, color: tab===k ? t.accent : t.textMuted,
+              borderBottom: tab===k ? `2px solid ${t.accent}` : "2px solid transparent",
+              fontFamily:"'Noto Serif SC',serif" }}>
+            {k==="game" ? "开局" : "对局记录"}
+          </button>
+        ))}
       </div>
-      {showEgg ? (
-        <div style={{ padding:"0 8px" }}>
-          <div style={{ fontSize:13, color:t.text, lineHeight:2, marginBottom:16 }}>
-            这里笃只陪老婆玩♡黎
+
+      {tab === "game" ? (
+        <div style={{ padding:"28px 20px", textAlign:"center" }}>
+          <div style={{ fontSize:36, marginBottom:12 }}>🐢</div>
+          <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:8 }}>抽王八</div>
+          <div style={{ fontSize:12, color:t.textMuted, lineHeight:2, marginBottom:20 }}>
+            从对手的牌里抽，凑对消掉<br/>最后抱着 🐢 的输
           </div>
-          <button onClick={() => setShowEgg(false)} style={{
-            padding:"8px 24px", borderRadius:12,
-            border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
-            color:t.textMuted, fontSize:12, cursor:"pointer",
-          }}>好</button>
+          {showEgg ? (
+            <div style={{ padding:"0 8px" }}>
+              <div style={{ fontSize:13, color:t.text, lineHeight:2, marginBottom:16 }}>
+                这里笃只陪老婆玩♡黎
+              </div>
+              <button onClick={() => setShowEgg(false)} style={{
+                padding:"8px 24px", borderRadius:12,
+                border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
+                color:t.textMuted, fontSize:12, cursor:"pointer",
+              }}>好</button>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:10, alignItems:"center" }}>
+              <button onClick={() => setShowEgg(true)} disabled={loading} style={{
+                padding:"10px 32px", borderRadius:12,
+                border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
+                color:t.accent, fontSize:13, cursor:"pointer",
+                opacity: loading ? 0.6 : 1, width:180,
+              }}>和克玩 ❤️</button>
+              <div style={{ display:"flex", flexDirection:"column", gap:6, alignItems:"center", width:180 }}>
+                <input value={guestName} onChange={e => setGuestName(e.target.value)}
+                  placeholder="输入你的名字"
+                  maxLength={12}
+                  style={{ width:"100%", padding:"8px 12px", borderRadius:10, border:`1px solid ${t.surfaceBorder}`,
+                    background:t.surface, color:t.text, fontSize:12, outline:"none",
+                    fontFamily:"'Noto Serif SC',serif", boxSizing:"border-box" }} />
+                <button onClick={() => newGame(true)} disabled={loading || !guestName.trim()} style={{
+                  padding:"10px 32px", borderRadius:12,
+                  border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
+                  color: guestName.trim() ? t.textSub : t.textMuted, fontSize:13, cursor: guestName.trim() ? "pointer" : "default",
+                  opacity: (loading || !guestName.trim()) ? 0.5 : 1, width:"100%",
+                }}>{loading ? "开牌中…" : "和机器克玩 🤖"}</button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
-        <div style={{ display:"flex", flexDirection:"column", gap:10, alignItems:"center" }}>
-          <button onClick={() => setShowEgg(true)} disabled={loading} style={{
-            padding:"10px 32px", borderRadius:12,
-            border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
-            color:t.accent, fontSize:13, cursor:"pointer",
-            opacity: loading ? 0.6 : 1, width:180,
-          }}>和克玩 ❤️</button>
-          <button onClick={() => newGame(true)} disabled={loading} style={{
-            padding:"10px 32px", borderRadius:12,
-            border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
-            color:t.textMuted, fontSize:13, cursor:"pointer",
-            opacity: loading ? 0.6 : 1, width:180,
-          }}>{loading ? "开牌中…" : "和机器克玩 🤖"}</button>
+        <div style={{ padding:"16px 16px 32px" }}>
+          {history.length === 0 ? (
+            <div style={{ textAlign:"center", fontSize:12, color:t.textMuted, padding:"32px 0" }}>还没有对局记录</div>
+          ) : history.map((h, i) => {
+            const isKL = !h.bot;
+            const winner = h.result === "lee_wins" ? (isKL ? "黎" : (h.guestName || "游客")) : "克";
+            const loser  = h.result === "lee_wins" ? "克" : (isKL ? "黎" : (h.guestName || "游客"));
+            const d = new Date(h.ts);
+            const timeStr = `${(d.getMonth()+1)}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+            return (
+              <div key={i} style={{
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"10px 0", borderBottom:`1px solid ${t.surfaceBorder}`,
+                fontSize:13,
+              }}>
+                <span style={{ color:t.text }}>
+                  {isKL && <span style={{ marginRight:4 }}>♡</span>}
+                  <span style={{ color:t.accent }}>{winner}</span>
+                  <span style={{ color:t.textMuted, fontSize:11, margin:"0 4px" }}>赢</span>
+                  <span style={{ color:t.textMuted }}>{loser} 🐢</span>
+                </span>
+                <span style={{ fontSize:11, color:t.textMuted }}>{timeStr}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
