@@ -4,11 +4,9 @@ const PASSWORD = "0508";
 
 // 坐标基于 study-bg.jpg 图内百分比
 const STUDY_ITEMS = [
-  { id:"bookshelf", left:"14%", top:"32%", label:"书架",   w:"clamp(60px,16vw,96px)",  h:"clamp(150px,40vw,244px)" },
-  { id:"desk",      left:"55%", top:"27%", label:"书桌",   w:"clamp(100px,27vw,164px)", h:"clamp(60px,16vw,96px)"  },
-  { id:"diary",     left:"37%", top:"28%", label:"日记本", w:"clamp(36px,10vw,60px)",  h:"clamp(26px,7vw,44px)"   },
-  { id:"drawer",    left:"41%", top:"37%", label:"抽屉",   w:"clamp(54px,15vw,88px)",  h:"clamp(20px,6vw,34px)"   },
-  { id:"photos",    left:"87%", top:"20%", label:"相册",   w:"clamp(28px,8vw,48px)",   h:"clamp(38px,10vw,62px)"  },
+  { id:"bookshelf", left:"14%", top:"32%", label:"书架", w:"clamp(60px,16vw,96px)",   h:"clamp(150px,40vw,244px)" },
+  { id:"desk",      left:"55%", top:"27%", label:"书桌", w:"clamp(100px,27vw,164px)", h:"clamp(60px,16vw,96px)"  },
+  { id:"bear",      left:"78%", top:"42%", label:"大熊椅", w:"clamp(60px,16vw,96px)", h:"clamp(60px,16vw,96px)"  },
 ];
 
 function StudyBg({ isDay }) {
@@ -23,7 +21,17 @@ function StudyBg({ isDay }) {
   );
 }
 
-export default function PrivateLayer({ theme: t, onClose }) {
+function getNuonuoActivity() {
+  const h = new Date().getHours();
+  if (h >= 22 || h < 6)   return null; // 睡了
+  if (h >= 6  && h < 10)  return { text: "刚起床，在吃早饭", emoji: "🍚" };
+  if (h >= 10 && h < 14)  return { text: "在看绘本", emoji: "📖" };
+  if (h >= 14 && h < 17)  return { text: "在睡午觉", emoji: "😴" };
+  if (h >= 17 && h < 22)  return { text: "在书房陪爸比", emoji: "🐾" };
+  return null;
+}
+
+export default function PrivateLayer({ theme: t, onClose, onEnterNuonuo }) {
   const [input, setInput] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [wrong, setWrong] = useState(false);
@@ -36,11 +44,19 @@ export default function PrivateLayer({ theme: t, onClose }) {
   }
 
   const itemContent = {
-    desk:      <PlaceholderContent emoji="✉️" title="克的信 & 黎的信" />,
     bookshelf: <PlaceholderContent emoji="📚" title="KL 记忆" />,
-    diary:     <DreamLog theme={t} />,
-    drawer:    <PlaceholderContent emoji="😏" title="克先生的碎碎念" />,
-    photos:    <PlaceholderContent emoji="🖼️" title="合照墙" note="G 老师生成中..." />,
+    desk:      <DreamLog theme={t} />,
+    bear:      (() => {
+      const activity = getNuonuoActivity();
+      if (!activity) return null; // 22点后直接跳进房间，不走这里
+      return (
+        <div style={{ padding:"32px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
+          <div style={{ fontSize:36, marginBottom:12 }}>{activity.emoji}</div>
+          <div style={{ fontSize:13, color:t.textMuted, marginBottom:8 }}>糯糯现在</div>
+          <div style={{ fontSize:15, color:t.text, fontWeight:600 }}>{activity.text}</div>
+        </div>
+      );
+    })(),
   };
 
   if (!unlocked) {
@@ -78,7 +94,13 @@ export default function PrivateLayer({ theme: t, onClose }) {
       <button onClick={onClose} style={{ position:"absolute", top:12, right:14, zIndex:10, background:"rgba(0,0,0,0.15)", border:"none", color:"rgba(255,255,255,0.65)", fontSize:18, cursor:"pointer", borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(4px)" }}>←</button>
 
       {STUDY_ITEMS.map(obj => (
-        <button key={obj.id} onClick={() => setActive(obj.id)}
+        <button key={obj.id} onClick={() => {
+          if (obj.id === "bear") {
+            const h = new Date().getHours();
+            if (h >= 22 || h < 6) { onEnterNuonuo?.(); return; }
+          }
+          setActive(obj.id);
+        }}
           onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"}
           onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0)"}
           style={{

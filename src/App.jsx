@@ -64,7 +64,7 @@ export default function App() {
       {showNuonuo && <NuonuoSpace onClose={() => setShowNuonuo(false)} mode={mode} />}
       {!showNuonuo && showBedroom && <Bedroom theme={t} mode={mode} onClose={() => setShowBedroom(false)} />}
       {!showNuonuo && !showBedroom && showKitchen && <Kitchen theme={t} mode={mode} onClose={() => setShowKitchen(false)} />}
-      {!showNuonuo && !showBedroom && !showKitchen && showPrivate && <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} />}
+      {!showNuonuo && !showBedroom && !showKitchen && showPrivate && <PrivateLayer theme={t} onClose={() => setShowPrivate(false)} onEnterNuonuo={() => { setShowNuonuo(true); setShowPrivate(false); }} />}
       {!showNuonuo && !showBedroom && !showKitchen && !showPrivate && !entered && (
         <Gate theme={t} onEnter={() => { setEntered(true); setBgmOn(true); }} />
       )}

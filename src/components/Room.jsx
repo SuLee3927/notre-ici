@@ -353,7 +353,6 @@ const FURNITURE = [
   { id:"tv",          left:"82%", top:"33%", transparent:true, w:"clamp(40px,11vw,64px)", h:"clamp(32px,9vw,56px)" },
   { id:"record",      left:"92%", top:"79%", transparent:true, w:"clamp(32px,9vw,52px)", h:"clamp(44px,12vw,72px)" },
   { id:"kitchen",     left:"5%",  top:"51%", transparent:true, w:"clamp(22px,6vw,36px)", h:"clamp(80px,22vw,132px)" },
-  { id:"table",       left:"50%", top:"47%", transparent:true, nightOnly:true, w:"clamp(36px,10vw,56px)", h:"clamp(22px,6vw,36px)" },
 ];
 
 // ── 老虎机密码门 ──
@@ -490,7 +489,6 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     if (id === "kitchendoor") { onEnterBedroom(); return; }
     if (id === "kitchen")     { onEnterKitchen(); return; }
     if (id === "record")      { setBgmOn(!bgmOn); return; }
-    if (id === "table")       { if (!isDay) onEnterNuonuo(); return; }
     setActive(id);
   }
 
@@ -534,9 +532,6 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
                 }}>
                   {obj.id==="record" && bgmOn && (
                     <span style={{ position:"absolute", top:-14, right:0, fontSize:11, color:c.accent, animation:"pulse 1.2s ease-in-out infinite" }}>♫</span>
-                  )}
-                  {obj.id==="table" && !isDay && (
-                    <span style={{ position:"absolute", top:-22, left:"50%", transform:"translateX(-50%)", fontSize:16, animation:"pulse 2s ease-in-out infinite", filter:"drop-shadow(0 0 5px rgba(180,160,255,0.9))", userSelect:"none" }}>🌙</span>
                   )}
                 </div>
               )}
