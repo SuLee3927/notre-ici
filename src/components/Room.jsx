@@ -294,7 +294,6 @@ function RecordPlayer({ isDay, c, bgmOn, onClick }) {
 // ── 窗口天气叠加 ──
 // 窗外风景叠加：黄昏/雨天叠对应风景图；晴天/阴天用背景本身的窗户视角
 function getWeatherSrc(isDusk, weatherKey) {
-  if (isDusk) return "/weather-dusk.jpg";
   if (weatherKey === "rain")       return "/weather-rain.jpg";
   if (weatherKey === "rain-light") return "/weather-rain-light.jpg";
   return null;
