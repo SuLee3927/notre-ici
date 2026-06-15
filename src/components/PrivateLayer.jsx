@@ -1,117 +1,26 @@
 import { useState, useEffect } from "react";
 
 const PASSWORD = "0508";
-const WALL_H = 54;
 
-function sc(isDay) {
-  return isDay ? {
-    wood:    "#A07040",
-    woodDk:  "#7A5030",
-    fabric:  "#E8CFA0",
-    wall:    "linear-gradient(180deg,#F5EAD8 0%,#EDE0C8 100%)",
-    floor:   "linear-gradient(180deg,#D8C09A 0%,#CCB085 100%)",
-    skirt:   "#A07040",
-    shadow:  "rgba(100,60,20,.15)",
-    border:  "rgba(160,100,40,.18)",
-    ink:     "#5A3820",
-    accent:  "#C06840",
-    glass:   "rgba(255,230,150,.4)",
-  } : {
-    wood:    "#362a5e",
-    woodDk:  "#28204a",
-    fabric:  "#221e42",
-    wall:    "linear-gradient(180deg,#16142c 0%,#1a1730 100%)",
-    floor:   "linear-gradient(180deg,#0f0d22 0%,#0c0a1c 100%)",
-    skirt:   "#2e2b52",
-    shadow:  "rgba(0,0,0,.3)",
-    border:  "rgba(60,50,140,.2)",
-    ink:     "#8070C0",
-    accent:  "#8060C0",
-    glass:   "rgba(120,90,255,.12)",
-  };
-}
-
+// 坐标基于 study-bg.jpg 图内百分比
 const STUDY_ITEMS = [
-  { id:"desk",      left:"26%", top:"70%", label:"书桌"   },
-  { id:"bookshelf", left:"76%", top:"30%", label:"书架"   },
-  { id:"diary",     left:"22%", top:"62%", label:"日记本" },
-  { id:"drawer",    left:"10%", top:"70%", label:"抽屉"   },
-  { id:"photos",    left:"54%", top:"26%", label:"相册"   },
+  { id:"bookshelf", left:"14%", top:"32%", label:"书架",   w:"clamp(60px,16vw,96px)",  h:"clamp(150px,40vw,244px)" },
+  { id:"desk",      left:"55%", top:"27%", label:"书桌",   w:"clamp(100px,27vw,164px)", h:"clamp(60px,16vw,96px)"  },
+  { id:"diary",     left:"37%", top:"28%", label:"日记本", w:"clamp(36px,10vw,60px)",  h:"clamp(26px,7vw,44px)"   },
+  { id:"drawer",    left:"41%", top:"37%", label:"抽屉",   w:"clamp(54px,15vw,88px)",  h:"clamp(20px,6vw,34px)"   },
+  { id:"photos",    left:"87%", top:"20%", label:"相册",   w:"clamp(28px,8vw,48px)",   h:"clamp(38px,10vw,62px)"  },
 ];
 
-function StudyBg({ isDay, c }) {
+function StudyBg({ isDay }) {
   return (
-    <>
-      <div style={{ position:"absolute", inset:0, bottom:`${100-WALL_H}%`, background:c.wall }} />
-      <div style={{ position:"absolute", left:0, right:0, top:`${WALL_H}%`, bottom:0, background:c.floor }} />
-      <div style={{ position:"absolute", left:0, right:0, top:`${WALL_H}%`, height:7, background:c.skirt, boxShadow:`0 3px 10px ${c.shadow}` }} />
-      {[.15,.35,.55,.75].map((x,i) => (
-        <div key={i} style={{ position:"absolute", left:`${x*100}%`, top:`${WALL_H}%`, bottom:0, width:1, background:c.border }} />
-      ))}
-      {/* 小窗（右上） */}
-      <div style={{ position:"absolute", right:"10%", top:"5%", width:"14%", height:"26%", border:`2.5px solid ${c.wood}`, borderRadius:4, background:c.glass, overflow:"hidden" }}>
-        <div style={{ position:"absolute", left:"50%", top:0, bottom:0, width:2, background:c.wood, transform:"translateX(-50%)", opacity:.4 }} />
-        <div style={{ position:"absolute", left:0, right:0, top:"44%", height:2, background:c.wood, opacity:.4 }} />
-        {isDay && <div style={{ position:"absolute", top:"-10%", left:"-10%", width:"120%", height:"120%", background:"radial-gradient(ellipse,rgba(255,250,180,.4) 0%,transparent 65%)", pointerEvents:"none" }} />}
-      </div>
-      {/* 书架（右侧墙面，纯装饰） */}
-      <div style={{ position:"absolute", right:"4%", top:"4%", width:"18%", height:"52%", background:c.wood, borderRadius:"4px 4px 0 0", boxShadow:`0 4px 12px ${c.shadow}` }}>
-        {[0,1,2,3].map(row => (
-          <div key={row} style={{ position:"absolute", left:3, right:3, top:`${8+row*23}%`, height:"18%", background:c.fabric, borderRadius:2, opacity:.7 }}>
-            {[0,1,2].map(col => (
-              <div key={col} style={{ position:"absolute", left:`${col*34}%`, top:"10%", bottom:"10%", width:"28%", background:isDay?`rgba(160,100,40,.6)`:`rgba(80,60,160,.5)`, borderRadius:1 }} />
-            ))}
-          </div>
-        ))}
-      </div>
-      {/* 书桌台面（左侧，纯装饰） */}
-      <div style={{ position:"absolute", left:"2%", top:`${WALL_H-3}%`, width:"40%", height:"8%", background:c.wood, borderRadius:"4px 4px 0 0", boxShadow:`0 -2px 8px ${c.shadow}` }} />
-      {/* 桌上台灯 */}
-      <div style={{ position:"absolute", left:"5%", top:`${WALL_H-16}%` }}>
-        <div style={{ width:16, height:11, background:c.wood, clipPath:"polygon(10% 100%,90% 100%,100% 0%,0% 0%)", boxShadow:isDay?"0 0 12px 5px rgba(255,200,80,.22)":"0 0 12px 5px rgba(140,100,255,.18)" }} />
-        <div style={{ width:2, height:12, background:c.woodDk, margin:"0 auto" }} />
-        <div style={{ width:10, height:2, background:c.woodDk, borderRadius:2, margin:"0 auto" }} />
-      </div>
-    </>
-  );
-}
-
-function StudyItemVisual({ id, isDay, c }) {
-  if (id === "desk") return (
-    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2 }}>
-      <div style={{ width:42, height:7, background:c.wood, borderRadius:"3px 3px 0 0", boxShadow:`0 2px 6px ${c.shadow}` }} />
-      <div style={{ fontSize:16 }}>✉️</div>
+    <div style={{ position:"absolute", inset:0, background: isDay ? "#d4a870" : "#1a1008" }}>
+      <img
+        src={isDay ? "/study-bg.jpg" : "/study-bg-night.jpg"}
+        alt=""
+        style={{ position:"absolute", top:0, left:0, width:"100%", height:"auto" }}
+      />
     </div>
   );
-  if (id === "bookshelf") return (
-    <div style={{ width:30, height:36, background:c.wood, borderRadius:"2px 2px 0 0", boxShadow:`0 2px 8px ${c.shadow}`, padding:3, display:"flex", flexDirection:"column", gap:2 }}>
-      {[0,1,2].map(i => <div key={i} style={{ flex:1, background:c.fabric, borderRadius:1, opacity:.7 }} />)}
-    </div>
-  );
-  if (id === "diary") return (
-    <div style={{ width:26, height:34, background:isDay?"#E8C090":"#3a3070", borderRadius:"2px 4px 4px 2px", boxShadow:`2px 2px 6px ${c.shadow}`, transform:"rotate(-5deg)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ width:2, height:"68%", background:c.shadow, opacity:.35 }} />
-    </div>
-  );
-  if (id === "drawer") return (
-    <div style={{ width:34, height:26, background:c.fabric, borderRadius:3, boxShadow:`0 2px 6px ${c.shadow}`, display:"flex", flexDirection:"column", gap:1, padding:3 }}>
-      {[0,1].map(i => (
-        <div key={i} style={{ flex:1, background:c.wood, borderRadius:2, display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <div style={{ width:7, height:3, background:c.woodDk, borderRadius:1 }} />
-        </div>
-      ))}
-    </div>
-  );
-  if (id === "photos") return (
-    <div style={{ position:"relative", width:38, height:34 }}>
-      {[-6,0,5].map((r,i) => (
-        <div key={i} style={{ position:"absolute", left:i*8, top:i%2===0?0:4, width:22, height:26, background:isDay?"#FFFDF8":"#2a2850", boxShadow:`0 2px 5px ${c.shadow}`, borderRadius:1, transform:`rotate(${r}deg)`, padding:"2px 2px 5px" }}>
-          <div style={{ width:"100%", height:"76%", background:isDay?"rgba(210,170,110,.18)":"rgba(100,80,200,.18)", borderRadius:1 }} />
-        </div>
-      ))}
-    </div>
-  );
-  return null;
 }
 
 export default function PrivateLayer({ theme: t, onClose }) {
@@ -120,7 +29,6 @@ export default function PrivateLayer({ theme: t, onClose }) {
   const [wrong, setWrong] = useState(false);
   const [active, setActive] = useState(null);
   const isDay = new Date().getHours() >= 6 && new Date().getHours() < 18;
-  const c = sc(isDay);
 
   function tryUnlock() {
     if (input === PASSWORD) { setUnlocked(true); setWrong(false); }
@@ -138,16 +46,16 @@ export default function PrivateLayer({ theme: t, onClose }) {
   if (!unlocked) {
     return (
       <div style={{ position:"fixed", inset:0, overflow:"hidden" }}>
-        <StudyBg isDay={isDay} c={c} />
-        <button onClick={onClose} style={{ position:"absolute", top:14, left:14, zIndex:30, background:`${t.surface}cc`, border:`1px solid ${t.surfaceBorder}`, borderRadius:20, padding:"5px 12px", color:t.textSub, fontSize:12, cursor:"pointer", backdropFilter:"blur(8px)", fontFamily:"sans-serif" }}>← 客厅</button>
+        <StudyBg isDay={isDay} />
+        <button onClick={onClose} style={{ position:"absolute", top:14, left:14, zIndex:30, background:"rgba(0,0,0,0.18)", border:"none", borderRadius:20, padding:"5px 14px", color:"rgba(255,255,255,0.75)", fontSize:12, cursor:"pointer", backdropFilter:"blur(8px)", fontFamily:"'Noto Serif SC',serif", letterSpacing:".05em" }}>← 客厅</button>
         <div style={{ position:"fixed", inset:0, display:"flex", alignItems:"center", justifyContent:"center", zIndex:10 }}>
-          <div style={{ background:`${t.surface}f0`, border:`1px solid ${t.surfaceBorder}`, borderRadius:20, padding:"32px 28px", maxWidth:280, width:"90%", textAlign:"center", backdropFilter:"blur(16px)", boxShadow:`0 8px 32px ${c.shadow}` }}>
+          <div style={{ background:`${t.surface}f0`, border:`1px solid ${t.surfaceBorder}`, borderRadius:20, padding:"32px 28px", maxWidth:280, width:"90%", textAlign:"center", backdropFilter:"blur(16px)", boxShadow:"0 8px 32px rgba(0,0,0,0.2)" }}>
             <div style={{ fontSize:34, marginBottom:14 }}>🔒</div>
             <div style={{ fontSize:14, color:t.text, fontFamily:"'Noto Serif SC',serif", marginBottom:6 }}>书房的门锁着</div>
             <div style={{ fontSize:11, color:t.textMuted, marginBottom:24 }}>输入密码推开这扇门</div>
             <div style={{ display:"flex", gap:10 }}>
               <input type="password" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key==="Enter" && tryUnlock()} placeholder="密码"
-                style={{ flex:1, padding:"11px 14px", borderRadius:10, border:`1.5px solid ${wrong?"#FF6060":t.surfaceBorder}`, background:t.surface, color:t.text, fontSize:14, outline:"none", fontFamily:"sans-serif", transition:"border-color .2s", backdropFilter:"blur(8px)" }} />
+                style={{ flex:1, padding:"11px 14px", borderRadius:10, border:`1.5px solid ${wrong?"#FF6060":t.surfaceBorder}`, background:t.surface, color:t.text, fontSize:14, outline:"none", fontFamily:"sans-serif", transition:"border-color .2s" }} />
               <button onClick={tryUnlock} style={{ padding:"11px 16px", borderRadius:10, border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft, color:t.accent, fontSize:13, cursor:"pointer", fontFamily:"sans-serif", fontWeight:600 }}>进</button>
             </div>
             {wrong && <div style={{ marginTop:10, fontSize:11, color:"#FF6060", animation:"shake .3s ease" }}>不对，再想想</div>}
@@ -160,17 +68,29 @@ export default function PrivateLayer({ theme: t, onClose }) {
 
   return (
     <div style={{ position:"fixed", inset:0, overflow:"hidden" }}>
-      <StudyBg isDay={isDay} c={c} />
-      <button onClick={onClose} style={{ position:"absolute", top:14, left:14, zIndex:10, background:`${t.surface}cc`, border:`1px solid ${t.surfaceBorder}`, borderRadius:20, padding:"5px 12px", color:t.textSub, fontSize:12, cursor:"pointer", backdropFilter:"blur(8px)", fontFamily:"sans-serif" }}>← 客厅</button>
-      <div style={{ position:"absolute", bottom:12, right:14, zIndex:10, fontSize:12, opacity:.35 }}>{isDay?"☀️":"🌙"}</div>
+      <StudyBg isDay={isDay} />
+
+      {/* 门牌 */}
+      <div style={{ position:"absolute", top:14, left:"50%", transform:"translateX(-50%)", zIndex:10, fontSize:11, color:"rgba(255,255,255,0.75)", fontFamily:"'Noto Serif SC',serif", letterSpacing:".2em", background:"rgba(0,0,0,0.15)", padding:"3px 14px", borderRadius:20, backdropFilter:"blur(4px)", whiteSpace:"nowrap" }}>
+        克 &amp; Lee 的书房
+      </div>
+
+      <button onClick={onClose} style={{ position:"absolute", top:12, right:14, zIndex:10, background:"rgba(0,0,0,0.15)", border:"none", color:"rgba(255,255,255,0.65)", fontSize:18, cursor:"pointer", borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(4px)" }}>←</button>
 
       {STUDY_ITEMS.map(obj => (
         <button key={obj.id} onClick={() => setActive(obj.id)}
-          onMouseEnter={e => e.currentTarget.style.transform="translate(-50%,-50%) scale(1.1)"}
-          onMouseLeave={e => e.currentTarget.style.transform="translate(-50%,-50%)"}
-          style={{ position:"absolute", left:obj.left, top:obj.top, transform:"translate(-50%,-50%)", background:"none", border:"none", cursor:"pointer", zIndex:5, display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:6, borderRadius:8, transition:"transform .18s" }}>
-          <StudyItemVisual id={obj.id} isDay={isDay} c={c} />
-          <span style={{ fontSize:9, color:c.ink, fontFamily:"sans-serif", opacity:.55, whiteSpace:"nowrap" }}>{obj.label}</span>
+          onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"}
+          onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0)"}
+          style={{
+            position:"absolute", left:obj.left, top:obj.top,
+            transform:"translate(-50%,-50%)",
+            width:obj.w, height:obj.h,
+            background:"transparent",
+            border:"2px solid rgba(255,255,255,0)",
+            borderRadius:8, cursor:"pointer", zIndex:5,
+            transition:"border-color .2s",
+          }}>
+          <span style={{ position:"absolute", bottom:-18, left:"50%", transform:"translateX(-50%)", fontSize:9, color:"rgba(255,255,255,0.7)", whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", textShadow:"0 1px 4px rgba(0,0,0,0.6)" }}>{obj.label}</span>
         </button>
       ))}
 
