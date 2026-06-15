@@ -129,10 +129,10 @@ function tView(g, player) {
   if (!g) return null;
   return {
     phase: g.phase, result: g.result, message: g.message,
-    lee_hand: g.lee_hand,
-    ke_hand_count: g.ke_hand.length,
-    // ke sees own hand only when explicitly requesting ke view
-    ke_hand: player === "ke" ? g.ke_hand : undefined,
+    lee_hand:       player === "lee" ? g.lee_hand : undefined,
+    lee_hand_count: g.lee_hand.length,
+    ke_hand_count:  g.ke_hand.length,
+    ke_hand:        player === "ke"  ? g.ke_hand  : undefined,
     last_drawn: g.last_drawn,
     last_drawn_by: g.last_drawn_by,
   };
