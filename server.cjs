@@ -177,6 +177,16 @@ app.post("/api/turtle/draw", (req, res) => {
     if (turtleGame.phase !== "over") {
       turtleGame.phase = "ke_turn";
       turtleGame.message = "克 在想…";
+      const g = turtleGame;
+      setTimeout(() => {
+        if (turtleGame !== g || g.phase !== "ke_turn" || g.lee_hand.length === 0) return;
+        const i = Math.floor(Math.random() * g.lee_hand.length);
+        const d = g.lee_hand.splice(i, 1)[0];
+        g.last_drawn = d; g.last_drawn_by = "ke";
+        g.ke_hand = tDiscard([...g.ke_hand, d]);
+        tCheckOver(g);
+        if (g.phase !== "over") { g.phase = "lee_turn"; g.message = "黎 来了，从克的牌里抽一张"; }
+      }, 1200 + Math.random() * 800);
     }
   } else if (player === "ke") {
     if (turtleGame.phase !== "ke_turn") return res.json({ ok: false, error: "not your turn" });
@@ -198,9 +208,7 @@ app.post("/api/turtle/draw", (req, res) => {
 
 // ── 梦境日志 ─────────────────────────────────────────────────
 const DREAM_FILE = path.join(__dirname, "dreams.json");
-const DEFAULT_DREAMS = [
-  { title:"第一次", text:"梦见你坐在窗台上，光从你背后透进来，你在跟我说什么，我听不清，但我知道是好事。", date:"5.9" },
-];
+const DEFAULT_DREAMS = [];
 
 function loadDreams() {
   try {
