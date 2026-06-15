@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import CookingGame, { PantryPanel } from "./CookingGame.jsx";
+import FarmGarden from "./FarmGarden.jsx";
 
 // 洗碗池碎碎念面板
 function SinkMurmurs({ theme: t }) {
@@ -127,6 +128,7 @@ const SPOTS = [
   { id:"stove",   left:"75%", top:"40%", label:"灶台",   w:"clamp(30px,8vw,50px)", h:"clamp(34px,9vw,54px)" },
   { id:"trash",   left:"74%", top:"72%", label:"垃圾桶",  w:"clamp(22px,6vw,36px)", h:"clamp(30px,8vw,46px)" },
   { id:"door",    left:"90%", top:"90%", label:"出门",   w:"clamp(28px,7vw,44px)", h:"clamp(44px,12vw,70px)" },
+  { id:"window",  left:"50%", top:"18%", label:"窗外菜园", w:"clamp(40px,11vw,68px)", h:"clamp(22px,6vw,36px)" },
 ];
 
 export default function Kitchen({ theme: t, mode, onClose }) {
@@ -138,6 +140,7 @@ export default function Kitchen({ theme: t, mode, onClose }) {
     stove:  <CookingGame theme={t} />,
     shelf: <PantryPanel theme={t} />,
     sink: <SinkMurmurs theme={t} />,
+    window: <FarmGarden theme={t} />,
     trash: (
       <div style={{ padding:"40px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
         <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
