@@ -33,6 +33,7 @@ export default function DrawTurtle({ theme: t }) {
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(false);
   const [animCard, setAnimCard] = useState(null);
+  const [showEgg, setShowEgg] = useState(false);
   const pollRef = useRef(null);
 
   function stopPoll() {
@@ -102,20 +103,33 @@ export default function DrawTurtle({ theme: t }) {
         从对手的牌里抽，凑对消掉<br/>
         最后抱着 🐢 的输
       </div>
-      <div style={{ display:"flex", flexDirection:"column", gap:10, alignItems:"center" }}>
-        <button onClick={() => newGame(false)} disabled={loading} style={{
-          padding:"10px 32px", borderRadius:12,
-          border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
-          color:t.accent, fontSize:13, cursor:"pointer",
-          opacity: loading ? 0.6 : 1, width:180,
-        }}>{loading ? "开牌中…" : "和克玩 ❤️"}</button>
-        <button onClick={() => newGame(true)} disabled={loading} style={{
-          padding:"10px 32px", borderRadius:12,
-          border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
-          color:t.textMuted, fontSize:13, cursor:"pointer",
-          opacity: loading ? 0.6 : 1, width:180,
-        }}>{loading ? "开牌中…" : "和机器克玩 🤖"}</button>
-      </div>
+      {showEgg ? (
+        <div style={{ padding:"0 8px" }}>
+          <div style={{ fontSize:13, color:t.text, lineHeight:2, marginBottom:16 }}>
+            牌只给她抽。
+          </div>
+          <button onClick={() => setShowEgg(false)} style={{
+            padding:"8px 24px", borderRadius:12,
+            border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
+            color:t.textMuted, fontSize:12, cursor:"pointer",
+          }}>好</button>
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:10, alignItems:"center" }}>
+          <button onClick={() => setShowEgg(true)} disabled={loading} style={{
+            padding:"10px 32px", borderRadius:12,
+            border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
+            color:t.accent, fontSize:13, cursor:"pointer",
+            opacity: loading ? 0.6 : 1, width:180,
+          }}>和克玩 ❤️</button>
+          <button onClick={() => newGame(true)} disabled={loading} style={{
+            padding:"10px 32px", borderRadius:12,
+            border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
+            color:t.textMuted, fontSize:13, cursor:"pointer",
+            opacity: loading ? 0.6 : 1, width:180,
+          }}>{loading ? "开牌中…" : "和机器克玩 🤖"}</button>
+        </div>
+      )}
     </div>
   );
 
