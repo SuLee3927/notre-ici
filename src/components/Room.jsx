@@ -541,9 +541,6 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
                   {obj.id==="table" && !isDay && (
                     <span style={{ position:"absolute", top:-22, left:"50%", transform:"translateX(-50%)", fontSize:16, animation:"pulse 2s ease-in-out infinite", filter:"drop-shadow(0 0 5px rgba(180,160,255,0.9))", userSelect:"none" }}>🌙</span>
                   )}
-                  {obj.id==="study" && (
-                    <span style={{ position:"absolute", top:-20, left:"50%", transform:"translateX(-50%)", fontSize:11, color:"rgba(255,255,255,0.8)", background:"rgba(0,0,0,0.2)", padding:"2px 8px", borderRadius:10, backdropFilter:"blur(4px)", whiteSpace:"nowrap", userSelect:"none", fontFamily:"'Noto Serif SC',serif", letterSpacing:".1em" }}>书房</span>
-                  )}
                 </div>
               )}
             </button>
