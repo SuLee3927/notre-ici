@@ -281,6 +281,17 @@ function bDoFlip(g, player) {
     } else {
       g.phase = player==="lee" ? "lee_turn" : "ke_turn";
     }
+  } else if (g.pile.length >= 20) {
+    const won = g.pile.splice(0);
+    deck.push(...won);
+    g.last_win = { by: player, count: won.length };
+    g.message = `竹竿太长！${player==="lee"?"黎":"克"} 接走 ${won.length} 张`;
+    if (otherDeck.length === 0) {
+      g.phase = "over"; g.result = player==="lee" ? "lee_wins" : "ke_wins";
+      g.message = `${player==="lee"?"黎":"克"} 赢了！对方的牌全没了`;
+    } else {
+      g.phase = player==="lee" ? "lee_turn" : "ke_turn";
+    }
   } else {
     g.last_win = null;
     if (otherDeck.length === 0) {
