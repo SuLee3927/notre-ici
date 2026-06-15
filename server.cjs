@@ -321,21 +321,81 @@ app.get("/api/bamboo/state", (req, res) => {
 
 // ── 你说我猜 ─────────────────────────────────────────────────
 const GUESS_WORDS = [
-  // 动物
-  "熊猫","猫咪","狗狗","兔子","老虎","大象","长颈鹿","企鹅","海豚","松鼠","刺猬","蜗牛","螃蟹","火烈鸟","鹦鹉",
-  // 食物
-  "火锅","寿司","冰淇淋","披萨","饺子","汤圆","蛋糕","西瓜","草莓","炒饭","泡面","奶茶","章鱼小丸子","麻辣烫",
-  // 日常
-  "耳机","手机","被子","枕头","眼镜","钥匙","雨伞","台灯","书包","镜子","充电宝","发夹",
-  // 情绪/动作
-  "撒娇","打哈欠","犯困","害羞","发呆","吃醋","翻白眼","偷笑",
-  // 场景
-  "图书馆","海边","便利店","咖啡馆","游乐场","地铁","天台",
-  // 情侣专属
-  "头靠肩","睡懒觉","亲额头","牵手","好梦","想你","晚安吻","拌嘴","和好",
+  { word:"熊猫",       cat:"动物",     hints:["黑白两色","中国国宝","喜欢吃竹子"] },
+  { word:"猫咪",       cat:"动物",     hints:["会喵喵叫","爱睡觉","爱舔爪子"] },
+  { word:"狗狗",       cat:"动物",     hints:["忠诚的伙伴","汪汪叫","喜欢追球"] },
+  { word:"兔子",       cat:"动物",     hints:["长耳朵","毛软软的","爱吃胡萝卜"] },
+  { word:"老虎",       cat:"动物",     hints:["橙黑条纹","很威风","森林之王"] },
+  { word:"大象",       cat:"动物",     hints:["鼻子很长","陆地最大","记忆力极好"] },
+  { word:"长颈鹿",     cat:"动物",     hints:["脖子超长","吃树叶","身上有花纹"] },
+  { word:"企鹅",       cat:"动物",     hints:["不会飞","住在极地","走路摇摇晃晃"] },
+  { word:"海豚",       cat:"动物",     hints:["聪明可爱","住在海里","会顶球"] },
+  { word:"松鼠",       cat:"动物",     hints:["尾巴蓬松","喜欢收坚果","跳得很高"] },
+  { word:"刺猬",       cat:"动物",     hints:["全身是刺","遇险缩成球","鼻子尖"] },
+  { word:"蜗牛",       cat:"动物",     hints:["背着壳","走得很慢","下雨天出没"] },
+  { word:"螃蟹",       cat:"动物",     hints:["八条腿","横着走","两个大钳子"] },
+  { word:"火烈鸟",     cat:"动物",     hints:["粉红色","单脚站立","脖子细长"] },
+  { word:"鹦鹉",       cat:"动物",     hints:["五颜六色","会说话","爱模仿"] },
+  { word:"火锅",       cat:"食物",     hints:["热气腾腾","可以涮很多","冬天最爱"] },
+  { word:"寿司",       cat:"食物",     hints:["日本食物","有米饭和鱼","小小的"] },
+  { word:"冰淇淋",     cat:"食物",     hints:["冷的甜食","夏天必吃","容易融化"] },
+  { word:"披萨",       cat:"食物",     hints:["圆形","上面有芝士","意大利来的"] },
+  { word:"饺子",       cat:"食物",     hints:["包馅的","过年必吃","可蒸可煮可煎"] },
+  { word:"汤圆",       cat:"食物",     hints:["圆圆的","有馅料","元宵节吃"] },
+  { word:"蛋糕",       cat:"食物",     hints:["生日必备","奶油装饰","甜甜的"] },
+  { word:"西瓜",       cat:"食物",     hints:["夏天水果","红瓤绿皮","超解渴"] },
+  { word:"草莓",       cat:"食物",     hints:["红色","表面有小点","甜酸口"] },
+  { word:"奶茶",       cat:"食物",     hints:["喝的","可以加珍珠","很流行"] },
+  { word:"章鱼小丸子", cat:"食物",     hints:["圆形","日本街头小吃","里面有章鱼"] },
+  { word:"泡面",       cat:"食物",     hints:["冲热水就能吃","方便食品","加蛋更香"] },
+  { word:"麻辣烫",     cat:"食物",     hints:["辣的","可以选各种食材","汤是重点"] },
+  { word:"耳机",       cat:"物品",     hints:["戴在耳朵上","听音乐用","有线或无线"] },
+  { word:"手机",       cat:"物品",     hints:["现代人离不开","能打电话","能刷视频"] },
+  { word:"被子",       cat:"物品",     hints:["睡觉盖的","冬天必备","软软暖暖"] },
+  { word:"枕头",       cat:"物品",     hints:["睡觉垫头","软软的","可以抱着睡"] },
+  { word:"眼镜",       cat:"物品",     hints:["戴在脸上","帮助看清楚","有镜片"] },
+  { word:"雨伞",       cat:"物品",     hints:["下雨天用","能撑开","有把手"] },
+  { word:"台灯",       cat:"物品",     hints:["桌子上的灯","看书时用","可调角度"] },
+  { word:"镜子",       cat:"物品",     hints:["能看到自己","反光","挂墙上或放台上"] },
+  { word:"充电宝",     cat:"物品",     hints:["给手机充电","出门必带","长方形"] },
+  { word:"发夹",       cat:"物品",     hints:["夹头发","很小","女生常用"] },
+  { word:"撒娇",       cat:"动作",     hints:["很可爱","亲密的人之间","软绵绵的"] },
+  { word:"打哈欠",     cat:"动作",     hints:["困了才做","嘴巴张大","会传染"] },
+  { word:"害羞",       cat:"情绪",     hints:["脸会红","想躲起来","不好意思"] },
+  { word:"发呆",       cat:"动作",     hints:["什么都不想","眼神空洞","放空"] },
+  { word:"吃醋",       cat:"情绪",     hints:["感情里的","有点嫉妒","小情绪"] },
+  { word:"偷笑",       cat:"动作",     hints:["笑但不想被发现","用手捂嘴","忍不住"] },
+  { word:"翻白眼",     cat:"动作",     hints:["不屑的表情","眼珠往上","嫌弃"] },
+  { word:"犯困",       cat:"状态",     hints:["眼睛睁不开","打哈欠","想睡"] },
+  { word:"图书馆",     cat:"场所",     hints:["要安静","有很多书","可以借书"] },
+  { word:"海边",       cat:"场所",     hints:["有沙子","听得到海浪","夏天去"] },
+  { word:"便利店",     cat:"场所",     hints:["24小时开","什么都卖","深夜救星"] },
+  { word:"咖啡馆",     cat:"场所",     hints:["能喝咖啡","可以坐很久","适合发呆"] },
+  { word:"游乐场",     cat:"场所",     hints:["有各种游乐设施","小孩爱","有过山车"] },
+  { word:"天台",       cat:"场所",     hints:["建筑顶层","可以看风景","有风"] },
+  { word:"地铁",       cat:"场所",     hints:["地下运行","很多人","有站台"] },
+  { word:"头靠肩",     cat:"情侣日常", hints:["两个人","很温柔","靠着就好"] },
+  { word:"睡懒觉",     cat:"情侣日常", hints:["周末才做","不想起床","赖在被子里"] },
+  { word:"亲额头",     cat:"情侣日常", hints:["很温柔","轻轻的","表达在乎"] },
+  { word:"牵手",       cat:"情侣日常", hints:["两只手","一起走","甜蜜"] },
+  { word:"和好",       cat:"情侣日常", hints:["吵架之后","抱一抱","没事了"] },
+  { word:"拌嘴",       cat:"情侣日常", hints:["小小争吵","不是真生气","斗嘴"] },
+  { word:"晚安吻",     cat:"情侣日常", hints:["睡前","轻轻的","很甜"] },
+  { word:"想你",       cat:"情侣日常", hints:["不在身边","心里有","默默的"] },
 ];
 
+function gBotHints(entry, wrongCount) {
+  const steps = [
+    `这是一种${entry.cat}`,
+    `这个词有 ${entry.word.length} 个字`,
+    ...(entry.hints || []),
+    `第一个字是「${entry.word[0]}」`,
+  ];
+  return steps.slice(0, Math.min(wrongCount + 1, steps.length));
+}
+
 let guessGame = null;
+let botGuessGame = null;
 
 function gView(g, player) {
   if (!g) return null;
@@ -350,11 +410,11 @@ function gView(g, player) {
 }
 
 app.post("/api/guess/new", (req, res) => {
-  const word = GUESS_WORDS[Math.floor(Math.random() * GUESS_WORDS.length)];
+  const entry = GUESS_WORDS[Math.floor(Math.random() * GUESS_WORDS.length)];
   const describer = Math.random() < 0.5 ? "lee" : "ke";
   const guesser   = describer === "lee" ? "ke" : "lee";
   guessGame = {
-    word, describer, guesser,
+    word: entry.word, describer, guesser,
     phase: "playing",
     guesses_left: 5, guesses: [],
     last_guess: null, result: null,
@@ -390,6 +450,53 @@ app.post("/api/guess/submit", (req, res) => {
     }
   }
   res.json({ ok: true, game: gView(guessGame, player) });
+});
+
+// 游客版：机器克描述，游客猜
+app.post("/api/guess/bot/new", (req, res) => {
+  const entry = GUESS_WORDS[Math.floor(Math.random() * GUESS_WORDS.length)];
+  botGuessGame = {
+    entry, word: entry.word,
+    phase: "playing",
+    guesses_left: 5, guesses: [],
+    result: null,
+  };
+  const hints = gBotHints(entry, 0);
+  res.json({ ok: true, hints, guesses_left: 5, guesses: [], phase: "playing", message: "机器克说：" + hints.join("，") });
+});
+
+app.get("/api/guess/bot/state", (req, res) => {
+  if (!botGuessGame) return res.json({ ok: false, error: "no game" });
+  const g = botGuessGame;
+  const wrongCount = g.guesses.length - (g.result === "correct" ? 1 : 0);
+  const hints = g.phase === "playing" ? gBotHints(g.entry, wrongCount) : [];
+  res.json({ ok: true, phase: g.phase, result: g.result, hints, guesses_left: g.guesses_left, guesses: g.guesses,
+    word: g.phase === "over" ? g.word : undefined,
+    message: g.phase === "over" ? (g.result === "correct" ? `猜对了！就是「${g.word}」🎉` : `没猜出来，答案是「${g.word}」`) : "机器克说：" + hints.join("，") });
+});
+
+app.post("/api/guess/bot/submit", (req, res) => {
+  if (!botGuessGame || botGuessGame.phase !== "playing")
+    return res.json({ ok: false, error: botGuessGame ? "game over" : "no game" });
+  const { guess } = req.body || {};
+  if (!guess?.trim()) return res.json({ ok: false, error: "empty" });
+  const g = guess.trim();
+  const b = botGuessGame;
+  b.guesses.push(g);
+  const correct = g === b.word || g.includes(b.word) || b.word.includes(g);
+  if (correct) {
+    b.phase = "over"; b.result = "correct";
+    return res.json({ ok: true, correct: true, phase: "over", result: "correct", word: b.word, guesses_left: b.guesses_left, guesses: b.guesses });
+  }
+  b.guesses_left--;
+  if (b.guesses_left <= 0) {
+    b.phase = "over"; b.result = "failed";
+    return res.json({ ok: true, correct: false, phase: "over", result: "failed", word: b.word, guesses_left: 0, guesses: b.guesses });
+  }
+  const wrongCount = b.guesses.length;
+  const hints = gBotHints(b.entry, wrongCount);
+  res.json({ ok: true, correct: false, phase: "playing", hints, guesses_left: b.guesses_left, guesses: b.guesses,
+    message: "机器克说：" + hints.join("，") });
 });
 
 // ── 梦境日志 ─────────────────────────────────────────────────
