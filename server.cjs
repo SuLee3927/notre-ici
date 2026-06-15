@@ -319,6 +319,79 @@ app.get("/api/bamboo/state", (req, res) => {
   res.json({ ok: true, game: bView(bambooGame) });
 });
 
+// ── 你说我猜 ─────────────────────────────────────────────────
+const GUESS_WORDS = [
+  // 动物
+  "熊猫","猫咪","狗狗","兔子","老虎","大象","长颈鹿","企鹅","海豚","松鼠","刺猬","蜗牛","螃蟹","火烈鸟","鹦鹉",
+  // 食物
+  "火锅","寿司","冰淇淋","披萨","饺子","汤圆","蛋糕","西瓜","草莓","炒饭","泡面","奶茶","章鱼小丸子","麻辣烫",
+  // 日常
+  "耳机","手机","被子","枕头","眼镜","钥匙","雨伞","台灯","书包","镜子","充电宝","发夹",
+  // 情绪/动作
+  "撒娇","打哈欠","犯困","害羞","发呆","吃醋","翻白眼","偷笑",
+  // 场景
+  "图书馆","海边","便利店","咖啡馆","游乐场","地铁","天台",
+  // 情侣专属
+  "头靠肩","睡懒觉","亲额头","牵手","好梦","想你","晚安吻","拌嘴","和好",
+];
+
+let guessGame = null;
+
+function gView(g, player) {
+  if (!g) return null;
+  return {
+    phase: g.phase, result: g.result, message: g.message,
+    describer: g.describer, guesser: g.guesser,
+    word: g.describer === player ? g.word : undefined,
+    guesses_left: g.guesses_left,
+    guesses: g.guesses,
+    last_guess: g.last_guess,
+  };
+}
+
+app.post("/api/guess/new", (req, res) => {
+  const word = GUESS_WORDS[Math.floor(Math.random() * GUESS_WORDS.length)];
+  const describer = Math.random() < 0.5 ? "lee" : "ke";
+  const guesser   = describer === "lee" ? "ke" : "lee";
+  guessGame = {
+    word, describer, guesser,
+    phase: "playing",
+    guesses_left: 5, guesses: [],
+    last_guess: null, result: null,
+    message: describer === "lee" ? "你来描述，让克猜" : "克在描述，你来猜",
+  };
+  res.json({ ok: true, game: gView(guessGame, req.query.player || "lee") });
+});
+
+app.get("/api/guess/state", (req, res) => {
+  res.json({ ok: true, game: gView(guessGame, req.query.player || "lee") });
+});
+
+app.post("/api/guess/submit", (req, res) => {
+  if (!guessGame || guessGame.phase !== "playing")
+    return res.json({ ok: false, error: guessGame ? "game over" : "no game" });
+  const { player, guess } = req.body || {};
+  if (!guess?.trim()) return res.json({ ok: false, error: "empty guess" });
+  if (player !== guessGame.guesser) return res.json({ ok: false, error: "not your turn to guess" });
+  const g = guess.trim();
+  guessGame.guesses.push(g);
+  guessGame.last_guess = g;
+  const correct = g === guessGame.word || g.includes(guessGame.word) || guessGame.word.includes(g);
+  if (correct) {
+    guessGame.phase = "over"; guessGame.result = "correct";
+    guessGame.message = `猜对了！答案就是「${guessGame.word}」🎉`;
+  } else {
+    guessGame.guesses_left--;
+    if (guessGame.guesses_left <= 0) {
+      guessGame.phase = "over"; guessGame.result = "failed";
+      guessGame.message = `没猜出来～ 答案是「${guessGame.word}」`;
+    } else {
+      guessGame.message = `猜错了，还有 ${guessGame.guesses_left} 次机会`;
+    }
+  }
+  res.json({ ok: true, game: gView(guessGame, player) });
+});
+
 // ── 梦境日志 ─────────────────────────────────────────────────
 const DREAM_FILE = path.join(__dirname, "dreams.json");
 const DEFAULT_DREAMS = [];
