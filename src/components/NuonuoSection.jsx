@@ -19,9 +19,18 @@ function NuonuoDisplay() {
   const [tail, setTail] = useState(false);
 
   useEffect(() => {
-    const t1 = setInterval(() => setBlink(true), 4000 + Math.random() * 2000);
-    const t2 = setInterval(() => setBlink(false), 4200 + Math.random() * 2000);
-    return () => { clearInterval(t1); clearInterval(t2); };
+    let openTimer, closeTimer;
+    const scheduleBlink = () => {
+      openTimer = setTimeout(() => {
+        setBlink(true);
+        closeTimer = setTimeout(() => {
+          setBlink(false);
+          scheduleBlink();
+        }, 180);
+      }, 2000 + Math.random() * 2500);
+    };
+    scheduleBlink();
+    return () => { clearTimeout(openTimer); clearTimeout(closeTimer); };
   }, []);
 
   return (
