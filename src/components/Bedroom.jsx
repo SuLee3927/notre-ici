@@ -515,15 +515,6 @@ export default function Bedroom({ theme: t, mode, onClose }) {
         克 &amp; Lee 的卧室
       </div>
 
-      {/* 关闭按钮 */}
-      <button onClick={onClose} style={{
-        position:"absolute", top:12, right:14, zIndex:10,
-        background:"rgba(0,0,0,0.12)", border:"none", color:"rgba(255,255,255,0.6)",
-        fontSize:18, cursor:"pointer", borderRadius:"50%", width:32, height:32,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        backdropFilter:"blur(4px)",
-      }}>←</button>
-
       {/* 图片对齐层（与 Room.jsx 相同逻辑） */}
       <div style={{ position:"absolute", top:0, left:0, width:"100%", paddingBottom:"177.7%", zIndex:5, pointerEvents:"none" }}>
         <div style={{ position:"absolute", inset:0 }}>
