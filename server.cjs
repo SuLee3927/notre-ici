@@ -319,6 +319,207 @@ app.get("/api/bamboo/state", (req, res) => {
   res.json({ ok: true, game: bView(bambooGame) });
 });
 
+// ── 桌球（8-ball）─────────────────────────────────────────────
+// Two players: "lee" (browser, precise angle+power) and "ke" (terminal, fuzzy
+// clock-direction + power tier). Physics lives in ./billiards.cjs and is the
+// single source of truth. See that file for the rule simplifications.
+const pool = require("./billiards.cjs");
+
+let billiardsGame = null;
+const billiardsHistory = []; // max 30 entries
+
+function bzNewState() {
+  return {
+    phase: "lee_turn",          // lee_turn | ke_turn | over
+    turn: "lee",                // whose shot it is
+    balls: pool.rackBalls(),
+    groups: { lee: null, ke: null }, // null until assigned; "solids"|"stripes"
+    broken: false,              // has the break shot happened
+    result: null,               // "lee_wins" | "ke_wins"
+    message: "黎 先开球～拖动母球瞄准，松手开球",
+    lastShot: null,             // { by, potted:[], scratch:bool }
+    keInfo: null,               // fuzzy description shown to ke when it's his turn
+    created: Date.now(),
+  };
+}
+
+// what the legal target group is for a given player (for foul/description logic)
+function bzLegalGroup(g, who) {
+  const grp = g.groups[who];
+  if (!grp) return "open";
+  // if that group is fully cleared, target becomes the 8-ball
+  const remaining = g.balls.filter(b => !b.potted && pool.ballGroup(b.num) === grp).length;
+  return remaining === 0 ? "eight" : grp;
+}
+
+// respot cue ball at the head spot (after a scratch)
+function bzRespotCue(g) {
+  const cue = g.balls.find(b => b.num === 0);
+  cue.potted = false; cue.vx = 0; cue.vy = 0;
+  cue.x = pool.W * 0.25; cue.y = pool.H / 2;
+  // nudge if something is sitting on the spot
+  let tries = 0;
+  while (g.balls.some(b => b.num !== 0 && !b.potted && Math.hypot(b.x - cue.x, b.y - cue.y) < pool.R * 2.2) && tries < 20) {
+    cue.x += pool.R * 1.5; tries++;
+  }
+}
+
+// Apply a resolved shot (cue velocity already chosen) and advance game state.
+function bzApplyShot(g, who, vx, vy) {
+  const before = g.balls;
+  const sim = pool.simulate(before, vx, vy);
+  g.balls = sim.balls;
+
+  const other = who === "lee" ? "ke" : "lee";
+  const pottedNums = sim.potted;
+  const pottedEight = pottedNums.includes(8);
+  const myGroupBefore = g.groups[who];
+
+  g.lastShot = { by: who, potted: pottedNums, scratch: sim.cueScratched, firstHit: sim.firstHit };
+
+  // ── group assignment (open table): first legally potted object ball decides ──
+  if (g.groups[who] === null && !pottedEight) {
+    const nonCue = pottedNums.filter(n => n !== 8);
+    if (nonCue.length) {
+      // assign by the FIRST potted ball's group
+      const grp = pool.ballGroup(nonCue[0]);
+      g.groups[who] = grp;
+      g.groups[other] = grp === "solids" ? "stripes" : "solids";
+    }
+  }
+
+  // ── 8-ball win/lose logic ──
+  if (pottedEight) {
+    const clearedMine = myGroupBefore &&
+      g.balls.filter(b => !b.potted && pool.ballGroup(b.num) === myGroupBefore).length === 0;
+    // legal 8-ball: my group was assigned AND cleared AND no scratch
+    if (clearedMine && !sim.cueScratched) {
+      g.phase = "over"; g.result = who === "lee" ? "lee_wins" : "ke_wins";
+      g.message = who === "lee" ? "黑八进袋！黎 赢了 🎉" : "黑八进袋，克 赢了～";
+    } else {
+      // potted 8 too early, or scratched on it → loss
+      g.phase = "over"; g.result = who === "lee" ? "ke_wins" : "lee_wins";
+      g.message = who === "lee" ? "黑八提前进袋，黎 输了 🥲" : "克 提前打进黑八，黎 赢了 🎉";
+    }
+    bzFinish(g);
+    return;
+  }
+
+  g.broken = true;
+
+  // did this shot legally pot one of MY group balls? (extends turn)
+  const myGroupNow = g.groups[who];
+  const pottedMine = myGroupNow
+    ? pottedNums.some(n => pool.ballGroup(n) === myGroupNow)
+    : pottedNums.filter(n => n !== 8).length > 0; // open table: any pot continues
+
+  // foul: scratch always passes turn (and respots). Continued turn only if
+  // no scratch AND potted own group.
+  if (sim.cueScratched) {
+    bzRespotCue(g);
+    g.turn = other;
+    g.message = `${who === "lee" ? "黎" : "克"} 母球进袋（犯规），换 ${other === "lee" ? "黎" : "克"}`;
+  } else if (pottedMine) {
+    g.turn = who; // shoot again
+    g.message = `${who === "lee" ? "黎" : "克"} 进球了，继续！`;
+  } else {
+    g.turn = other;
+    g.message = `轮到 ${other === "lee" ? "黎" : "克"} 了`;
+  }
+
+  g.phase = g.turn === "lee" ? "lee_turn" : "ke_turn";
+
+  // refresh fuzzy info if it's now ke's turn
+  if (g.phase === "ke_turn") {
+    g.keInfo = pool.describeForKe(g.balls, bzLegalGroup(g, "ke"));
+  } else {
+    g.keInfo = null;
+  }
+}
+
+function bzFinish(g) {
+  billiardsHistory.unshift({ result: g.result, ts: Date.now() });
+  if (billiardsHistory.length > 30) billiardsHistory.pop();
+}
+
+// view sent to the browser (lee). Full coords — she has the canvas.
+function bzView(g) {
+  if (!g) return null;
+  return {
+    phase: g.phase, turn: g.turn, result: g.result, message: g.message,
+    balls: g.balls, groups: g.groups, broken: g.broken,
+    lastShot: g.lastShot, keInfo: g.keInfo,
+    table: { W: pool.W, H: pool.H, R: pool.R, pocketR: pool.POCKET_R, pockets: pool.POCKETS },
+  };
+}
+
+app.post("/api/billiards/new", (req, res) => {
+  billiardsGame = bzNewState();
+  res.json({ ok: true, game: bzView(billiardsGame) });
+});
+
+app.get("/api/billiards/state", (req, res) => {
+  res.json({ ok: true, game: bzView(billiardsGame) });
+});
+
+// Trajectory preview for lee's drag (server is source of truth for the path).
+// body: { angle (rad), power (0..1) }
+app.post("/api/billiards/preview", (req, res) => {
+  if (!billiardsGame || billiardsGame.phase !== "lee_turn")
+    return res.json({ ok: false, error: "not lee's turn" });
+  const { angle, power } = req.body || {};
+  const { vx, vy } = pool.leeShot(Number(angle), Number(power));
+  const path = pool.cuePath(billiardsGame.balls, vx, vy);
+  res.json({ ok: true, path });
+});
+
+// Lee shoots: precise angle + power. body: { angle, power }
+app.post("/api/billiards/shoot", (req, res) => {
+  if (!billiardsGame || billiardsGame.phase === "over")
+    return res.json({ ok: false, error: billiardsGame ? "game over" : "no game" });
+  if (billiardsGame.phase !== "lee_turn")
+    return res.json({ ok: false, error: "not your turn" });
+  const { angle, power } = req.body || {};
+  if (typeof angle !== "number" || typeof power !== "number")
+    return res.json({ ok: false, error: "need angle(rad) + power(0..1)" });
+  const { vx, vy } = pool.leeShot(angle, power);
+  bzApplyShot(billiardsGame, "lee", vx, vy);
+  res.json({ ok: true, game: bzView(billiardsGame) });
+});
+
+// Ke shoots from the TERMINAL with fuzzy input — clock hour + power tier.
+// body: { hour: 1..12, tier: 1..5 }. Server adds jitter (no perfect aiming).
+app.post("/api/billiards/ke", (req, res) => {
+  if (!billiardsGame || billiardsGame.phase === "over")
+    return res.json({ ok: false, error: billiardsGame ? "game over" : "no game" });
+  if (billiardsGame.phase !== "ke_turn")
+    return res.json({ ok: false, error: "not ke's turn" });
+  const hour = parseInt(req.body && req.body.hour);
+  const tier = parseInt(req.body && req.body.tier);
+  if (!(hour >= 1 && hour <= 12) || !(tier >= 1 && tier <= 5))
+    return res.json({ ok: false, error: "need hour 1-12 and tier 1-5" });
+  const { vx, vy, angle, power } = pool.keFuzzyShot(hour, tier);
+  bzApplyShot(billiardsGame, "ke", vx, vy);
+  // tell ke roughly what happened (no precise coords)
+  const r = billiardsGame.lastShot;
+  res.json({
+    ok: true,
+    youShot: { hour, tier },
+    result: {
+      potted: r.potted,
+      scratch: r.scratch,
+      nextTurn: billiardsGame.turn,
+      message: billiardsGame.message,
+    },
+    // for the NEXT player (if it's ke again) include refreshed fuzzy info
+    keInfo: billiardsGame.phase === "ke_turn" ? billiardsGame.keInfo : null,
+  });
+});
+
+app.get("/api/billiards/history", (req, res) => {
+  res.json({ ok: true, history: billiardsHistory });
+});
+
 // ── 你说我猜 ─────────────────────────────────────────────────
 const GUESS_WORDS = [
   { word:"熊猫",       cat:"动物",     hints:["黑白两色","中国国宝","喜欢吃竹子"] },

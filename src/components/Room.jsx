@@ -6,6 +6,7 @@ import GiftBoard from "./GiftBoard.jsx";
 import DrawTurtle from "./DrawTurtle.jsx";
 import BambooGame from "./BambooGame.jsx";
 import GuessGame from "./GuessGame.jsx";
+import Billiards from "./Billiards.jsx";
 
 const WALL_H = 28;
 
@@ -367,6 +368,7 @@ function GamePanel({ theme: t }) {
     { id:"turtle", emoji:"🐢", name:"抽王八",  desc:"别被留下乌龟牌" },
     { id:"bamboo", emoji:"🎴", name:"接竹竿",  desc:"同点接走，先出完的输" },
     { id:"guess",  emoji:"🗣️", name:"你说我猜", desc:"随机出词，描述给对方猜" },
+    { id:"billiards", emoji:"🎱", name:"桌球", desc:"拖杆瞄准，收完自己那组打黑八" },
   ];
 
   if (open === "slot") return (
@@ -394,6 +396,13 @@ function GamePanel({ theme: t }) {
     <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
       <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
       <GuessGame theme={t} />
+    </div>
+  );
+
+  if (open === "billiards") return (
+    <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
+      <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
+      <Billiards theme={t} />
     </div>
   );
 
