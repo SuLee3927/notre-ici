@@ -124,9 +124,9 @@ function StovePlaceholder({ theme: t }) {
 const SPOTS = [
   { id:"fridge",  left:"10%", top:"43%", label:"冰箱",   w:"clamp(30px,8vw,50px)", h:"clamp(60px,16vw,96px)" },
   { id:"shelf",   left:"22%", top:"32%", label:"置物架",  w:"clamp(24px,6vw,38px)", h:"clamp(50px,13vw,80px)" },
-  { id:"sink",    left:"43%", top:"34%", label:"洗碗池",  w:"clamp(36px,9vw,56px)", h:"clamp(28px,7vw,44px)" },
-  { id:"stove",   left:"75%", top:"40%", label:"灶台",   w:"clamp(30px,8vw,50px)", h:"clamp(34px,9vw,54px)" },
-  { id:"trash",   left:"74%", top:"72%", label:"垃圾桶",  w:"clamp(22px,6vw,36px)", h:"clamp(30px,8vw,46px)" },
+  { id:"sink",    left:"43%", top:"22%", label:"洗碗池",  w:"clamp(36px,9vw,56px)", h:"clamp(28px,7vw,44px)" },
+  { id:"stove",   left:"80%", top:"29%", label:"灶台",   w:"clamp(30px,8vw,50px)", h:"clamp(34px,9vw,54px)" },
+  { id:"trash",   left:"85%", top:"52%", label:"垃圾桶",  w:"clamp(22px,6vw,36px)", h:"clamp(30px,8vw,46px)" },
   { id:"door",    left:"90%", top:"90%", label:"出门",   w:"clamp(28px,7vw,44px)", h:"clamp(44px,12vw,70px)" },
   { id:"window",  left:"50%", top:"18%", label:"窗外菜园", w:"clamp(40px,11vw,68px)", h:"clamp(22px,6vw,36px)" },
 ];
