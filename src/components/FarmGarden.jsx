@@ -177,6 +177,7 @@ function SeedPicker({ theme: t, onPick, onClose }) {
         background:t.bg, borderRadius:"24px 24px 0 0",
         padding:"20px 16px 40px",
         animation:"slideUp .22s ease",
+        position:"relative",
       }}>
         <div style={{ width:36, height:4, background:t.surfaceBorder, borderRadius:2, margin:"0 auto 18px" }} />
         <button onClick={onClose} style={{ position:"absolute", top:10, right:16, background:"none", border:"none", color:t.textMuted, fontSize:22, cursor:"pointer" }}>×</button>
