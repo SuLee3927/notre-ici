@@ -55,6 +55,7 @@ const HEAT_KEYS   = ["低",   "中",   "旺"];
 
 const STORAGE_KEY = "kitchen_qty";
 const UNLOCK_KEY  = "kitchen_unlocked";
+const TRASH_KEY   = "kitchen_trash";
 
 function loadQty() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { ...DEFAULT_QTY }; }
@@ -66,6 +67,18 @@ function loadUnlocked() {
   catch { return []; }
 }
 function saveUnlocked(u) { localStorage.setItem(UNLOCK_KEY, JSON.stringify(u)); }
+export function loadTrash() {
+  try { return JSON.parse(localStorage.getItem(TRASH_KEY)) || []; }
+  catch { return []; }
+}
+function pushTrash(entry) {
+  const list = [entry, ...loadTrash()].slice(0, 30);
+  localStorage.setItem(TRASH_KEY, JSON.stringify(list));
+  return list;
+}
+export function clearTrash() {
+  localStorage.setItem(TRASH_KEY, JSON.stringify([]));
+}
 
 function matchRecipe(selected, heatIdx) {
   const heatKey = HEAT_KEYS[heatIdx];
@@ -77,10 +90,9 @@ function matchRecipe(selected, heatIdx) {
   return null;
 }
 
-// 置物架面板
+// 置物架面板（纯仓库，配方收藏册在灶台）
 export function PantryPanel({ theme: t }) {
-  const [qty, setQty] = useState(loadQty);
-  const unlocked = loadUnlocked();
+  const [qty] = useState(loadQty);
 
   return (
     <div style={{ padding:"20px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
@@ -103,18 +115,33 @@ export function PantryPanel({ theme: t }) {
           );
         })}
       </div>
-      {unlocked.length > 0 && (
-        <div style={{ marginTop:24, padding:"14px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}` }}>
-          <div style={{ fontSize:11, color:t.textMuted, marginBottom:8, textAlign:"center" }}>已解锁配方</div>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-            {unlocked.map((d, i) => (
-              <span key={i} style={{ fontSize:12, padding:"3px 8px", background:`${t.accent}18`, borderRadius:8, color:t.accent }}>
-                {d}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+    </div>
+  );
+}
+
+// 配方收藏册：已解锁显名，未解锁显问号
+function RecipeBook({ theme: t, unlocked }) {
+  return (
+    <div style={{ marginBottom:18, padding:"12px", background:t.surface, borderRadius:14, border:`1px solid ${t.surfaceBorder}` }}>
+      <div style={{ fontSize:11, color:t.textMuted, marginBottom:10, textAlign:"center" }}>
+        配方收藏册 {unlocked.length}/{RECIPES.length}
+      </div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center" }}>
+        {RECIPES.map((r, i) => {
+          const label = `${r.emoji} ${r.dish}`;
+          const found = unlocked.includes(label);
+          return (
+            <div key={i} style={{
+              width:54, textAlign:"center", padding:"6px 0",
+              borderRadius:10, border:`1px solid ${t.surfaceBorder}`,
+              background: found ? t.accentSoft : "transparent",
+            }}>
+              <div style={{ fontSize:20, opacity: found ? 1 : 0.5 }}>{found ? r.emoji : "❓"}</div>
+              <div style={{ fontSize:9, color: found ? t.accent : t.textMuted, marginTop:2 }}>{found ? r.dish : "未知"}</div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -158,12 +185,23 @@ export default function CookingGame({ theme: t }) {
         }
         setResult({ success:true, recipe, isNew: !unlocked.includes(label) });
       } else {
-        // 失败：随机原因
+        // 失败：消耗食材，扔进垃圾桶
         const reasons = [
           "火候不对，烧糊了", "食材搭配有点奇怪", "这个配方还没找到",
           "灶台抗议了", "好像少了什么食材",
         ];
-        setResult({ success:false, reason: reasons[Math.floor(Math.random()*reasons.length)] });
+        const reason = reasons[Math.floor(Math.random()*reasons.length)];
+        const newQty = { ...qty };
+        selected.forEach(id => { if (newQty[id] !== 99) newQty[id] = Math.max(0, (newQty[id]||0) - 1); });
+        saveQty(newQty);
+        setQty(newQty);
+        pushTrash({
+          emojis: selected.map(id => INGREDIENTS.find(x => x.id === id)?.emoji).join(""),
+          heat: HEAT_LABELS[heatIdx],
+          reason,
+          date: new Date().toLocaleDateString("zh-CN", { month:"numeric", day:"numeric" }),
+        });
+        setResult({ success:false, reason });
       }
       setPhase("result");
     }, 1200);
@@ -181,6 +219,8 @@ export default function CookingGame({ theme: t }) {
       <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:16, fontStyle:"italic" }}>
         选食材 · 调火候 · 下锅
       </div>
+
+      <RecipeBook theme={t} unlocked={unlocked} />
 
       {/* 已选食材槽 */}
       <div style={{

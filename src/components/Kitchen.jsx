@@ -1,6 +1,39 @@
 import { useState, useEffect } from "react";
-import CookingGame, { PantryPanel } from "./CookingGame.jsx";
+import CookingGame, { PantryPanel, loadTrash } from "./CookingGame.jsx";
 import FarmGarden from "./FarmGarden.jsx";
+
+// 垃圾桶：失败菜品回收记录
+function TrashBin({ theme: t }) {
+  const [list] = useState(loadTrash);
+  return (
+    <div style={{ padding:"24px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:32, marginBottom:12, textAlign:"center" }}>🗑️</div>
+      <div style={{ fontSize:13, color:t.text, marginBottom:4, textAlign:"center" }}>垃圾桶</div>
+      <div style={{ fontSize:11, color:t.textMuted, marginBottom:20, textAlign:"center", fontStyle:"italic" }}>
+        做失败的菜放这里
+      </div>
+      {list.length === 0 ? (
+        <div style={{ fontSize:11, color:t.textMuted, textAlign:"center" }}>还是空的，去灶台闯一闯</div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {list.map((e, i) => (
+            <div key={i} style={{
+              padding:"10px 14px", borderRadius:12,
+              background:t.surface, border:`1px solid ${t.surfaceBorder}`,
+              display:"flex", justifyContent:"space-between", alignItems:"center",
+            }}>
+              <div>
+                <span style={{ fontSize:16 }}>{e.emojis}</span>
+                <span style={{ fontSize:11, color:t.textMuted, marginLeft:8 }}>{e.heat}火 · {e.reason}</span>
+              </div>
+              <span style={{ fontSize:10, color:t.textMuted }}>{e.date}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // 洗碗池碎碎念面板
 function SinkMurmurs({ theme: t }) {
@@ -110,16 +143,6 @@ function MemoBoard({ theme: t }) {
   );
 }
 
-function StovePlaceholder({ theme: t }) {
-  return (
-    <div style={{ padding:"40px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
-      <div style={{ fontSize:36, marginBottom:14 }}>🍳</div>
-      <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>做饭游戏</div>
-      <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>灶台还在预热……<br/>克正在研究配方</div>
-    </div>
-  );
-}
-
 // 图片内各热点 (坐标为图片内百分比)
 const SPOTS = [
   { id:"fridge",  left:"6%",  top:"33%", label:"冰箱",   w:"clamp(30px,8vw,50px)", h:"clamp(60px,16vw,96px)" },
@@ -141,13 +164,7 @@ export default function Kitchen({ theme: t, mode, onClose }) {
     shelf: <PantryPanel theme={t} />,
     sink: <SinkMurmurs theme={t} />,
     window: <FarmGarden theme={t} />,
-    trash: (
-      <div style={{ padding:"40px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
-        <div style={{ fontSize:32, marginBottom:12 }}>🗑️</div>
-        <div style={{ fontSize:13, color:t.text, marginBottom:8 }}>垃圾桶</div>
-        <div style={{ fontSize:11, color:t.textMuted, lineHeight:2 }}>做失败的菜放这里<br/>等做饭游戏开通</div>
-      </div>
-    ),
+    trash: <TrashBin theme={t} />,
   };
 
   function handleClick(id) {
@@ -182,17 +199,11 @@ export default function Kitchen({ theme: t, mode, onClose }) {
               style={{
                 position:"absolute", left:s.left, top:s.top,
                 transform:"translate(-50%,-50%)",
-                background:"none", border:"1px dashed red", outline:"none",
+                background:"none", border:"none", outline:"none",
                 cursor:"pointer", zIndex:6, pointerEvents:"auto",
                 width:s.w, height:s.h, borderRadius:8,
               }}
-            >
-              <span style={{
-                position:"absolute", top:"100%", left:"50%", transform:"translateX(-50%)",
-                fontSize:10, color:"#fff", background:"rgba(220,0,0,0.85)",
-                padding:"1px 4px", borderRadius:4, whiteSpace:"nowrap",
-              }}>{s.label} {s.left}/{s.top}</span>
-            </button>
+            />
           ))}
         </div>
       </div>
