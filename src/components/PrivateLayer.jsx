@@ -10,6 +10,7 @@ const STUDY_ITEMS = [
   { id:"cabinet",   left:"82%", top:"18%", label:"带锁小柜", w:"clamp(36px,10vw,56px)",  h:"clamp(44px,12vw,70px)"  },
   { id:"photos",    left:"91%", top:"6%",  label:"相册",     w:"clamp(28px,8vw,48px)",   h:"clamp(28px,8vw,48px)"   },
   { id:"bear",      left:"78%", top:"30%", label:"大熊椅",   w:"clamp(60px,16vw,96px)",  h:"clamp(60px,16vw,96px)"  },
+  { id:"door",      left:"10%", top:"68%", label:"出门",     w:"clamp(28px,8vw,44px)",   h:"clamp(60px,16vw,96px)"  },
 ];
 
 function StudyBg({ isDay }) {
@@ -97,13 +98,12 @@ export default function PrivateLayer({ theme: t, onClose, onEnterNuonuo }) {
         克 &amp; Lee 的书房
       </div>
 
-      <button onClick={onClose} style={{ position:"absolute", top:12, right:14, zIndex:10, background:"rgba(0,0,0,0.15)", border:"none", color:"rgba(255,255,255,0.65)", fontSize:18, cursor:"pointer", borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(4px)" }}>←</button>
-
       {/* 图片比例对齐层，与 Bedroom.jsx 相同逻辑 */}
       <div style={{ position:"absolute", top:0, left:0, width:"100%", paddingBottom:"177.7%", zIndex:5, pointerEvents:"none" }}>
         <div style={{ position:"absolute", inset:0 }}>
           {STUDY_ITEMS.map(obj => (
             <button key={obj.id} onClick={() => {
+              if (obj.id === "door") { onClose(); return; }
               if (obj.id === "bear") {
                 const h = new Date().getHours();
                 if (h >= 22 || h < 6) { onEnterNuonuo?.(); return; }
