@@ -6,7 +6,7 @@ function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   return audioCtx;
 }
-function beep({ freq = 600, duration = 0.08, type = "sine", gain = 0.06, delay = 0 }) {
+function beep({ freq = 600, freqTo = null, duration = 0.08, type = "sine", gain = 0.25, delay = 0 }) {
   try {
     const ctx = getAudioCtx();
     const osc = ctx.createOscillator();
@@ -18,17 +18,20 @@ function beep({ freq = 600, duration = 0.08, type = "sine", gain = 0.06, delay =
     g.connect(ctx.destination);
     const start = ctx.currentTime + delay;
     osc.start(start);
+    if (freqTo !== null) osc.frequency.exponentialRampToValueAtTime(freqTo, start + duration);
     g.gain.setValueAtTime(gain, start);
     g.gain.exponentialRampToValueAtTime(0.001, start + duration);
     osc.stop(start + duration);
   } catch {}
 }
-function playSelectSound() { beep({ freq:880, duration:0.06, type:"sine", gain:0.05 }); }
+function playSelectSound() { beep({ freq:880, duration:0.07, type:"sine", gain:0.22 }); }
 function playSuccessSound() {
-  beep({ freq:660, duration:0.12, type:"sine", gain:0.07 });
-  beep({ freq:880, duration:0.18, type:"sine", gain:0.07, delay:0.1 });
+  beep({ freq:660, duration:0.14, type:"sine", gain:0.28 });
+  beep({ freq:880, duration:0.2, type:"sine", gain:0.28, delay:0.1 });
 }
-function playFailSound() { beep({ freq:180, duration:0.3, type:"sawtooth", gain:0.05 }); }
+function playFailSound() {
+  beep({ freq:320, freqTo:130, duration:0.35, type:"square", gain:0.22 });
+}
 function playCookingSound() {
   try {
     const ctx = getAudioCtx();
@@ -42,12 +45,12 @@ function playCookingSound() {
     filter.type = "highpass";
     filter.frequency.value = 1800;
     const g = ctx.createGain();
-    g.gain.value = 0.06;
+    g.gain.value = 0.2;
     noise.connect(filter);
     filter.connect(g);
     g.connect(ctx.destination);
     noise.start();
-    g.gain.setValueAtTime(0.06, ctx.currentTime);
+    g.gain.setValueAtTime(0.2, ctx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.1);
     noise.stop(ctx.currentTime + 1.1);
   } catch {}
