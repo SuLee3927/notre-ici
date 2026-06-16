@@ -128,7 +128,7 @@ const SPOTS = [
   { id:"stove",   left:"80%", top:"29%", label:"灶台",   w:"clamp(30px,8vw,50px)", h:"clamp(34px,9vw,54px)" },
   { id:"trash",   left:"85%", top:"52%", label:"垃圾桶",  w:"clamp(22px,6vw,36px)", h:"clamp(30px,8vw,46px)" },
   { id:"door",    left:"90%", top:"90%", label:"出门",   w:"clamp(28px,7vw,44px)", h:"clamp(44px,12vw,70px)" },
-  { id:"window",  left:"50%", top:"18%", label:"窗外菜园", w:"clamp(40px,11vw,68px)", h:"clamp(22px,6vw,36px)" },
+  { id:"window",  left:"56%", top:"10%", label:"窗外菜园", w:"clamp(40px,11vw,68px)", h:"clamp(22px,6vw,36px)" },
 ];
 
 export default function Kitchen({ theme: t, mode, onClose }) {
