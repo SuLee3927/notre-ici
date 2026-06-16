@@ -122,8 +122,8 @@ function StovePlaceholder({ theme: t }) {
 
 // 图片内各热点 (坐标为图片内百分比)
 const SPOTS = [
-  { id:"fridge",  left:"10%", top:"33%", label:"冰箱",   w:"clamp(30px,8vw,50px)", h:"clamp(60px,16vw,96px)" },
-  { id:"shelf",   left:"22%", top:"26%", label:"置物架",  w:"clamp(24px,6vw,38px)", h:"clamp(50px,13vw,80px)" },
+  { id:"fridge",  left:"6%",  top:"33%", label:"冰箱",   w:"clamp(30px,8vw,50px)", h:"clamp(60px,16vw,96px)" },
+  { id:"shelf",   left:"28%", top:"26%", label:"置物架",  w:"clamp(24px,6vw,38px)", h:"clamp(50px,13vw,80px)" },
   { id:"sink",    left:"62%", top:"25%", label:"洗碗池",  w:"clamp(36px,9vw,56px)", h:"clamp(28px,7vw,44px)" },
   { id:"stove",   left:"80%", top:"29%", label:"灶台",   w:"clamp(30px,8vw,50px)", h:"clamp(34px,9vw,54px)" },
   { id:"trash",   left:"85%", top:"52%", label:"垃圾桶",  w:"clamp(22px,6vw,36px)", h:"clamp(30px,8vw,46px)" },
