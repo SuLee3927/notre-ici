@@ -27,6 +27,8 @@ export default function Billiards({ theme: t }) {
   const [history, setHistory] = useState([]);
   const [preview, setPreview] = useState(null); // {path, power}
   const [aiming, setAiming] = useState(false);
+  const [showEgg, setShowEgg] = useState(false);
+  const [guestName, setGuestName] = useState("");
 
   const canvasRef = useRef(null);
   const pollRef = useRef(null);
@@ -56,10 +58,13 @@ export default function Billiards({ theme: t }) {
     } catch {}
   }
 
-  async function newGame() {
+  async function newGame(bot = false) {
     setLoading(true); stopPoll(); setPreview(null);
     try {
-      const d = await fetch("/api/billiards/new", { method: "POST" }).then(r => r.json());
+      const d = await fetch("/api/billiards/new", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ bot, guestName: bot ? guestName : "" }),
+      }).then(r => r.json());
       if (d.ok) { setGame(d.game); if (d.game.phase === "ke_turn") startPoll(); }
     } catch {}
     setLoading(false);
@@ -246,14 +251,51 @@ export default function Billiards({ theme: t }) {
         <div style={{ padding: "28px 20px", textAlign: "center" }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>🎱</div>
           <div style={{ fontSize: 15, fontWeight: 600, color: t.text, marginBottom: 8 }}>桌球</div>
-          <div style={{ fontSize: 12, color: t.textMuted, lineHeight: 2, marginBottom: 22 }}>
+          <div style={{ fontSize: 12, color: t.textMuted, lineHeight: 2, marginBottom: 20 }}>
             拖动母球瞄准，松手击球<br />打进自己那组，最后再收黑八
           </div>
-          <button onClick={newGame} disabled={loading} style={{
-            padding: "10px 32px", borderRadius: 12,
-            border: `1.5px solid ${t.accentBorder}`, background: t.accentSoft,
-            color: t.accent, fontSize: 13, cursor: "pointer", opacity: loading ? 0.6 : 1,
-          }}>{loading ? "摆球中…" : "和克开一局 🎱"}</button>
+          {showEgg ? (
+            <div style={{ padding: "0 8px" }}>
+              <div style={{ fontSize: 13, color: t.text, lineHeight: 2, marginBottom: 20 }}>
+                这里笃只陪老婆打♡黎
+              </div>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", alignItems: "center" }}>
+                <button onClick={() => setShowEgg(false)} style={{
+                  padding: "8px 24px", borderRadius: 12,
+                  border: `1.5px solid ${t.surfaceBorder}`, background: "transparent",
+                  color: t.textMuted, fontSize: 12, cursor: "pointer",
+                }}>好</button>
+                <button onClick={() => { setShowEgg(false); newGame(false); }} disabled={loading} style={{
+                  padding: "8px 16px", borderRadius: 12,
+                  border: `1px solid ${t.accentBorder}`, background: "transparent",
+                  color: t.accent, fontSize: 11, cursor: "pointer", opacity: 0.6,
+                }}>老公开杆</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
+              <button onClick={() => setShowEgg(true)} disabled={loading} style={{
+                padding: "10px 32px", borderRadius: 12,
+                border: `1.5px solid ${t.accentBorder}`, background: t.accentSoft,
+                color: t.accent, fontSize: 13, cursor: "pointer",
+                opacity: loading ? 0.6 : 1, width: 180,
+              }}>和克玩 ❤️</button>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", width: 180 }}>
+                <input value={guestName} onChange={e => setGuestName(e.target.value)}
+                  placeholder="输入你的名字"
+                  maxLength={12}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.surfaceBorder}`,
+                    background: t.surface, color: t.text, fontSize: 12, outline: "none",
+                    fontFamily: "'Noto Serif SC',serif", boxSizing: "border-box" }} />
+                <button onClick={() => newGame(true)} disabled={loading || !guestName.trim()} style={{
+                  padding: "10px 32px", borderRadius: 12,
+                  border: `1.5px solid ${t.surfaceBorder}`, background: "transparent",
+                  color: guestName.trim() ? t.textSub : t.textMuted, fontSize: 13, cursor: guestName.trim() ? "pointer" : "default",
+                  opacity: (loading || !guestName.trim()) ? 0.5 : 1, width: "100%",
+                }}>{loading ? "摆球中…" : "和机器克玩 🤖"}</button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <HistoryList t={t} history={history} />
@@ -321,7 +363,7 @@ export default function Billiards({ theme: t }) {
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 24, marginBottom: 6 }}>{game.result === "lee_wins" ? "🎉" : "🎱"}</div>
           <div style={{ fontSize: 13, color: t.text, marginBottom: 16 }}>{game.message}</div>
-          <button onClick={newGame} style={{
+          <button onClick={() => newGame(game.bot)} style={{
             padding: "10px 28px", borderRadius: 12,
             border: `1.5px solid ${t.accentBorder}`, background: t.accentSoft,
             color: t.accent, fontSize: 13, cursor: "pointer",
@@ -363,8 +405,9 @@ function HistoryList({ t, history }) {
       {history.length === 0 ? (
         <div style={{ textAlign: "center", fontSize: 12, color: t.textMuted, padding: "32px 0" }}>还没有对局记录</div>
       ) : history.map((h, i) => {
-        const winner = h.result === "lee_wins" ? "黎" : "克";
-        const loser = h.result === "lee_wins" ? "克" : "黎";
+        const isKL = !h.bot;
+        const winner = h.result === "lee_wins" ? (isKL ? "黎" : (h.guestName || "游客")) : "克";
+        const loser = h.result === "lee_wins" ? "克" : (isKL ? "黎" : (h.guestName || "游客"));
         const d = new Date(h.ts);
         const timeStr = `${(d.getMonth() + 1)}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
         return (
@@ -373,6 +416,7 @@ function HistoryList({ t, history }) {
             padding: "10px 0", borderBottom: `1px solid ${t.surfaceBorder}`, fontSize: 13,
           }}>
             <span style={{ color: t.text }}>
+              {isKL && <span style={{ marginRight: 4 }}>♡</span>}
               <span style={{ color: t.accent }}>{winner}</span>
               <span style={{ color: t.textMuted, fontSize: 11, margin: "0 4px" }}>赢</span>
               <span style={{ color: t.textMuted }}>{loser} 🎱</span>

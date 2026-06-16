@@ -311,9 +311,38 @@ function describeForKe(balls, legalGroup) {
   return { bearings, hint };
 }
 
+// ── bot pick for ke (guest mode) ───────────────────────────────────────────────
+// Picks a fuzzy {hour, tier} the SAME way a real terminal ke would: it only sees
+// the coarse clock-bearing of its legal target balls (exactly what describeForKe
+// exposes — no exact coords), then aims roughly at the nearest one. Slight noise
+// so it isn't laser-locked. The caller feeds this through keFuzzyShot, so the bot
+// gets the identical jitter/physics path as a human ke — no precision advantage.
+function botPickShot(balls, legalGroup) {
+  const desc = describeForKe(balls, legalGroup);
+  const bearings = desc.bearings || [];
+  let hour;
+  if (bearings.length) {
+    // bias toward the nearest target ball's coarse hour (describeForKe sorts by dist),
+    // occasionally drift ±1 hour so it's not perfectly on-bearing.
+    const target = bearings[Math.floor(Math.random() * Math.min(2, bearings.length))];
+    // re-derive the hour from the text-free bearing: describeForKe text embeds it,
+    // but we recompute the coarse bearing here from the same public info.
+    const m = /在 (\d+) 点钟/.exec(target.text);
+    let base = m ? parseInt(m[1]) : 1 + Math.floor(Math.random() * 12);
+    if (Math.random() < 0.4) base += Math.random() < 0.5 ? -1 : 1;
+    hour = ((Math.round(base) - 1 + 12) % 12) + 1; // wrap into 1..12
+  } else {
+    hour = 1 + Math.floor(Math.random() * 12);
+  }
+  // tier biased to mid power (most shots aren't full smash), range 1..5.
+  const tier = [2, 3, 3, 3, 4, 4, 1, 5][Math.floor(Math.random() * 8)];
+  return { hour, tier };
+}
+
 module.exports = {
   W, H, R, POCKET_R, POCKETS, MAX_SPEED,
   rackBalls, simulate, cuePath,
   keFuzzyShot, leeShot, describeForKe,
   ballGroup, clockToAngle, tierToPower,
+  botPickShot,
 };

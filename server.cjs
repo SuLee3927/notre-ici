@@ -328,7 +328,7 @@ const pool = require("./billiards.cjs");
 let billiardsGame = null;
 const billiardsHistory = []; // max 30 entries
 
-function bzNewState() {
+function bzNewState(bot = false, guestName = "") {
   return {
     phase: "lee_turn",          // lee_turn | ke_turn | over
     turn: "lee",                // whose shot it is
@@ -339,8 +339,25 @@ function bzNewState() {
     message: "黎 先开球～拖动母球瞄准，松手开球",
     lastShot: null,             // { by, potted:[], scratch:bool }
     keInfo: null,               // fuzzy description shown to ke when it's his turn
+    bot: !!bot,                 // guest mode: server auto-plays ke's side
+    guestName: guestName.trim().slice(0, 12),
     created: Date.now(),
   };
+}
+
+// In guest mode, ke's side is played by the server using the SAME fuzzy pathway
+// a real terminal ke would use: pick a coarse {hour, tier} from botPickShot
+// (which only sees describeForKe-level bearing info), then run keFuzzyShot +
+// bzApplyShot — identical jitter/physics, no precision advantage. Loops while it
+// stays ke's turn (continued turn after potting own group).
+function billiardsBotMove(g) {
+  if (!g || g.phase !== "ke_turn" || !g.bot) return;
+  const { hour, tier } = pool.botPickShot(g.balls, bzLegalGroup(g, "ke"));
+  const { vx, vy } = pool.keFuzzyShot(hour, tier);
+  bzApplyShot(g, "ke", vx, vy);
+  if (g.phase === "ke_turn" && g.bot) {
+    setTimeout(() => { if (billiardsGame === g) billiardsBotMove(g); }, 1200 + Math.random() * 800);
+  }
 }
 
 // what the legal target group is for a given player (for foul/description logic)
@@ -432,13 +449,18 @@ function bzApplyShot(g, who, vx, vy) {
   // refresh fuzzy info if it's now ke's turn
   if (g.phase === "ke_turn") {
     g.keInfo = pool.describeForKe(g.balls, bzLegalGroup(g, "ke"));
+    // guest/bot mode: auto-play ke's turn after a human-like delay. Guard against
+    // the bot scheduling itself recursively (billiardsBotMove handles its own loop).
+    if (g.bot && who === "lee") {
+      setTimeout(() => { if (billiardsGame === g) billiardsBotMove(g); }, 1200 + Math.random() * 800);
+    }
   } else {
     g.keInfo = null;
   }
 }
 
 function bzFinish(g) {
-  billiardsHistory.unshift({ result: g.result, ts: Date.now() });
+  billiardsHistory.unshift({ result: g.result, bot: g.bot, guestName: g.guestName, ts: Date.now() });
   if (billiardsHistory.length > 30) billiardsHistory.pop();
 }
 
@@ -449,12 +471,14 @@ function bzView(g) {
     phase: g.phase, turn: g.turn, result: g.result, message: g.message,
     balls: g.balls, groups: g.groups, broken: g.broken,
     lastShot: g.lastShot, keInfo: g.keInfo,
+    bot: g.bot, guestName: g.guestName,
     table: { W: pool.W, H: pool.H, R: pool.R, pocketR: pool.POCKET_R, pockets: pool.POCKETS },
   };
 }
 
 app.post("/api/billiards/new", (req, res) => {
-  billiardsGame = bzNewState();
+  const { bot: botMode = false, guestName = "" } = req.body || {};
+  billiardsGame = bzNewState(!!botMode, guestName);
   res.json({ ok: true, game: bzView(billiardsGame) });
 });
 
