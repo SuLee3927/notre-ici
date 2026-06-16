@@ -191,11 +191,17 @@ export default function Kitchen({ theme: t, mode, onClose }) {
               style={{
                 position:"absolute", left:s.left, top:s.top,
                 transform:"translate(-50%,-50%)",
-                background:"none", border:"none", outline:"none",
+                background:"none", border:"1px dashed red", outline:"none",
                 cursor:"pointer", zIndex:6, pointerEvents:"auto",
                 width:s.w, height:s.h, borderRadius:8,
               }}
-            />
+            >
+              <span style={{
+                position:"absolute", top:"100%", left:"50%", transform:"translateX(-50%)",
+                fontSize:10, color:"#fff", background:"rgba(220,0,0,0.85)",
+                padding:"1px 4px", borderRadius:4, whiteSpace:"nowrap",
+              }}>{s.label} {s.left}/{s.top}</span>
+            </button>
           ))}
         </div>
       </div>
