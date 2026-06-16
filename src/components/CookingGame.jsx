@@ -1,5 +1,58 @@
 import { useState, useEffect } from "react";
 
+// 合成音效（不依赖音频文件）
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function beep({ freq = 600, duration = 0.08, type = "sine", gain = 0.06, delay = 0 }) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    g.gain.value = gain;
+    osc.connect(g);
+    g.connect(ctx.destination);
+    const start = ctx.currentTime + delay;
+    osc.start(start);
+    g.gain.setValueAtTime(gain, start);
+    g.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    osc.stop(start + duration);
+  } catch {}
+}
+function playSelectSound() { beep({ freq:880, duration:0.06, type:"sine", gain:0.05 }); }
+function playSuccessSound() {
+  beep({ freq:660, duration:0.12, type:"sine", gain:0.07 });
+  beep({ freq:880, duration:0.18, type:"sine", gain:0.07, delay:0.1 });
+}
+function playFailSound() { beep({ freq:180, duration:0.3, type:"sawtooth", gain:0.05 }); }
+function playCookingSound() {
+  try {
+    const ctx = getAudioCtx();
+    const bufferSize = ctx.sampleRate * 1.1;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.18;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "highpass";
+    filter.frequency.value = 1800;
+    const g = ctx.createGain();
+    g.gain.value = 0.06;
+    noise.connect(filter);
+    filter.connect(g);
+    g.connect(ctx.destination);
+    noise.start();
+    g.gain.setValueAtTime(0.06, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.1);
+    noise.stop(ctx.currentTime + 1.1);
+  } catch {}
+}
+
 // 全部食材
 const INGREDIENTS = [
   { id:"egg",     emoji:"🥚", name:"鸡蛋" },
@@ -158,6 +211,7 @@ export default function CookingGame({ theme: t }) {
   function toggleIngredient(id) {
     if (phase !== "select") return;
     if ((qty[id] ?? 0) === 0 && id !== "water") return;
+    playSelectSound();
     setSelected(prev => {
       if (prev.includes(id)) return prev.filter(x => x !== id);
       if (prev.length >= 3) return prev;
@@ -168,6 +222,7 @@ export default function CookingGame({ theme: t }) {
   function cook() {
     if (selected.length === 0 || phase !== "select") return;
     setPhase("cooking");
+    playCookingSound();
     setTimeout(() => {
       const recipe = matchRecipe(selected, heatIdx);
       if (recipe) {
@@ -184,6 +239,7 @@ export default function CookingGame({ theme: t }) {
           setUnlocked(newU);
         }
         setResult({ success:true, recipe, isNew: !unlocked.includes(label) });
+        playSuccessSound();
       } else {
         // 失败：消耗食材，扔进垃圾桶
         const reasons = [
@@ -202,6 +258,7 @@ export default function CookingGame({ theme: t }) {
           date: new Date().toLocaleDateString("zh-CN", { month:"numeric", day:"numeric" }),
         });
         setResult({ success:false, reason });
+        playFailSound();
       }
       setPhase("result");
     }, 1200);
