@@ -26,13 +26,15 @@ export default function Billiards({ theme: t }) {
   const [tab, setTab] = useState("game"); // game | history
   const [history, setHistory] = useState([]);
   const [preview, setPreview] = useState(null); // {path, power}
-  const [aiming, setAiming] = useState(false);
   const [showEgg, setShowEgg] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const [guestName, setGuestName] = useState("");
 
   const canvasRef = useRef(null);
   const pollRef = useRef(null);
-  const dragRef = useRef(null);   // {angle, power} current aim while dragging
+  const dragRef = useRef(null);       // {angle, power} current aim while dragging
+  const aimingRef = useRef(false);    // instant aim state, no React lag
+  const previewRef = useRef(null);    // mirrors preview state for draw()
   const previewTimer = useRef(null);
 
   // ── polling for ke's terminal moves ──
@@ -95,7 +97,7 @@ export default function Billiards({ theme: t }) {
 
     const m = canvasMetrics(); if (!m) return;
     const { T, scale } = m;
-    const ballR = T.R * scale;
+    const ballR = T.R * scale * 1.5; // visual enlargement — physics unchanged
 
     // wooden frame
     ctx.fillStyle = "#7A4A28";
@@ -116,24 +118,43 @@ export default function Billiards({ theme: t }) {
       ctx.fillStyle = "#14110a"; ctx.fill();
     }
 
-    // trajectory preview (dashed) while aiming
-    if (preview && preview.path && preview.path.length > 1) {
-      ctx.save();
-      ctx.setLineDash([6, 6]); ctx.lineWidth = 2;
-      ctx.strokeStyle = "rgba(255,255,255,0.85)";
-      ctx.beginPath();
-      preview.path.forEach((pt, i) => {
-        const cp = toCanvas(m, pt.x, pt.y);
-        if (i === 0) ctx.moveTo(cp.x, cp.y); else ctx.lineTo(cp.x, cp.y);
-      });
-      ctx.stroke();
-      // endpoint marker
-      const last = preview.path[preview.path.length - 1];
-      const cl = toCanvas(m, last.x, last.y);
-      ctx.setLineDash([]);
-      ctx.beginPath(); ctx.arc(cl.x, cl.y, ballR, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 1.5; ctx.stroke();
-      ctx.restore();
+    // trajectory preview — read refs directly so draw() is always fresh
+    const curAiming = aimingRef.current;
+    const curPreview = previewRef.current;
+
+    if (curAiming && dragRef.current) {
+      const cue = game.balls.find(b => b.num === 0 && !b.potted);
+      if (cue) {
+        const cp = toCanvas(m, cue.x, cue.y);
+        const ang = dragRef.current.angle;
+        ctx.save();
+        if (curPreview && curPreview.path && curPreview.path.length > 1) {
+          // server-computed path with cushion bounces
+          ctx.setLineDash([6, 6]); ctx.lineWidth = 2;
+          ctx.strokeStyle = "rgba(255,255,255,0.85)";
+          ctx.beginPath();
+          curPreview.path.forEach((pt, i) => {
+            const cpt = toCanvas(m, pt.x, pt.y);
+            if (i === 0) ctx.moveTo(cpt.x, cpt.y); else ctx.lineTo(cpt.x, cpt.y);
+          });
+          ctx.stroke();
+          const last = curPreview.path[curPreview.path.length - 1];
+          const cl = toCanvas(m, last.x, last.y);
+          ctx.setLineDash([]);
+          ctx.beginPath(); ctx.arc(cl.x, cl.y, ballR, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 1.5; ctx.stroke();
+        } else {
+          // instant local straight line — no server wait, no lag
+          ctx.setLineDash([5, 5]); ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "rgba(255,255,255,0.55)";
+          ctx.beginPath();
+          ctx.moveTo(cp.x, cp.y);
+          ctx.lineTo(cp.x + Math.cos(ang) * 200, cp.y + Math.sin(ang) * 200);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.restore();
+      }
     }
 
     // balls
@@ -143,14 +164,13 @@ export default function Billiards({ theme: t }) {
       drawBall(ctx, cp.x, cp.y, ballR, b.num);
     }
 
-    // power gauge while aiming
-    if (aiming && dragRef.current) {
+    // cue stick while aiming
+    if (curAiming && dragRef.current) {
       const cue = game.balls.find(b => b.num === 0 && !b.potted);
       if (cue) {
         const cp = toCanvas(m, cue.x, cue.y);
         const ang = dragRef.current.angle;
         const len = 26 + dragRef.current.power * 46;
-        // cue stick drawn opposite to aim (you pull back)
         ctx.save();
         ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 3; ctx.lineCap = "round";
         ctx.beginPath();
@@ -160,7 +180,7 @@ export default function Billiards({ theme: t }) {
         ctx.restore();
       }
     }
-  }, [game, preview, aiming]);
+  }, [game]); // refs are always current — no aiming/preview in deps
 
   useEffect(() => { draw(); }, [draw]);
   useEffect(() => {
@@ -192,24 +212,26 @@ export default function Billiards({ theme: t }) {
   function onDown(e) {
     if (!game || game.phase !== "lee_turn" || loading) return;
     e.preventDefault();
-    setAiming(true);
+    aimingRef.current = true;
     const aim = computeAim(eventPos(e));
     if (aim) { dragRef.current = aim; requestPreview(aim); }
     draw();
   }
   function onMove(e) {
-    if (!aiming) return;
+    if (!aimingRef.current) return;
     e.preventDefault();
     const aim = computeAim(eventPos(e));
     if (aim) { dragRef.current = aim; requestPreviewDebounced(aim); }
-    draw();
+    draw(); // immediate redraw — no state update lag
   }
   async function onUp() {
-    if (!aiming) return;
-    setAiming(false);
+    if (!aimingRef.current) return;
+    aimingRef.current = false;
     const aim = dragRef.current;
+    previewRef.current = null;
     setPreview(null);
-    if (!aim || aim.power < 0.04) { draw(); return; } // tiny drag = cancel
+    draw();
+    if (!aim || aim.power < 0.04) return; // tiny drag = cancel
     await shoot(aim.angle, aim.power);
   }
 
@@ -220,7 +242,12 @@ export default function Billiards({ theme: t }) {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ angle: aim.angle, power: aim.power }),
       }).then(r => r.json());
-      if (d.ok) setPreview({ path: d.path, power: aim.power });
+      if (d.ok && aimingRef.current) {
+        const p = { path: d.path, power: aim.power };
+        previewRef.current = p;
+        setPreview(p);
+        draw();
+      }
     } catch {}
   }
   function requestPreviewDebounced(aim) {
@@ -315,16 +342,32 @@ export default function Billiards({ theme: t }) {
     return game.balls.filter(b => !b.potted && ballGroupClient(b.num) === grp).length;
   }
 
+  const fsOuter = fullscreen ? {
+    position: "fixed", inset: 0, zIndex: 999,
+    background: "#0a160a", display: "flex", flexDirection: "column",
+    padding: "10px 12px 16px", fontFamily: "'Noto Serif SC',serif",
+  } : { padding: "10px 12px 28px", fontFamily: "'Noto Serif SC',serif" };
+
+  const fsCanvasWrap = fullscreen ? {
+    position: "relative", flex: 1, minHeight: 0,
+  } : {
+    position: "relative", width: "100%", aspectRatio: "2 / 1", marginBottom: 10,
+  };
+
   return (
-    <div style={{ padding: "10px 12px 28px", fontFamily: "'Noto Serif SC',serif" }}>
-      {/* score row */}
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: t.textMuted, marginBottom: 8 }}>
+    <div style={fsOuter}>
+      {/* score row + fullscreen toggle */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: fullscreen ? "rgba(255,255,255,0.6)" : t.textMuted, marginBottom: 8 }}>
         <span>克 · {groupLabel(game.groups?.ke)}{remainingOf(game.groups?.ke) != null ? ` 剩${remainingOf(game.groups?.ke)}` : ""}</span>
+        <button onClick={() => setFullscreen(f => !f)} style={{
+          background: "none", border: "none", cursor: "pointer", padding: "2px 6px",
+          fontSize: 16, color: fullscreen ? "rgba(255,255,255,0.7)" : t.textMuted, lineHeight: 1,
+        }}>{fullscreen ? "✕" : "⛶"}</button>
         <span>你 · {groupLabel(myGroup)}{remainingOf(myGroup) != null ? ` 剩${remainingOf(myGroup)}` : ""}</span>
       </div>
 
       {/* table canvas */}
-      <div style={{ position: "relative", width: "100%", aspectRatio: "2 / 1", marginBottom: 10 }}>
+      <div style={fsCanvasWrap}>
         <canvas
           ref={canvasRef}
           style={{ width: "100%", height: "100%", touchAction: "none", cursor: isMyTurn ? "crosshair" : "default", display: "block" }}
@@ -345,25 +388,26 @@ export default function Billiards({ theme: t }) {
 
       {/* status */}
       <div style={{
-        background: t.surface, border: `1px solid ${t.surfaceBorder}`, borderRadius: 12,
-        padding: "10px 12px", marginBottom: 12, textAlign: "center", minHeight: 40,
+        background: fullscreen ? "rgba(255,255,255,0.08)" : t.surface,
+        border: `1px solid ${fullscreen ? "rgba(255,255,255,0.12)" : t.surfaceBorder}`,
+        borderRadius: 12, padding: "8px 12px", marginBottom: 8, textAlign: "center",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
-        <div style={{ fontSize: 12, color: t.textSub }}>{game.message}</div>
+        <div style={{ fontSize: 12, color: fullscreen ? "rgba(255,255,255,0.85)" : t.textSub }}>{game.message}</div>
       </div>
 
       {isMyTurn && !isOver && (
-        <div style={{ textAlign: "center", fontSize: 11, color: t.textMuted, marginBottom: 8 }}>
+        <div style={{ textAlign: "center", fontSize: 11, color: fullscreen ? "rgba(255,255,255,0.5)" : t.textMuted, marginBottom: 4 }}>
           在母球上往后拖再松手 · 拖得越远力越大
-          {preview && <span style={{ marginLeft: 6, color: t.accent }}>力度 {Math.round(preview.power * 100)}%</span>}
+          {preview && <span style={{ marginLeft: 6, color: fullscreen ? "#9de09d" : t.accent }}>力度 {Math.round(preview.power * 100)}%</span>}
         </div>
       )}
 
       {isOver && (
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 24, marginBottom: 6 }}>{game.result === "lee_wins" ? "🎉" : "🎱"}</div>
-          <div style={{ fontSize: 13, color: t.text, marginBottom: 16 }}>{game.message}</div>
-          <button onClick={() => newGame(game.bot)} style={{
+          <div style={{ fontSize: 13, color: fullscreen ? "#fff" : t.text, marginBottom: 16 }}>{game.message}</div>
+          <button onClick={() => { setFullscreen(false); newGame(game.bot); }} style={{
             padding: "10px 28px", borderRadius: 12,
             border: `1.5px solid ${t.accentBorder}`, background: t.accentSoft,
             color: t.accent, fontSize: 13, cursor: "pointer",
