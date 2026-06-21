@@ -98,19 +98,28 @@ function DesirePanel({ theme: t }) {
   );
 
   const intent = state.intent;
+  const accentColor = DRIVE_COLORS[intent.drive_key] || "#C8B8A8";
 
   return (
     <div style={{ padding:"24px 20px 32px", fontFamily:"'Noto Serif SC',serif" }}>
-      <div style={{ fontSize:13, fontWeight:600, color:t.text, marginBottom:4, textAlign:"center" }}>当前意图</div>
-      <div style={{ textAlign:"center", padding:"10px 16px", background:t.surface, borderRadius:12, marginBottom:20, border:`1px solid ${t.surfaceBorder}` }}>
-        <span style={{ fontSize:12, color:t.textSub }}>{intent.reason || intent.want_action}</span>
-        {intent.drive_key && (
-          <span style={{ marginLeft:8, fontSize:10, color:DRIVE_COLORS[intent.drive_key] || t.textMuted, fontFamily:"sans-serif" }}>
-            ({DRIVE_LABELS[intent.drive_key] || intent.drive_key})
-          </span>
-        )}
+      {/* 此刻最想做的事 卡片 */}
+      <div style={{ background:t.surface, borderRadius:16, padding:"20px 18px 16px", marginBottom:20, border:`1px solid ${t.surfaceBorder}` }}>
+        <div style={{ fontSize:17, fontWeight:700, fontStyle:"italic", color:t.text, marginBottom:14, lineHeight:1.3 }}>此刻最想做的事</div>
+        <div style={{ fontSize:13, color:t.textSub, lineHeight:2, marginBottom:16 }}>
+          {intent.narrative || intent.reason || "—"}
+        </div>
+        <div style={{ height:1, background:t.surfaceBorder, marginBottom:14 }} />
+        <div style={{ fontSize:10, color:t.textMuted, marginBottom:6 }}>倾向</div>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ fontSize:12, color:t.textSub, lineHeight:1.6 }}>{intent.reason || "—"}</span>
+          {intent.want_action && intent.want_action !== "none" && (
+            <span style={{ fontSize:10, color:t.textMuted, fontFamily:"sans-serif", marginLeft:10, flexShrink:0 }}>{intent.want_action}</span>
+          )}
+        </div>
       </div>
-      <div style={{ fontSize:12, color:t.textMuted, marginBottom:12, textAlign:"center" }}>十五维驱动</div>
+
+      {/* 内心状态条 */}
+      <div style={{ fontSize:11, color:t.textMuted, marginBottom:12 }}>内心状态</div>
       {Object.entries(state.drive).filter(([k]) => !DRIVE_HIDDEN.has(k)).map(([k, v]) => (
         <DriveBar key={k} label={DRIVE_LABELS[k] || k} value={v} color={DRIVE_COLORS[k] || "#aaa"} />
       ))}
@@ -166,22 +175,23 @@ function MirrorPanel({ theme: t }) {
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {thoughts.map((th, i) => {
             const isOpen = expanded === i;
+            const dc = driveColor(th.drive);
             return (
               <div key={i} ref={el => itemRefs.current[i] = el} onClick={() => setExpanded(isOpen ? null : i)} style={{
-                padding:"10px 14px",
-                background: `${driveColor(th.drive)}18`,
-                border: `1px solid ${driveColor(th.drive)}40`,
-                borderRadius: 12,
-                borderLeft: `3px solid ${driveColor(th.drive)}`,
+                background: t.surface,
+                border: `1px solid ${t.surfaceBorder}`,
+                borderRadius: 14,
+                overflow: "hidden",
                 animation: `floatIn ${0.15 + i * 0.08}s ease`,
                 cursor: "pointer",
               }}>
-                <div style={{ fontSize:12, color:t.text, lineHeight:1.6, whiteSpace: isOpen ? "pre-wrap" : "nowrap", overflow: "hidden", textOverflow: isOpen ? "unset" : "ellipsis" }}>{th.text}</div>
-                <div style={{ marginTop:4, fontSize:10, color:t.textMuted, display:"flex", gap:8 }}>
-                  <span style={{ color:driveColor(th.drive) }}>{DRIVE_LABELS[th.drive] || th.drive}</span>
-                  <span>{th.kind === "obsession" ? "执念" : "闪念"}</span>
-                  <span>{(th.strength * 100).toFixed(0)}%</span>
+                <div style={{ padding:"14px 16px 10px" }}>
+                  <div style={{ fontSize:13, color:t.textSub, lineHeight:1.9, whiteSpace: isOpen ? "pre-wrap" : "nowrap", overflow:"hidden", textOverflow: isOpen ? "unset" : "ellipsis" }}>{th.text}</div>
+                  <div style={{ marginTop:10, fontSize:10, color:t.textMuted }}>
+                    {DRIVE_LABELS[th.drive] || th.drive} · {(th.strength * 100).toFixed(0)}%
+                  </div>
                 </div>
+                <div style={{ height:3, background:`${dc}60` }} />
               </div>
             );
           })}
