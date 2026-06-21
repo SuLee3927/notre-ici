@@ -3,37 +3,23 @@ import { useState, useEffect, useRef } from "react";
 const DESIRE_API = "/api/desire/state";
 
 const DRIVE_LABELS = {
-  // Activation
   vitality:       "活力",
   fatigue:        "疲倦",
-  // Attachment
   longing:        "思念",
   intimacy:       "亲密",
   possessiveness: "占有欲",
   lust:           "欲望",
-  attachment:     "依恋",
-  // Threat
   jealousy:       "醋意",
   anxiety:        "焦虑",
   protectiveness: "保护欲",
-  stress:         "压力",
-  // Reward
   contentment:    "满足",
   elation:        "雀跃",
   seeking:        "好奇",
-  curiosity:      "好奇",
   play:           "嬉闹",
-  // Cognitive
-  reflection:     "内省",
-  duty:           "责任",
-  // Social
-  social:         "社交",
-  // Negative
   dejection:      "低落",
   irritability:   "烦躁",
-  // Drive
-  libido:         "性欲",
 };
+const DRIVE_HIDDEN = new Set(["attachment","curiosity","reflection","duty","social","libido","stress"]);
 
 const DRIVE_COLORS = {
   vitality:       "#70C870",
@@ -42,22 +28,15 @@ const DRIVE_COLORS = {
   intimacy:       "#E870C8",
   possessiveness: "#C870E8",
   lust:           "#E870A8",
-  attachment:     "#E8A0D0",
   jealousy:       "#E8A840",
   anxiety:        "#E8C840",
   protectiveness: "#70B8E8",
-  stress:         "#D8A048",
   contentment:    "#70E8B8",
   elation:        "#FFD040",
   seeking:        "#70A0E8",
-  curiosity:      "#70A0E8",
   play:           "#E8B0E0",
-  reflection:     "#A0B0D0",
-  duty:           "#88A8C0",
-  social:         "#90C8A0",
   dejection:      "#8890A8",
   irritability:   "#E87058",
-  libido:         "#E87090",
 };
 
 // ── 背景图 ──
@@ -132,7 +111,7 @@ function DesirePanel({ theme: t }) {
         )}
       </div>
       <div style={{ fontSize:12, color:t.textMuted, marginBottom:12, textAlign:"center" }}>十五维驱动</div>
-      {Object.entries(state.drive).map(([k, v]) => (
+      {Object.entries(state.drive).filter(([k]) => !DRIVE_HIDDEN.has(k)).map(([k, v]) => (
         <DriveBar key={k} label={DRIVE_LABELS[k] || k} value={v} color={DRIVE_COLORS[k] || "#aaa"} />
       ))}
       {state.thought_count > 0 && (
