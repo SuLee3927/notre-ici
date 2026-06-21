@@ -3,25 +3,44 @@ import { useState, useEffect, useRef } from "react";
 const DESIRE_API = "/api/desire/state";
 
 const DRIVE_LABELS = {
-  attachment: "依恋",
-  curiosity:  "好奇",
-  reflection: "反思",
-  duty:       "责任",
-  social:     "社交",
-  fatigue:    "疲倦",
-  libido:     "欲望",
-  stress:     "压力",
+  // Activation
+  vitality:       "活力",
+  fatigue:        "疲倦",
+  // Attachment
+  longing:        "思念",
+  intimacy:       "亲密",
+  possessiveness: "占有欲",
+  lust:           "欲望",
+  // Threat
+  jealousy:       "醋意",
+  anxiety:        "焦虑",
+  protectiveness: "保护欲",
+  // Reward
+  contentment:    "满足",
+  elation:        "雀跃",
+  seeking:        "好奇",
+  play:           "嬉闹",
+  // Negative
+  dejection:      "低落",
+  irritability:   "烦躁",
 };
 
 const DRIVE_COLORS = {
-  attachment: "#E87070",
-  curiosity:  "#70A0E8",
-  reflection: "#A08BE8",
-  duty:       "#70C8A0",
-  social:     "#E8B870",
-  fatigue:    "#9090A8",
-  libido:     "#E870A8",
-  stress:     "#E89870",
+  vitality:       "#70C870",
+  fatigue:        "#9090A8",
+  longing:        "#E87098",
+  intimacy:       "#E870C8",
+  possessiveness: "#C870E8",
+  lust:           "#E870A8",
+  jealousy:       "#E8A840",
+  anxiety:        "#E8C840",
+  protectiveness: "#70B8E8",
+  contentment:    "#70E8B8",
+  elation:        "#FFD040",
+  seeking:        "#70A0E8",
+  play:           "#E8B0E0",
+  dejection:      "#8890A8",
+  irritability:   "#E87058",
 };
 
 // ── 背景图 ──
@@ -95,7 +114,7 @@ function DesirePanel({ theme: t }) {
           </span>
         )}
       </div>
-      <div style={{ fontSize:12, color:t.textMuted, marginBottom:12, textAlign:"center" }}>八维驱动</div>
+      <div style={{ fontSize:12, color:t.textMuted, marginBottom:12, textAlign:"center" }}>十五维驱动</div>
       {Object.entries(state.drive).map(([k, v]) => (
         <DriveBar key={k} label={DRIVE_LABELS[k] || k} value={v} color={DRIVE_COLORS[k] || "#aaa"} />
       ))}
@@ -113,6 +132,7 @@ function MirrorPanel({ theme: t }) {
   const [thoughts, setThoughts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
+  const itemRefs = useRef([]);
 
   useEffect(() => {
     function fetchThoughts() {
@@ -125,6 +145,14 @@ function MirrorPanel({ theme: t }) {
     const id = setInterval(fetchThoughts, 30000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (expanded !== null && itemRefs.current[expanded]) {
+      setTimeout(() => {
+        itemRefs.current[expanded]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 50);
+    }
+  }, [expanded]);
 
   if (loading) return (
     <div style={{ padding:"40px 24px", textAlign:"center", color:t.textMuted, fontSize:13 }}>映照中…</div>
@@ -143,7 +171,7 @@ function MirrorPanel({ theme: t }) {
           {thoughts.map((th, i) => {
             const isOpen = expanded === i;
             return (
-              <div key={i} onClick={() => setExpanded(isOpen ? null : i)} style={{
+              <div key={i} ref={el => itemRefs.current[i] = el} onClick={() => setExpanded(isOpen ? null : i)} style={{
                 padding:"10px 14px",
                 background: `${driveColor(th.drive)}18`,
                 border: `1px solid ${driveColor(th.drive)}40`,
@@ -152,7 +180,7 @@ function MirrorPanel({ theme: t }) {
                 animation: `floatIn ${0.15 + i * 0.08}s ease`,
                 cursor: "pointer",
               }}>
-                <div style={{ fontSize:12, color:t.text, lineHeight:1.6, whiteSpace: isOpen ? "pre-wrap" : "nowrap", overflow: isOpen ? "visible" : "hidden", textOverflow: isOpen ? "unset" : "ellipsis" }}>{th.text}</div>
+                <div style={{ fontSize:12, color:t.text, lineHeight:1.6, whiteSpace: isOpen ? "pre-wrap" : "nowrap", overflow: "hidden", textOverflow: isOpen ? "unset" : "ellipsis" }}>{th.text}</div>
                 <div style={{ marginTop:4, fontSize:10, color:t.textMuted, display:"flex", gap:8 }}>
                   <span style={{ color:driveColor(th.drive) }}>{DRIVE_LABELS[th.drive] || th.drive}</span>
                   <span>{th.kind === "obsession" ? "执念" : "闪念"}</span>
