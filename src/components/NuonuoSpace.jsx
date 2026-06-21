@@ -700,7 +700,7 @@ export default function NuonuoSpace({ onClose, mode }) {
     { id:"bookshelf",  left:"88%",  top:"46%",  label:"小书架",     w:"clamp(30px,12vw,56px)",  h:"clamp(36px,10vw,60px)" },
     { id:"toys",       left:"82%",  top:"64%",  label:"玩具箱",     w:"clamp(34px,13vw,60px)",  h:"clamp(24px,8vw,40px)"  },
     { id:"nightlight", left:"14%",  top:"64%",  label:"夜灯",       w:"clamp(24px,8vw,44px)",   h:"clamp(20px,6vw,36px)"  },
-    { id:"door",       left:"92%",  top:"92%",  label:"出门",       w:"clamp(28px,8vw,44px)",   h:"clamp(34px,10vw,54px)" },
+    { id:"door",       left:"92%",  top:"92%",  label:"出门",       w:"clamp(22px,6vw,36px)",   h:"clamp(50px,14vw,76px)" },
   ];
 
   return (
