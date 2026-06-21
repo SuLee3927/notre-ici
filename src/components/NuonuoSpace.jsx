@@ -29,6 +29,7 @@ const OUTFITS = [
 ];
 
 const WALL_H = 56;
+const DEBUG_HOTSPOTS = true;
 
 // ── 糯糯小天地色板 ──
 function nc(isDay) {
@@ -158,34 +159,22 @@ function NuonuoSVG({ mood="normal", action="idle", outfit="none", onPoke, size=2
   );
 }
 
-// ── 房间背景 ──
-function NuonuoBg({ isDay, c }) {
+// ── 房间背景（图片版） ──
+function NuonuoBg({ isDay }) {
+  const img = (src, show) => (
+    <img src={src} alt="" style={{
+      position:"absolute", top:0, left:0,
+      width:"100%", height:"100%",
+      objectFit:"cover", objectPosition:"center top",
+      opacity: show ? 1 : 0,
+      transition:"opacity 1.2s ease",
+    }} />
+  );
   return (
-    <>
-      {/* 墙 */}
-      <div style={{position:"absolute",inset:0,bottom:`${100-WALL_H}%`,background:isDay?`linear-gradient(180deg,${c.wall} 0%,${c.wallB} 100%)`:`linear-gradient(180deg,${c.wall} 0%,${c.wallB} 100%)`}}/>
-      {/* 地板 */}
-      <div style={{position:"absolute",left:0,right:0,top:`${WALL_H}%`,bottom:0,background:isDay?`linear-gradient(180deg,${c.floor} 0%,#ECBBA8 100%)`:`linear-gradient(180deg,${c.floor} 0%,#0a0613 100%)`}}/>
-      {/* 踢脚线 */}
-      <div style={{position:"absolute",left:0,right:0,top:`${WALL_H}%`,height:7,background:c.skirt,boxShadow:`0 3px 10px ${c.shadow}`}}/>
-      {/* 地板纹 */}
-      {[.2,.45,.68].map((x,i)=><div key={i} style={{position:"absolute",left:`${x*100}%`,top:`${WALL_H}%`,bottom:0,width:1,background:c.border}}/>)}
-      {/* 小窗（左上） */}
-      <div style={{position:"absolute",left:"8%",top:"5%",width:"16%",height:"28%",border:`2.5px solid ${c.wood}`,borderRadius:"6px 6px 4px 4px",background:c.glass,overflow:"hidden"}}>
-        <div style={{position:"absolute",left:"50%",top:0,bottom:0,width:2,background:c.wood,transform:"translateX(-50%)",opacity:.5}}/>
-        <div style={{position:"absolute",left:0,right:0,top:"46%",height:2,background:c.wood,opacity:.5}}/>
-        {isDay&&<div style={{position:"absolute",top:"-5%",left:"-5%",width:"110%",height:"110%",background:"radial-gradient(ellipse,rgba(255,245,200,.5) 0%,transparent 65%)",pointerEvents:"none"}}/>}
-        {/* 星星贴纸 */}
-        <div style={{position:"absolute",top:"10%",right:"12%",fontSize:8,opacity:.6}}>⭐</div>
-      </div>
-      {/* 壁纸小花纹 */}
-      {isDay&&[{x:"30%",y:"12%"},{x:"55%",y:"8%"},{x:"78%",y:"18%"},{x:"42%",y:"22%"}].map((p,i)=>(
-        <div key={i} style={{position:"absolute",left:p.x,top:p.y,fontSize:10,opacity:.12,color:c.accent,userSelect:"none"}}>♡</div>
-      ))}
-      {!isDay&&[{x:"30%",y:"12%"},{x:"55%",y:"8%"},{x:"78%",y:"18%"}].map((p,i)=>(
-        <div key={i} style={{position:"absolute",left:p.x,top:p.y,fontSize:10,opacity:.1,color:c.accent,userSelect:"none"}}>✦</div>
-      ))}
-    </>
+    <div style={{ position:"absolute", inset:0, background: isDay ? "#FFF0F5" : "#1e1228" }}>
+      {img("/nuonuo-room-day.jpg", isDay)}
+      {img("/nuonuo-room-night.jpg", !isDay)}
+    </div>
   );
 }
 
@@ -657,6 +646,36 @@ export default function NuonuoSpace({ onClose, mode }) {
         </div>
       </div>
     ),
+    dolls: (
+      <div style={{padding:"20px 24px 32px",fontFamily:"'Nunito',sans-serif"}}>
+        <div style={{fontSize:13,fontWeight:700,color:"#8B6555",marginBottom:14}}>🧸 玩偶展示架</div>
+        <div style={{fontSize:13,color:"#5C3D2E",lineHeight:1.8,textAlign:"center",padding:"20px 0"}}>
+          <div style={{fontSize:36,marginBottom:8}}>🐻🐰🌸🧸🐱</div>
+          <div>糯糯最爱的玩偶们都在这里 ♡</div>
+          <div style={{fontSize:12,color:"#C0A090",marginTop:8}}>（待布置）</div>
+        </div>
+      </div>
+    ),
+    bookshelf: (
+      <div style={{padding:"20px 24px 32px",fontFamily:"'Nunito',sans-serif"}}>
+        <div style={{fontSize:13,fontWeight:700,color:"#8B6555",marginBottom:14}}>📚 糯糯的小书架</div>
+        <div style={{fontSize:13,color:"#5C3D2E",lineHeight:1.8,textAlign:"center",padding:"20px 0"}}>
+          <div style={{fontSize:36,marginBottom:8}}>📖✨</div>
+          <div>糯糯的绘本和故事书</div>
+          <div style={{fontSize:12,color:"#C0A090",marginTop:8}}>（待布置）</div>
+        </div>
+      </div>
+    ),
+    nightlight: (
+      <div style={{padding:"20px 24px 32px",fontFamily:"'Nunito',sans-serif"}}>
+        <div style={{fontSize:13,fontWeight:700,color:"#8B6555",marginBottom:14}}>🐰 小兔子夜灯</div>
+        <div style={{fontSize:13,color:"#5C3D2E",lineHeight:1.8,textAlign:"center",padding:"20px 0"}}>
+          <div style={{fontSize:48,marginBottom:8}}>🐇💡</div>
+          <div>暖暖的小兔子灯，陪糯糯入睡 ♡</div>
+          <div style={{fontSize:12,color:"#C0A090",marginTop:8}}>（待布置）</div>
+        </div>
+      </div>
+    ),
   };
 
   if(loading) return(
@@ -674,33 +693,35 @@ export default function NuonuoSpace({ onClose, mode }) {
 
   // 家具热点配置
   const ITEMS = [
-    { id:"wardrobe", left:"20%", top:`${WALL_H-8}%`,  label:"小衣橱"  },
-    { id:"board",    left:"72%", top:"26%",            label:"留言板"  },
-    { id:"toys",     left:"76%", top:`${WALL_H+14}%`, label:"玩具箱"  },
-    { id:"bed",      left:"46%", top:`${WALL_H+18}%`, label:"小床",   transparent:true },
+    { id:"wardrobe",   left:"16%",  top:"22%",  label:"小衣橱",     w:"clamp(50px,20vw,100px)", h:"clamp(60px,18vw,110px)" },
+    { id:"dolls",      left:"36%",  top:"18%",  label:"玩偶展示架", w:"clamp(28px,10vw,54px)",  h:"clamp(60px,18vw,100px)" },
+    { id:"board",      left:"84%",  top:"16%",  label:"留言板",     w:"clamp(28px,10vw,50px)",  h:"clamp(24px,7vw,40px)"  },
+    { id:"bed",        left:"62%",  top:"32%",  label:"小床",       w:"clamp(60px,24vw,120px)", h:"clamp(50px,16vw,90px)" },
+    { id:"bookshelf",  left:"84%",  top:"54%",  label:"小书架",     w:"clamp(30px,12vw,56px)",  h:"clamp(36px,10vw,60px)" },
+    { id:"toys",       left:"80%",  top:"72%",  label:"玩具箱",     w:"clamp(34px,13vw,60px)",  h:"clamp(24px,8vw,40px)"  },
+    { id:"nightlight", left:"14%",  top:"70%",  label:"夜灯",       w:"clamp(24px,8vw,44px)",   h:"clamp(20px,6vw,36px)"  },
   ];
 
   return (
     <div style={{position:"fixed",inset:0,overflow:"hidden",zIndex:100}}>
       <style>{ANIM_STYLES}</style>
-      <NuonuoBg isDay={isDay} c={c}/>
-      <RoomRug isDay={isDay} c={c}/>
+      <NuonuoBg isDay={isDay}/>
 
       {/* 回客厅 */}
       <button onClick={onClose} style={{position:"absolute",top:14,left:14,zIndex:20,background:"rgba(255,255,255,0.55)",border:`1px solid ${c.wood}`,borderRadius:20,padding:"5px 12px",color:c.ink,fontSize:12,cursor:"pointer",backdropFilter:"blur(6px)",fontFamily:"sans-serif"}}>← 回客厅</button>
       {/* 日夜指示 */}
       <div style={{position:"absolute",bottom:12,right:14,zIndex:10,fontSize:12,opacity:.4}}>{isDay?"☀️":"🌙"}</div>
 
-      {/* 糯糯（点击打开互动抽屉） */}
+      {/* 糯糯（点击打开互动抽屉，站在地毯上） */}
       <div
         onClick={()=>setActive("nuonuo")}
         style={{
           position:"absolute",
-          left:"46%", top:`${WALL_H-20}%`,
+          left:"42%", top:"58%",
           transform:"translate(-50%,-50%)",
           animation:"nnSpaceFloat 4s ease-in-out infinite",
           zIndex:8, cursor:"pointer",
-          filter:"drop-shadow(0 6px 12px rgba(0,0,0,0.12))",
+          filter:"drop-shadow(0 6px 12px rgba(0,0,0,0.25))",
         }}
       >
         {bubble&&(
@@ -708,31 +729,34 @@ export default function NuonuoSpace({ onClose, mode }) {
             {bubble}
           </div>
         )}
-        <div style={{fontSize:10,color:c.ink,opacity:.6,textAlign:"center",marginBottom:2,fontFamily:"serif",fontStyle:"italic",whiteSpace:"nowrap"}}>点我 ♡</div>
-        <NuonuoSVG mood={mood} action={action} outfit={outfit} size={100}/>
-      </div>
-
-      {/* 床（装饰，点击也能进互动） */}
-      <div
-        onClick={()=>setActive("nuonuo")}
-        style={{position:"absolute",left:"46%",top:`${WALL_H+12}%`,transform:"translateX(-50%)",zIndex:5,cursor:"pointer",opacity:.85}}
-      >
-        <MiniCottage isDay={isDay} c={c}/>
+        <div style={{fontSize:10,color:isDay?c.ink:"#F0E0FF",opacity:.7,textAlign:"center",marginBottom:2,fontFamily:"serif",fontStyle:"italic",whiteSpace:"nowrap",textShadow:isDay?"none":"0 1px 4px rgba(0,0,0,0.5)"}}>点我 ♡</div>
+        <NuonuoSVG mood={mood} action={action} outfit={outfit} size={90}/>
       </div>
 
       {/* 家具热点 */}
-      {ITEMS.filter(i=>i.id!=="bed").map(obj=>(
+      {ITEMS.map(obj=>(
         <button
           key={obj.id}
-          onClick={()=>setActive(obj.id)}
-          onMouseEnter={e=>{setHovered(obj.id);e.currentTarget.style.transform="translate(-50%,-50%) scale(1.1)";}}
-          onMouseLeave={e=>{setHovered(null);e.currentTarget.style.transform="translate(-50%,-50%)";}}
-          style={{position:"absolute",left:obj.left,top:obj.top,transform:"translate(-50%,-50%)",background:"none",border:"none",cursor:"pointer",zIndex:6,display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:4,borderRadius:8,transition:"transform .18s"}}
+          onClick={()=>setActive(obj.id==="bed"?"nuonuo":obj.id)}
+          style={{
+            position:"absolute", left:obj.left, top:obj.top,
+            transform:"translate(-50%,-50%)",
+            width: obj.w || "clamp(34px,9vw,54px)",
+            height: obj.h || "clamp(34px,9vw,54px)",
+            background: DEBUG_HOTSPOTS ? "rgba(255,0,0,0.15)" : "none",
+            border: DEBUG_HOTSPOTS ? "2px dashed rgba(255,0,0,0.6)" : "none",
+            cursor:"pointer", zIndex:6, borderRadius:6,
+            padding:0,
+          }}
         >
-          {obj.id==="wardrobe"&&<MiniWardrobe isDay={isDay} c={c}/>}
-          {obj.id==="toys"&&<ToyBox isDay={isDay} c={c}/>}
-          {obj.id==="board"&&<ChalkBoard isDay={isDay} c={c}/>}
-          <span style={{fontSize:9,color:c.ink,fontFamily:"sans-serif",opacity:.5,whiteSpace:"nowrap"}}>{obj.label}</span>
+          {DEBUG_HOTSPOTS && (
+            <span style={{
+              position:"absolute", top:"-18px", left:"50%", transform:"translateX(-50%)",
+              fontSize:10, color:"#ff0000", fontWeight:700, whiteSpace:"nowrap",
+              background:"rgba(255,255,255,0.85)", padding:"1px 6px", borderRadius:4,
+              fontFamily:"sans-serif", pointerEvents:"none",
+            }}>{obj.label}</span>
+          )}
         </button>
       ))}
 
