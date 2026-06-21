@@ -530,7 +530,7 @@ export default function NuonuoSpace({ onClose, mode }) {
   const c = nc(isDay);
 
   const [loading,  setLoading]  = useState(true);
-  const [role,     setRole]     = useState(null);
+  const [role,     setRole]     = useState(()=> loadLocal(KEYS.ROLE, "mama"));
   const [petState, setPetState] = useState({hunger:70,happiness:70,energy:70});
   const [careLogs, setCareLogs] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -635,7 +635,6 @@ export default function NuonuoSpace({ onClose, mode }) {
         </div>
         <div style={{textAlign:"center",marginTop:12,fontSize:11,color:"#C0A090"}}>
           {role==="mama"?"妈咪":"爸比"}在陪糯糯 ♡
-          <button onClick={()=>{setRole(null);saveLocal(KEYS.ROLE,null);}} style={{background:"none",border:"none",cursor:"pointer",fontSize:10,color:"#C0A090",marginLeft:8,fontFamily:"sans-serif",textDecoration:"underline"}}>切换身份</button>
         </div>
       </div>
     ),
@@ -702,13 +701,6 @@ export default function NuonuoSpace({ onClose, mode }) {
     </div>
   );
 
-  if(!role) return(
-    <>
-      <style>{ANIM_STYLES}</style>
-      <RoleSelect isDay={isDay} c={c} onSelect={selectRole} onClose={onClose}/>
-    </>
-  );
-
   // 家具热点配置
   const ITEMS = [
     { id:"wardrobe",   left:"16%",  top:"26%",  label:"小衣橱",     w:"clamp(50px,20vw,100px)", h:"clamp(80px,24vw,140px)" },
@@ -726,8 +718,11 @@ export default function NuonuoSpace({ onClose, mode }) {
       <style>{ANIM_STYLES}</style>
       <NuonuoBg isDay={isDay}/>
 
-      {/* 日夜指示 */}
-      <div style={{position:"absolute",bottom:12,right:14,zIndex:10,fontSize:12,opacity:.4}}>{isDay?"☀️":"🌙"}</div>
+      {/* 日夜指示 + 身份切换 */}
+      <div style={{position:"absolute",bottom:12,right:14,zIndex:10,display:"flex",alignItems:"center",gap:8}}>
+        <button onClick={()=>{const next=role==="mama"?"baba":"mama";setRole(next);saveLocal(KEYS.ROLE,next);}} style={{background:"rgba(255,255,255,0.45)",border:"none",borderRadius:12,padding:"3px 8px",cursor:"pointer",fontSize:11,color:c.ink,fontFamily:"'Nunito',sans-serif",backdropFilter:"blur(4px)",opacity:.6}}>{role==="mama"?"🌸妈咪":"🌿爸比"}</button>
+        <span style={{fontSize:12,opacity:.4}}>{isDay?"☀️":"🌙"}</span>
+      </div>
 
       {/* 糯糯在床上睡觉（晚上） */}
       {!isDay && (
