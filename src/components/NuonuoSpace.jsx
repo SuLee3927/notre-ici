@@ -337,8 +337,18 @@ function MessageBoard({ messages, role, onPost }) {
     onPost(withNew);
     const userText = input.trim();
     setInput(""); setLoadingId(msgId);
-    await new Promise(r=>setTimeout(r,900+Math.random()*700));
-    const replyText = getNuonuoReply(userText);
+    let replyText;
+    try {
+      const r = await fetch("/api/nuonuo/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userText }),
+      });
+      const data = await r.json();
+      replyText = data.reply || getNuonuoReply(userText);
+    } catch {
+      replyText = getNuonuoReply(userText);
+    }
     const withReply = msgsRef.current.map(m=>m.id===msgId?{...m,replies:[...m.replies,{author:"糯糯",text:replyText,time:getTime()}]}:m);
     onPost(withReply.slice(-30)); setLoadingId(null);
   }
