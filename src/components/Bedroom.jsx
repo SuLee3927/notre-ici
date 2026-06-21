@@ -11,18 +11,28 @@ const DRIVE_LABELS = {
   intimacy:       "亲密",
   possessiveness: "占有欲",
   lust:           "欲望",
+  attachment:     "依恋",
   // Threat
   jealousy:       "醋意",
   anxiety:        "焦虑",
   protectiveness: "保护欲",
+  stress:         "压力",
   // Reward
   contentment:    "满足",
   elation:        "雀跃",
   seeking:        "好奇",
+  curiosity:      "好奇",
   play:           "嬉闹",
+  // Cognitive
+  reflection:     "内省",
+  duty:           "责任",
+  // Social
+  social:         "社交",
   // Negative
   dejection:      "低落",
   irritability:   "烦躁",
+  // Drive
+  libido:         "性欲",
 };
 
 const DRIVE_COLORS = {
@@ -32,15 +42,22 @@ const DRIVE_COLORS = {
   intimacy:       "#E870C8",
   possessiveness: "#C870E8",
   lust:           "#E870A8",
+  attachment:     "#E8A0D0",
   jealousy:       "#E8A840",
   anxiety:        "#E8C840",
   protectiveness: "#70B8E8",
+  stress:         "#D8A048",
   contentment:    "#70E8B8",
   elation:        "#FFD040",
   seeking:        "#70A0E8",
+  curiosity:      "#70A0E8",
   play:           "#E8B0E0",
+  reflection:     "#A0B0D0",
+  duty:           "#88A8C0",
+  social:         "#90C8A0",
   dejection:      "#8890A8",
   irritability:   "#E87058",
+  libido:         "#E87090",
 };
 
 // ── 背景图 ──
