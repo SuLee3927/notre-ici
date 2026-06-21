@@ -712,27 +712,6 @@ export default function NuonuoSpace({ onClose, mode }) {
       {/* 日夜指示 */}
       <div style={{position:"absolute",bottom:12,right:14,zIndex:10,fontSize:12,opacity:.4}}>{isDay?"☀️":"🌙"}</div>
 
-      {/* 糯糯（点击打开互动抽屉，站在地毯上） */}
-      <div
-        onClick={()=>setActive("nuonuo")}
-        style={{
-          position:"absolute",
-          left:"42%", top:"58%",
-          transform:"translate(-50%,-50%)",
-          animation:"nnSpaceFloat 4s ease-in-out infinite",
-          zIndex:8, cursor:"pointer",
-          filter:"drop-shadow(0 6px 12px rgba(0,0,0,0.25))",
-        }}
-      >
-        {bubble&&(
-          <div style={{position:"absolute",bottom:"105%",left:"50%",transform:"translateX(-50%)",background:"rgba(255,255,255,0.9)",border:`1.5px solid ${c.wood}`,padding:"5px 12px",borderRadius:10,fontSize:11,color:c.ink,whiteSpace:"nowrap",boxShadow:`0 2px 8px ${c.shadow}`,backdropFilter:"blur(4px)",animation:"nn-fadeUp .15s ease",zIndex:9}}>
-            {bubble}
-          </div>
-        )}
-        <div style={{fontSize:10,color:isDay?c.ink:"#F0E0FF",opacity:.7,textAlign:"center",marginBottom:2,fontFamily:"serif",fontStyle:"italic",whiteSpace:"nowrap",textShadow:isDay?"none":"0 1px 4px rgba(0,0,0,0.5)"}}>点我 ♡</div>
-        <NuonuoSVG mood={mood} action={action} outfit={outfit} size={90}/>
-      </div>
-
       {/* 家具热点 */}
       {ITEMS.map(obj=>(
         <button
