@@ -37,8 +37,16 @@ function makeProxy(hostname, port, basePath) {
       proxyRes.pipe(res);
     });
     proxy.on("error", () => res.status(502).json({ error: "upstream unreachable" }));
-    if (req.method !== "GET") req.pipe(proxy);
-    else proxy.end();
+    if (req.method !== "GET" && req.body !== undefined) {
+      const body = JSON.stringify(req.body);
+      proxy.setHeader("content-length", Buffer.byteLength(body));
+      proxy.write(body);
+      proxy.end();
+    } else if (req.method !== "GET") {
+      req.pipe(proxy);
+    } else {
+      proxy.end();
+    }
   };
 }
 
