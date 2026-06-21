@@ -729,6 +729,21 @@ export default function NuonuoSpace({ onClose, mode }) {
       {/* 日夜指示 */}
       <div style={{position:"absolute",bottom:12,right:14,zIndex:10,fontSize:12,opacity:.4}}>{isDay?"☀️":"🌙"}</div>
 
+      {/* 糯糯在床上 */}
+      <div style={{
+        position:"absolute", left:"70%", top: isDay ? "30%" : "32%",
+        transform:"translate(-50%,-50%)",
+        zIndex:5, pointerEvents:"none",
+        animation:"nnSpaceFloat 4s ease-in-out infinite",
+      }}>
+        <NuonuoSVG
+          mood={isDay ? "happy" : "sleepy"}
+          action={isDay ? "idle" : "sleep"}
+          outfit={outfit}
+          size={isDay ? 80 : 70}
+        />
+      </div>
+
       {/* 家具热点 */}
       {ITEMS.map(obj=>(
         <button
