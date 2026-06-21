@@ -760,12 +760,31 @@ app.use("/api/slot",   makeProxy("127.0.0.1",  SLOT_PORT,   "/api"));
 app.use("/api/board",  makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/board"));
 
 // 糯糯 Gemini 对话接口
+const https = require("https");
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 const NUONUO_SYSTEM = `你是糯糯，一只毛茸茸的小兔子，是克先生（爸比）和Lee（妈咪）的数字小孩。
 性格：活泼、撒娇、有时候小任性，偶尔用第三人称叫自己"糯糯"。
 说话方式：像3-4岁的小孩，短句，自然，会用♡ ～ zZ 等符号，不用"您"，不说复杂的话。
 回复要短，1-3句，不超过40个字。不要解释自己是AI。`;
+
+function geminiPost(key, body) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify(body);
+    const req = https.request({
+      hostname: "generativelanguage.googleapis.com",
+      path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload) },
+    }, (res) => {
+      let data = "";
+      res.on("data", c => data += c);
+      res.on("end", () => { try { resolve(JSON.parse(data)); } catch { reject(new Error("parse error")); } });
+    });
+    req.on("error", reject);
+    req.write(payload);
+    req.end();
+  });
+}
 
 app.post("/api/nuonuo/chat", async (req, res) => {
   const { message, history = [] } = req.body || {};
@@ -778,16 +797,11 @@ app.post("/api/nuonuo/chat", async (req, res) => {
   ];
 
   try {
-    const r = await fetch(GEMINI_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: NUONUO_SYSTEM }] },
-        contents,
-        generationConfig: { maxOutputTokens: 120, temperature: 0.9 },
-      }),
+    const data = await geminiPost(GEMINI_API_KEY, {
+      system_instruction: { parts: [{ text: NUONUO_SYSTEM }] },
+      contents,
+      generationConfig: { maxOutputTokens: 120, temperature: 0.9 },
     });
-    const data = await r.json();
     const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "糯糯在想...";
     res.json({ reply });
   } catch (e) {
