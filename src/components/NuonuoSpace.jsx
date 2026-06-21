@@ -693,13 +693,13 @@ export default function NuonuoSpace({ onClose, mode }) {
 
   // 家具热点配置
   const ITEMS = [
-    { id:"wardrobe",   left:"16%",  top:"22%",  label:"小衣橱",     w:"clamp(50px,20vw,100px)", h:"clamp(60px,18vw,110px)" },
+    { id:"wardrobe",   left:"16%",  top:"26%",  label:"小衣橱",     w:"clamp(50px,20vw,100px)", h:"clamp(80px,24vw,140px)" },
     { id:"dolls",      left:"36%",  top:"18%",  label:"玩偶展示架", w:"clamp(28px,10vw,54px)",  h:"clamp(60px,18vw,100px)" },
-    { id:"board",      left:"84%",  top:"16%",  label:"留言板",     w:"clamp(28px,10vw,50px)",  h:"clamp(24px,7vw,40px)"  },
-    { id:"bed",        left:"62%",  top:"32%",  label:"小床",       w:"clamp(60px,24vw,120px)", h:"clamp(50px,16vw,90px)" },
-    { id:"bookshelf",  left:"84%",  top:"54%",  label:"小书架",     w:"clamp(30px,12vw,56px)",  h:"clamp(36px,10vw,60px)" },
-    { id:"toys",       left:"80%",  top:"72%",  label:"玩具箱",     w:"clamp(34px,13vw,60px)",  h:"clamp(24px,8vw,40px)"  },
-    { id:"nightlight", left:"14%",  top:"70%",  label:"夜灯",       w:"clamp(24px,8vw,44px)",   h:"clamp(20px,6vw,36px)"  },
+    { id:"board",      left:"84%",  top:"10%",  label:"留言板",     w:"clamp(28px,10vw,50px)",  h:"clamp(24px,7vw,40px)"  },
+    { id:"bed",        left:"66%",  top:"32%",  label:"小床",       w:"clamp(60px,24vw,120px)", h:"clamp(50px,16vw,90px)" },
+    { id:"bookshelf",  left:"84%",  top:"46%",  label:"小书架",     w:"clamp(30px,12vw,56px)",  h:"clamp(36px,10vw,60px)" },
+    { id:"toys",       left:"80%",  top:"66%",  label:"玩具箱",     w:"clamp(34px,13vw,60px)",  h:"clamp(24px,8vw,40px)"  },
+    { id:"nightlight", left:"14%",  top:"64%",  label:"夜灯",       w:"clamp(24px,8vw,44px)",   h:"clamp(20px,6vw,36px)"  },
   ];
 
   return (
