@@ -547,11 +547,15 @@ export default function NuonuoSpace({ onClose, mode }) {
     async function init(){
       const state=applyDecay(loadLocal(KEYS.STATE,{hunger:70,happiness:70,energy:70}));
       const logs =await loadShared(KEYS.CARE_LOG,[]);
-      const msgs =await loadShared(KEYS.MESSAGES,[]);
       const savedR=loadLocal(KEYS.ROLE,null);
       const savedO=loadLocal(KEYS.OUTFIT,"none");
-      setPetState(state);setCareLogs(logs);setMessages(msgs);setOutfit(savedO);
+      setPetState(state);setCareLogs(logs);setOutfit(savedO);
       if(savedR) setRole(savedR);
+      try {
+        const r = await fetch("/api/nuonuo/messages");
+        const d = await r.json();
+        setMessages(d.messages || []);
+      } catch { setMessages([]); }
       setLoading(false);
     }
     init();
@@ -590,7 +594,10 @@ export default function NuonuoSpace({ onClose, mode }) {
     window.dispatchEvent(new StorageEvent("storage", { key: KEYS.OUTFIT, newValue: JSON.stringify(id) }));
     if(id!=="none") showBubble("糯糯穿上新衣服啦！");
   }
-  function handleMessages(updated){ setMessages(updated);saveShared(KEYS.MESSAGES,updated); }
+  async function handleMessages(updated){
+    setMessages(updated);
+    try { await fetch("/api/nuonuo/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:updated})}); } catch {}
+  }
   async function selectRole(r){
     setRole(r);saveLocal(KEYS.ROLE,r);
     const who=r==="mama"?"妈咪":"爸比";
