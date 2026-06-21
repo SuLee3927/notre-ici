@@ -653,7 +653,10 @@ export default function NuonuoSpace({ onClose, mode }) {
     ),
     board: (
       <div style={{padding:"20px 24px 32px",fontFamily:"'Nunito',sans-serif"}}>
-        <div style={{fontSize:13,fontWeight:700,color:"#8B6555",marginBottom:4}}>📋 留言板</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#8B6555"}}>📋 留言板</div>
+          <button onClick={async()=>{try{const r=await fetch("/api/nuonuo/messages");const d=await r.json();if(d.messages)setMessages(d.messages);}catch{}}} style={{background:"none",border:"1px solid #E8C0A8",borderRadius:8,padding:"3px 10px",cursor:"pointer",fontSize:12,color:"#A07060",fontFamily:"'Nunito',sans-serif"}}>↻ 刷新</button>
+        </div>
         <MessageBoard messages={messages} role={role} onPost={handleMessages}/>
         <div style={{borderTop:"1px solid #F0DDD0",marginTop:16,paddingTop:14}}>
           <div style={{fontSize:12,fontWeight:700,color:"#8B6555",marginBottom:8}}>看护记录</div>
