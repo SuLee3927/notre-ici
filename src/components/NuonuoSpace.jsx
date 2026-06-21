@@ -495,7 +495,7 @@ const ANIM_STYLES = `
 function RoleSelect({ isDay, c, onSelect, onClose }) {
   return (
     <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:24,padding:24,fontFamily:"'Nunito',sans-serif"}}>
-      <NuonuoBg isDay={isDay} c={c}/>
+      <NuonuoBg isDay={isDay}/>
       <button onClick={onClose} style={{position:"absolute",top:14,left:14,background:"rgba(255,255,255,0.55)",border:`1px solid ${c.wood}`,borderRadius:20,padding:"5px 12px",color:c.ink,fontSize:12,cursor:"pointer",backdropFilter:"blur(6px)",fontFamily:"sans-serif",zIndex:1}}>← 回客厅</button>
       <div style={{position:"relative",zIndex:1,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:18}}>
         <NuonuoSVG mood="happy" action="idle" outfit="none" size={180}/>
@@ -695,11 +695,12 @@ export default function NuonuoSpace({ onClose, mode }) {
   const ITEMS = [
     { id:"wardrobe",   left:"16%",  top:"26%",  label:"小衣橱",     w:"clamp(50px,20vw,100px)", h:"clamp(80px,24vw,140px)" },
     { id:"dolls",      left:"36%",  top:"18%",  label:"玩偶展示架", w:"clamp(28px,10vw,54px)",  h:"clamp(60px,18vw,100px)" },
-    { id:"board",      left:"88%",  top:"13%",  label:"留言板",     w:"clamp(28px,10vw,50px)",  h:"clamp(24px,7vw,40px)"  },
+    { id:"board",      left:"90%",  top:"16%",  label:"留言板",     w:"clamp(28px,10vw,50px)",  h:"clamp(24px,7vw,40px)"  },
     { id:"bed",        left:"70%",  top:"32%",  label:"小床",       w:"clamp(60px,24vw,120px)", h:"clamp(50px,16vw,90px)" },
     { id:"bookshelf",  left:"88%",  top:"46%",  label:"小书架",     w:"clamp(30px,12vw,56px)",  h:"clamp(36px,10vw,60px)" },
     { id:"toys",       left:"82%",  top:"64%",  label:"玩具箱",     w:"clamp(34px,13vw,60px)",  h:"clamp(24px,8vw,40px)"  },
     { id:"nightlight", left:"14%",  top:"64%",  label:"夜灯",       w:"clamp(24px,8vw,44px)",   h:"clamp(20px,6vw,36px)"  },
+    { id:"door",       left:"92%",  top:"92%",  label:"出门",       w:"clamp(28px,8vw,44px)",   h:"clamp(34px,10vw,54px)" },
   ];
 
   return (
@@ -707,8 +708,6 @@ export default function NuonuoSpace({ onClose, mode }) {
       <style>{ANIM_STYLES}</style>
       <NuonuoBg isDay={isDay}/>
 
-      {/* 回客厅 */}
-      <button onClick={onClose} style={{position:"absolute",top:14,left:14,zIndex:20,background:"rgba(255,255,255,0.55)",border:`1px solid ${c.wood}`,borderRadius:20,padding:"5px 12px",color:c.ink,fontSize:12,cursor:"pointer",backdropFilter:"blur(6px)",fontFamily:"sans-serif"}}>← 回客厅</button>
       {/* 日夜指示 */}
       <div style={{position:"absolute",bottom:12,right:14,zIndex:10,fontSize:12,opacity:.4}}>{isDay?"☀️":"🌙"}</div>
 
@@ -716,7 +715,7 @@ export default function NuonuoSpace({ onClose, mode }) {
       {ITEMS.map(obj=>(
         <button
           key={obj.id}
-          onClick={()=>setActive(obj.id==="bed"?"nuonuo":obj.id)}
+          onClick={()=>{ if(obj.id==="door"){ onClose(); return; } setActive(obj.id==="bed"?"nuonuo":obj.id); }}
           style={{
             position:"absolute", left:obj.left, top:obj.top,
             transform:"translate(-50%,-50%)",
