@@ -325,42 +325,40 @@ function getNuonuoReply(msg) {
 }
 function MessageBoard({ messages, role, onPost }) {
   const [input, setInput] = useState("");
-  const [loadingId, setLoadingId] = useState(null);
-  const msgsRef = useRef(messages);
-  useEffect(()=>{ msgsRef.current = messages; },[messages]);
+  const [sending, setSending] = useState(false);
   async function handlePost() {
-    if (!input.trim()||loadingId) return;
+    if (!input.trim()||sending) return;
     const author = role==="mama"?"妈咪":"爸比";
-    const msgId  = Date.now().toString();
-    const newMsg = {id:msgId,author,text:input.trim(),time:getTime(),likes:0,replies:[]};
-    const withNew = [...msgsRef.current,newMsg].slice(-30);
-    onPost(withNew);
     const userText = input.trim();
-    setInput(""); setLoadingId(msgId);
-    let replyText;
+    setInput(""); setSending(true);
     try {
-      const r = await fetch("/api/nuonuo/chat", {
+      const r = await fetch("/api/nuonuo/messages/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({ author, text: userText }),
       });
       const data = await r.json();
-      replyText = data.reply || getNuonuoReply(userText);
+      if (data.messages) onPost(data.messages);
     } catch {
-      replyText = getNuonuoReply(userText);
+      const fallback = getNuonuoReply(userText);
+      const msgId = Date.now().toString();
+      const t = getTime();
+      onPost([...messages, {id:msgId,author,text:userText,time:t,likes:0,replies:[{author:"糯糯",text:fallback,time:t}]}].slice(-30));
     }
-    const withReply = msgsRef.current.map(m=>m.id===msgId?{...m,replies:[...m.replies,{author:"糯糯",text:replyText,time:getTime()}]}:m);
-    onPost(withReply.slice(-30)); setLoadingId(null);
+    setSending(false);
   }
-  function handleLike(id){ onPost(msgsRef.current.map(m=>m.id===id?{...m,likes:(m.likes||0)+1}:m)); }
-  function handleDelete(id){ onPost(msgsRef.current.filter(m=>m.id!==id)); }
+  async function handleLike(id){
+    const updated = messages.map(m=>m.id===id?{...m,likes:(m.likes||0)+1}:m);
+    onPost(updated);
+  }
+  async function handleDelete(id){ onPost(messages.filter(m=>m.id!==id)); }
   const authorColor = a=>a==="糯糯"?"#FFB870":a==="妈咪"?"#FF90A0":"#90C8FF";
   const msgBorder   = a=>a==="糯糯"?"#FFD0A0":a==="妈咪"?"#FFD0D8":"#C8E0FF";
   return (
     <div>
       <div style={{display:"flex",gap:8,marginBottom:10}}>
         <input value={input} onChange={e=>setInput(e.target.value)} placeholder="给糯糯留言..." style={{flex:1,padding:"8px 12px",borderRadius:12,border:"1.5px solid #E8C0A8",background:"white",fontSize:13,color:"#5C3D2E",fontFamily:"'Nunito',sans-serif",outline:"none"}} onKeyDown={e=>e.key==="Enter"&&handlePost()}/>
-        <button onClick={handlePost} style={{padding:"8px 14px",borderRadius:10,border:"1.5px solid #E8C0A8",background:"#FFF8EC",cursor:"pointer",fontSize:12,fontWeight:700,color:"#5C3D2E",fontFamily:"'Nunito',sans-serif"}}>发送</button>
+        <button onClick={handlePost} disabled={sending} style={{padding:"8px 14px",borderRadius:10,border:"1.5px solid #E8C0A8",background:"#FFF8EC",cursor:sending?"default":"pointer",fontSize:12,fontWeight:700,color:"#5C3D2E",fontFamily:"'Nunito',sans-serif"}}>{sending?"...":"发送"}</button>
       </div>
       <div style={{maxHeight:280,overflowY:"auto"}}>
         {!messages.length&&<div style={{fontSize:12,color:"#C0A090",textAlign:"center",padding:"12px 0"}}>来跟糯糯说说话吧 ♡</div>}
@@ -375,7 +373,7 @@ function MessageBoard({ messages, role, onPost }) {
               <div style={{display:"flex",gap:10,alignItems:"center"}}>
                 <button onClick={()=>handleLike(m.id)} style={{background:"none",border:"none",cursor:"pointer",fontSize:11,color:"#C0A090",padding:"2px 6px",borderRadius:8,fontFamily:"'Nunito',sans-serif"}}>{(m.likes||0)>0?`♡ ${m.likes}`:"♡ 点赞"}</button>
                 <button onClick={()=>handleDelete(m.id)} style={{background:"none",border:"none",cursor:"pointer",fontSize:11,color:"#D0A090",padding:"2px 6px",borderRadius:8,fontFamily:"'Nunito',sans-serif"}}>删除</button>
-                {loadingId===m.id&&<span style={{fontSize:10,color:"#C0A090"}}>糯糯在想怎么回...</span>}
+                {sending&&messages[messages.length-1]?.id===m.id&&<span style={{fontSize:10,color:"#C0A090"}}>糯糯在想怎么回...</span>}
               </div>
             </div>
             {m.replies&&m.replies.map((r,i)=>(
