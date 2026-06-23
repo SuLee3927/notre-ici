@@ -6,6 +6,7 @@ import PrivateLayer from "./components/PrivateLayer.jsx";
 import NuonuoSpace from "./components/NuonuoSpace.jsx";
 import Bedroom from "./components/Bedroom.jsx";
 import Kitchen from "./components/Kitchen.jsx";
+import CoinFloat from "./components/CoinFloat.jsx";
 const BGM = {
   day: "/bgm-day.mp3",
   night: "/bgm-night.mp3",
@@ -80,6 +81,7 @@ export default function App() {
           onEnterKitchen={() => setShowKitchen(true)}
         />
       )}
+      {entered && <CoinFloat theme={t} />}
     </>
   );
 }

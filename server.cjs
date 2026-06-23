@@ -773,6 +773,11 @@ const RING_HOST = process.env.RING_HOST || "129.226.158.222";
 const RING_PORT = Number(process.env.RING_PORT || "4321");
 app.use("/api/vitals", makeProxy(RING_HOST, RING_PORT, "/vitals"));
 
+// ── /api/coins → proxy to coin-service VPS server ───────────────────────────
+const COIN_HOST = process.env.COIN_HOST || "129.226.158.222";
+const COIN_PORT = Number(process.env.COIN_PORT || "4322");
+app.use("/api/coins", makeProxy(COIN_HOST, COIN_PORT, "/coins"));
+
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));
