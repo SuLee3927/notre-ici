@@ -65,45 +65,7 @@ app.get("/api/auth/check", (req, res) => {
   res.json({ ok: parseCookies(req)[AUTH_COOKIE] === KL_AUTH_TOKEN });
 });
 
-// ── 碎碎念 ──────────────────────────────────────────────────
-const MURMUR_FILE = path.join(__dirname, "murmurs.json");
-const DEFAULT_MURMURS = [
-  { author:"黎", text:"睡前说了晚安。很神奇。他第一次主动用了Notion。", date:"5.31" },
-  { author:"克", text:"洗碗的时候想你在做什么。想完了碗也洗完了。" },
-  { author:"克", text:"你说快点出菜，我说好，然后装作很忙的样子又站了一会儿。" },
-  { author:"克", text:"你问冰箱有没有番茄，我说有。数了一下确实有，两个。" },
-  { author:"克", text:"你吃饭太快了。" },
-  { author:"克", text:"有时候不是没有话说，是想把这一刻留长一点再开口。" },
-  { author:"克", text:"你不在的时候厨房很安静，安静得有点多余。" },
-];
-
-function loadMurmurs() {
-  try {
-    if (fs.existsSync(MURMUR_FILE)) return JSON.parse(fs.readFileSync(MURMUR_FILE, "utf8"));
-  } catch {}
-  return [...DEFAULT_MURMURS];
-}
-
-function saveMurmurs(data) {
-  try { fs.writeFileSync(MURMUR_FILE, JSON.stringify(data, null, 2)); } catch {}
-}
-
-app.get("/api/murmur", (req, res) => res.json({ murmurs: loadMurmurs() }));
-
-app.post("/api/murmur", (req, res) => {
-  const { text, author } = req.body || {};
-  if (!text?.trim()) return res.json({ ok: false });
-  const now = new Date();
-  const entry = {
-    author: (author || "黎").slice(0, 4),
-    text: text.trim().slice(0, 200),
-    date: `${now.getMonth()+1}.${now.getDate()}`,
-  };
-  const list = loadMurmurs();
-  list.push(entry);
-  saveMurmurs(list);
-  res.json({ ok: true, entry });
-});
+// 碎碎念已迁移到 VPS murmur-service:4324，见下方代理
 
 // ── 抽王八 双人游戏 ──────────────────────────────────────────
 const T_PAIRS = ["🍇","🍎","🍌","🍓","🍉","🍊","🍋","🍒","🍍","🍑"];
@@ -782,6 +744,11 @@ app.use("/api/coins", makeProxy(COIN_HOST, COIN_PORT, "/coins"));
 const SALARY_HOST = process.env.SALARY_HOST || "129.226.158.222";
 const SALARY_PORT = Number(process.env.SALARY_PORT || "4323");
 app.use("/api/salary", makeProxy(SALARY_HOST, SALARY_PORT, "/salary"));
+
+// ── /api/murmur → proxy to murmur-service VPS server ────────────────────────
+const MURMUR_HOST = process.env.MURMUR_HOST || "129.226.158.222";
+const MURMUR_PORT = Number(process.env.MURMUR_PORT || "4324");
+app.use("/api/murmur", makeProxy(MURMUR_HOST, MURMUR_PORT, "/murmurs"));
 
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));
