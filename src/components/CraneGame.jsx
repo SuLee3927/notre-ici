@@ -88,7 +88,7 @@ export default function CraneGame({ theme: t }) {
   });
 
   const [phase, setPhaseUI] = useState("idle");
-  const [balance, setBalance] = useState(null);
+  // balance derived below from wallet selection
   const [playerId, setPlayerId] = useState("");
   const [pending, setPending] = useState(() => getPendingToys());
   const [wonToyUI, setWonToyUI] = useState(null);
@@ -96,9 +96,30 @@ export default function CraneGame({ theme: t }) {
   function setPhase(p) { g.current.phase = p; setPhaseUI(p); }
 
   // 获取余额
-  const fetchBalance = useCallback(() => {
-    fetch("/api/coins").then(r => r.json()).then(d => setBalance(d.balance ?? 0)).catch(() => {});
+  const [isLee,      setIsLee]      = useState(false);
+  const [pubBal,     setPubBal]     = useState(null);
+  const [privBal,    setPrivBal]    = useState(null);
+  const [wallet,     setWallet]     = useState("public"); // "public" | "private"
+
+  const fetchBalance = useCallback(async () => {
+    try {
+      const [authRes, pubRes] = await Promise.all([
+        fetch("/api/auth/check").then(r => r.json()),
+        fetch("/api/coins").then(r => r.json()),
+      ]);
+      setPubBal(pubRes.balance ?? 0);
+      if (authRes.ok) {
+        setIsLee(true);
+        const sal = await fetch("/api/salary").then(r => r.json());
+        setPrivBal(sal.lee?.balance ?? 0);
+      } else {
+        setIsLee(false);
+        setPrivBal(null);
+      }
+    } catch { setPubBal(0); }
   }, []);
+
+  const balance = wallet === "private" ? privBal : pubBal;
   useEffect(() => { fetchBalance(); }, [fetchBalance]);
 
   // RAF 主循环
@@ -193,10 +214,14 @@ export default function CraneGame({ theme: t }) {
   // 投币
   async function insertCoin() {
     if (balance === null || balance < 5) return;
-    const res = await fetch("/api/coins/spend", {
+    const usePrivate = isLee && wallet === "private";
+    const [url, body] = usePrivate
+      ? ["/api/salary/spend-lee", { amount: 5, reason: "黎私密币投入 娃娃机" }]
+      : ["/api/coins/spend",      { amount: 5, who: playerId || "游客", reason: "娃娃机" }];
+    const res = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ amount: 5, who: playerId || "游客", reason: "娃娃机" }),
+      body: JSON.stringify(body),
     }).then(r => r.json()).catch(() => ({ ok: false }));
     if (!res.ok) return;
     g.current.playerId = playerId;
@@ -243,7 +268,28 @@ export default function CraneGame({ theme: t }) {
             fontSize:12, outline:"none", fontFamily:"inherit",
           }}
         />
-        <span style={{ fontSize:11, color:t.textMuted, whiteSpace:"nowrap" }}>🪙 {balance ?? "…"}</span>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:2 }}>
+          {isLee ? (
+            <>
+              <div style={{ display:"flex", gap:4 }}>
+                {["public","private"].map(w => (
+                  <button key={w} onClick={() => setWallet(w)} style={{
+                    padding:"2px 8px", borderRadius:5, fontSize:10, cursor:"pointer",
+                    border: wallet === w ? "1px solid rgba(200,160,60,0.7)" : `1px solid ${t.surfaceBorder}`,
+                    background: wallet === w ? "rgba(200,160,60,0.12)" : "transparent",
+                    color: wallet === w ? "#C8A040" : t.textMuted, fontFamily:"inherit",
+                  }}>{w === "public" ? "公共" : "私密"}</button>
+                ))}
+              </div>
+              <span style={{ fontSize:10, color:t.textMuted }}>
+                🪙 {wallet === "public" ? (pubBal ?? "…") : (privBal ?? "…")}
+              </span>
+            </>
+          ) : (
+            <span style={{ fontSize:11, color:t.textMuted, whiteSpace:"nowrap" }}>🪙 {pubBal ?? "…"}</span>
+          )}
+          <button onClick={fetchBalance} style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:t.textMuted, padding:"0 2px", lineHeight:1 }} title="刷新余额">↻</button>
+        </div>
       </div>
 
       {/* 机器外壳 */}

@@ -99,6 +99,7 @@ export default function BasketGame({ theme: t }) {
     chargeT: 0,
     bx: BALL_X0, by: BALL_Y0,
     vx: 0, vy: 0,
+    windX: 0,         // px/s² horizontal wind per shot
     scored: false,
     streak: 0,
     resultT: 0,
@@ -106,15 +107,36 @@ export default function BasketGame({ theme: t }) {
 
   const [phase,   setPhaseUI]  = useState("idle");
   const [power,   setPowerUI]  = useState(0);
-  const [balance, setBalance]  = useState(null);
+  const [_balance, _setBalance]  = useState(null); // unused, kept for compat
   const [streak,  setStreakUI]  = useState(0);
+  const [wind,    setWind]     = useState(0);  // current shot wind (-1~1 normalized)
   const [betAmt,  setBetAmt]   = useState(2);
   const [lastMsg, setLastMsg]  = useState("");
+  const [isLee,   setIsLee]    = useState(false);
+  const [pubBal,  setPubBal]   = useState(null);
+  const [privBal, setPrivBal]  = useState(null);
+  const [wallet,  setWallet]   = useState("public");
 
-  const fetchBal = useCallback(() => {
-    fetch("/api/coins").then(r => r.json()).then(d => setBalance(d.balance ?? 0)).catch(() => {});
+  const fetchBal = useCallback(async () => {
+    try {
+      const [authRes, pubRes] = await Promise.all([
+        fetch("/api/auth/check").then(r => r.json()),
+        fetch("/api/coins").then(r => r.json()),
+      ]);
+      setPubBal(pubRes.balance ?? 0);
+      if (authRes.ok) {
+        setIsLee(true);
+        const sal = await fetch("/api/salary").then(r => r.json());
+        setPrivBal(sal.lee?.balance ?? 0);
+      } else {
+        setIsLee(false);
+        setPrivBal(null);
+      }
+    } catch { setPubBal(0); }
   }, []);
   useEffect(() => { fetchBal(); }, [fetchBal]);
+
+  const balance = wallet === "private" ? privBal : pubBal;
 
   // RAF 主循环
   useEffect(() => {
@@ -136,6 +158,7 @@ export default function BasketGame({ theme: t }) {
 
       if (s.phase === "flying") {
         const prevY = s.by;
+        s.vx += s.windX * dt;
         s.bx += s.vx * dt;
         s.vy += GRAVITY * dt;
         s.by += s.vy * dt;
@@ -212,11 +235,18 @@ export default function BasketGame({ theme: t }) {
   async function startCharge() {
     if (g.current.phase !== "idle") return;
     if (balance === null || balance < betAmt) return;
+    // 每局随机风向 (-22 ~ +22 px/s²)
+    const newWind = (Math.random() * 44 - 22);
+    g.current.windX = newWind;
+    setWind(newWind / 22); // normalize to -1~1 for display
     // 先扣币
-    const res = await fetch("/api/coins/spend", {
-      method:"POST",
-      headers:{"content-type":"application/json"},
-      body: JSON.stringify({ amount: betAmt, who:"游客", reason:"投篮机" }),
+    const usePrivate = isLee && wallet === "private";
+    const [url, body] = usePrivate
+      ? ["/api/salary/spend-lee", { amount: betAmt, reason: "黎私密币投入 投篮机" }]
+      : ["/api/coins/spend",      { amount: betAmt, who: "游客", reason: "投篮机" }];
+    const res = await fetch(url, {
+      method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify(body),
     }).then(r => r.json()).catch(() => ({ ok: false }));
     if (!res.ok) return;
     fetchBal();
@@ -246,10 +276,11 @@ export default function BasketGame({ theme: t }) {
       let earn = betAmt * 3;
       if (newStreak >= 3) earn = betAmt * 5;
       else if (newStreak === 2) earn = betAmt * 4;
+      const earnWho = isLee ? "黎" : "游客";
       await fetch("/api/coins/earn", {
         method:"POST",
         headers:{"content-type":"application/json"},
-        body: JSON.stringify({ amount: earn, who:"游客", source:"投篮机", note: newStreak >= 2 ? `连${newStreak}` : "" }),
+        body: JSON.stringify({ amount: earn, who: earnWho, source:"投篮机", note: newStreak >= 2 ? `连${newStreak}` : "" }),
       }).catch(() => {});
       setLastMsg(newStreak >= 3 ? `🔥 连${newStreak}！+${earn}币` : newStreak === 2 ? `🎯 连两球！+${earn}币` : `✓ 进了！+${earn}币`);
       fetchBal();
@@ -296,7 +327,26 @@ export default function BasketGame({ theme: t }) {
           {streak >= 2 && (
             <span style={{ fontSize:11, color:"#E8A040", fontWeight:600 }}>🔥×{streak}</span>
           )}
-          <span style={{ fontSize:11, color:t.textMuted }}>余额 {balance ?? "…"}</span>
+          {isLee ? (
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:2 }}>
+              <div style={{ display:"flex", gap:4 }}>
+                {["public","private"].map(w => (
+                  <button key={w} onClick={() => setWallet(w)} style={{
+                    padding:"2px 7px", borderRadius:5, fontSize:10, cursor:"pointer",
+                    border: wallet === w ? "1px solid rgba(200,160,60,0.7)" : `1px solid ${t.surfaceBorder}`,
+                    background: wallet === w ? "rgba(200,160,60,0.12)" : "transparent",
+                    color: wallet === w ? "#C8A040" : t.textMuted, fontFamily:"inherit",
+                  }}>{w === "public" ? "公共" : "私密"}</button>
+                ))}
+              </div>
+              <span style={{ fontSize:10, color:t.textMuted }}>
+                🪙 {wallet === "public" ? (pubBal ?? "…") : (privBal ?? "…")}
+              </span>
+            </div>
+          ) : (
+            <span style={{ fontSize:11, color:t.textMuted }}>余额 {pubBal ?? "…"}</span>
+          )}
+          <button onClick={fetchBal} style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:t.textMuted, padding:"0 2px", lineHeight:1 }} title="刷新余额">↻</button>
         </div>
       </div>
 
@@ -348,6 +398,24 @@ export default function BasketGame({ theme: t }) {
 
         {/* 控制区 */}
         <div style={{ padding:"12px 14px 6px" }}>
+          {/* 风力指示 */}
+          <div style={{ marginBottom:6, display:"flex", alignItems:"center", gap:6, fontSize:10, color:"rgba(150,120,60,0.7)" }}>
+            <span>风</span>
+            <div style={{ flex:1, height:4, borderRadius:2, background:"rgba(255,255,255,0.06)", position:"relative", overflow:"hidden" }}>
+              <div style={{
+                position:"absolute", top:0, bottom:0,
+                left: wind >= 0 ? "50%" : `${50 + wind * 50}%`,
+                width: `${Math.abs(wind) * 50}%`,
+                background: Math.abs(wind) > 0.6 ? "rgba(230,100,40,0.6)" : "rgba(200,160,60,0.5)",
+                borderRadius:2,
+              }} />
+              <div style={{ position:"absolute", top:-1, bottom:-1, left:"50%", width:1, background:"rgba(200,160,60,0.3)" }} />
+            </div>
+            <span style={{ minWidth:14, textAlign:"right", color: Math.abs(wind) > 0.6 ? "rgba(230,100,40,0.8)" : "rgba(150,120,60,0.7)" }}>
+              {wind > 0.1 ? "→" : wind < -0.1 ? "←" : "–"}
+            </span>
+          </div>
+
           {/* Power bar */}
           <div style={{ marginBottom:10, height:6, borderRadius:3, background:"rgba(255,255,255,0.06)", overflow:"hidden", position:"relative" }}>
             <div style={{
