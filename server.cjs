@@ -27,7 +27,7 @@ function makeProxy(hostname, port, basePath) {
   return (req, res) => {
     const options = {
       hostname, port,
-      path: basePath + req.path + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : ""),
+      path: (basePath + req.path).replace(/\/$/, "") || "/" + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : ""),
       method: req.method,
       headers: { "content-type": req.headers["content-type"] || "application/json" },
     };
