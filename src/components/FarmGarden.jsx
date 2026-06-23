@@ -62,7 +62,7 @@ function getLogText(entry) {
   const c = CROPS.find(x => x.id === entry.cropId);
   const e = c?.emoji ?? "";
   const n = c?.name ?? entry.cropId ?? "";
-  const by = entry.who && entry.who !== "黎" ? ` · ${entry.who}` : "";
+  const by = entry.who && entry.who !== "系统" ? ` · ${entry.who}` : "";
   switch (entry.action) {
     case "plant":       return `${e} 种下${n}${by}`;
     case "water":       return `💧 浇水 ${e}${n}${by}`;
