@@ -768,6 +768,11 @@ app.use("/api/slot",    makeProxy("127.0.0.1",  SLOT_PORT,   "/api"));
 app.use("/api/board",   makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/board"));
 app.use("/api/nuonuo",  makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/nuonuo"));
 
+// ── /api/vitals → proxy to ring-control VPS server ─────────────────────────
+const RING_HOST = process.env.RING_HOST || "129.226.158.222";
+const RING_PORT = Number(process.env.RING_PORT || "4321");
+app.use("/api/vitals", makeProxy(RING_HOST, RING_PORT, "/vitals"));
+
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));
