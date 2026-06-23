@@ -22,7 +22,8 @@ function entryLabel(entry) {
   return { main, sub: note };
 }
 
-export default function CoinFloat({ theme: t }) {
+export default function CoinFloat({ theme: t, mode = "night" }) {
+  const isDay = mode === "day";
   const [open, setOpen] = useState(false);
   const [data, setData] = useState(null);
   const [flash, setFlash] = useState(false);
@@ -58,13 +59,13 @@ export default function CoinFloat({ theme: t }) {
         style={{
           position: "fixed", top: 14, left: 14, zIndex: 9000,
           display: "flex", alignItems: "center", gap: 5,
-          background: "rgba(20,16,10,.82)",
-          backdropFilter: "blur(6px)",
-          border: `1px solid ${flash ? EARN_COLOR : "rgba(180,140,60,.35)"}`,
+          background: t.navBg,
+          backdropFilter: "blur(8px)",
+          border: `1px solid ${flash ? EARN_COLOR : t.accentBorder}`,
           borderRadius: 999,
           padding: "5px 11px 5px 8px",
           cursor: "pointer", userSelect: "none",
-          boxShadow: flash ? `0 0 10px ${EARN_COLOR}66` : "0 2px 6px rgba(0,0,0,.4)",
+          boxShadow: flash ? `0 0 10px ${EARN_COLOR}66` : isDay ? "0 2px 8px rgba(180,100,40,.15)" : "0 2px 6px rgba(0,0,0,.4)",
           transition: "all .2s",
           fontFamily: "'Noto Serif SC',serif",
         }}
@@ -83,17 +84,17 @@ export default function CoinFloat({ theme: t }) {
           <div style={{
             position: "fixed", top: 46, left: 14, zIndex: 8999,
             width: "min(300px, calc(100vw - 28px))",
-            background: "rgba(14,11,8,.95)",
+            background: isDay ? "rgba(255,248,230,0.98)" : "rgba(14,11,8,.95)",
             backdropFilter: "blur(10px)",
-            border: "1px solid rgba(120,90,30,.4)",
+            border: `1px solid ${t.surfaceBorder}`,
             borderRadius: 14,
-            boxShadow: "0 8px 28px rgba(0,0,0,.6)",
+            boxShadow: isDay ? "0 8px 28px rgba(160,80,20,.15)" : "0 8px 28px rgba(0,0,0,.6)",
             fontFamily: "'Noto Serif SC',serif",
             overflow: "hidden",
           }}>
             {/* 余额 */}
-            <div style={{ padding: "14px 18px 10px", borderBottom: "1px solid rgba(120,90,30,.2)", textAlign: "center" }}>
-              <div style={{ fontSize: 10, color: "rgba(180,150,80,.6)", letterSpacing: ".12em", marginBottom: 3 }}>余额</div>
+            <div style={{ padding: "14px 18px 10px", borderBottom: `1px solid ${t.surfaceBorder}`, textAlign: "center" }}>
+              <div style={{ fontSize: 10, color: t.textMuted, letterSpacing: ".12em", marginBottom: 3 }}>余额</div>
               <div style={{ fontSize: 28, fontWeight: 700, color: EARN_COLOR, lineHeight: 1 }}>
                 🪙 {data?.balance ?? "…"}
               </div>
@@ -102,7 +103,7 @@ export default function CoinFloat({ theme: t }) {
             {/* 流水列表 */}
             <div style={{ maxHeight: 260, overflowY: "auto" }}>
               {!data?.log?.length && (
-                <div style={{ padding: "18px", textAlign: "center", fontSize: 11, color: "rgba(140,110,50,.5)" }}>
+                <div style={{ padding: "18px", textAlign: "center", fontSize: 11, color: t.textMuted }}>
                   还没有流水记录
                 </div>
               )}
@@ -113,21 +114,21 @@ export default function CoinFloat({ theme: t }) {
                   <div key={i} style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "8px 18px",
-                    borderBottom: "1px solid rgba(80,60,20,.15)",
+                    borderBottom: `1px solid ${t.surfaceBorder}`,
                   }}>
-                    <span style={{ fontSize: 11, color: isEarn ? EARN_COLOR : SPEND_COLOR, opacity: .7, flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, color: isEarn ? EARN_COLOR : SPEND_COLOR, opacity: .8, flexShrink: 0 }}>
                       {isEarn ? "↑" : "↓"}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, color: "rgba(220,190,120,.85)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <div style={{ fontSize: 12, color: t.textSub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {main}
                       </div>
                       {sub && (
-                        <div style={{ fontSize: 10, color: "rgba(140,110,50,.55)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        <div style={{ fontSize: 10, color: t.textMuted, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {sub}
                         </div>
                       )}
-                      <div style={{ fontSize: 9, color: "rgba(100,80,30,.45)", marginTop: 1 }}>{formatTime(entry.t)}</div>
+                      <div style={{ fontSize: 9, color: t.textMuted, marginTop: 1, opacity: 0.7 }}>{formatTime(entry.t)}</div>
                     </div>
                     <span style={{
                       fontSize: 13, fontWeight: 700,

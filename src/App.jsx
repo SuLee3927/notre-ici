@@ -81,7 +81,7 @@ export default function App() {
           onEnterKitchen={() => setShowKitchen(true)}
         />
       )}
-      {entered && <CoinFloat theme={t} />}
+      {entered && <CoinFloat theme={t} mode={mode} />}
     </>
   );
 }
