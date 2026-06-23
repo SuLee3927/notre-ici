@@ -755,6 +755,11 @@ const FARM_HOST = process.env.FARM_HOST || "129.226.158.222";
 const FARM_PORT = Number(process.env.FARM_PORT || "4325");
 app.use("/api/farm", makeProxy(FARM_HOST, FARM_PORT, "/farm"));
 
+// ── /api/music → proxy to netease-api VPS server ─────────────────────────────
+const MUSIC_HOST = process.env.MUSIC_HOST || "129.226.158.222";
+const MUSIC_PORT = Number(process.env.MUSIC_PORT || "4326");
+app.use("/api/music", makeProxy(MUSIC_HOST, MUSIC_PORT, ""));
+
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));
