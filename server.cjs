@@ -750,6 +750,11 @@ const MURMUR_HOST = process.env.MURMUR_HOST || "129.226.158.222";
 const MURMUR_PORT = Number(process.env.MURMUR_PORT || "4324");
 app.use("/api/murmur", makeProxy(MURMUR_HOST, MURMUR_PORT, "/murmurs"));
 
+// ── /api/farm → proxy to farm-service VPS server ─────────────────────────────
+const FARM_HOST = process.env.FARM_HOST || "129.226.158.222";
+const FARM_PORT = Number(process.env.FARM_PORT || "4325");
+app.use("/api/farm", makeProxy(FARM_HOST, FARM_PORT, "/farm"));
+
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));

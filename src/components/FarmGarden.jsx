@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const CROPS = [
   { id:"tomato",   emoji:"🍅", name:"番茄",   grow:20*60*1000 },
@@ -15,46 +15,8 @@ const ANIMALS = [
   { id:"pig",     emoji:"🐷", name:"猪",   product:"pork", productEmoji:"🍖", productName:"猪肉", cooldown:60*60*1000 },
 ];
 
-const PLOT_COUNT = 4;
-const FARM_KEY   = "farm_state";
-const QTY_KEY    = "kitchen_qty";
-const WILT_AT    = 0.5;          // not watered by 50% grow time → wilt
-const DIE_AFTER  = 8 * 60*1000; // 8 min after wilting → dead
-const PEST_START = 0.5;          // pest can spawn from 50% growth
-const PEST_END   = 0.9;
-const PEST_CHANCE = 0.08;        // 8% per 30s tick
-
-const DEFAULT_PLOT = () => ({
-  crop: null, plantedAt: null,
-  watered: false, fertilized: false,
-  pest: null, wiltedAt: null, dead: false,
-});
-
-const DEFAULT_STATE = () => ({
-  plots: Array.from({ length: PLOT_COUNT }, DEFAULT_PLOT),
-  animals: Object.fromEntries(ANIMALS.map(a => [a.id, { readyAt: null }])),
-  log: [],
-});
-
-function loadFarm() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(FARM_KEY));
-    if (!raw) return DEFAULT_STATE();
-    const s = { ...DEFAULT_STATE(), ...raw };
-    if (!s.log) s.log = [];
-    s.plots = s.plots.map(p => {
-      if (!p || p.crop === "egg" || p.crop === "pork") return DEFAULT_PLOT();
-      return { ...DEFAULT_PLOT(), ...p };
-    });
-    return s;
-  } catch { return DEFAULT_STATE(); }
-}
-
-function saveFarm(s) { localStorage.setItem(FARM_KEY, JSON.stringify(s)); }
-function loadQty() {
-  try { return JSON.parse(localStorage.getItem(QTY_KEY)) || {}; }
-  catch { return {}; }
-}
+const QTY_KEY = "kitchen_qty";
+function loadQty() { try { return JSON.parse(localStorage.getItem(QTY_KEY)) || {}; } catch { return {}; } }
 function saveQty(q) { localStorage.setItem(QTY_KEY, JSON.stringify(q)); }
 
 function getPlotStatus(plot) {
@@ -99,29 +61,21 @@ function fmtTs(ts) {
 function getLogText(entry) {
   const c = CROPS.find(x => x.id === entry.cropId);
   const e = c?.emoji ?? "";
-  const n = c?.name ?? entry.cropId;
+  const n = c?.name ?? entry.cropId ?? "";
+  const by = entry.who && entry.who !== "黎" ? ` · ${entry.who}` : "";
   switch (entry.action) {
-    case "plant":       return `${e} 种下${n}`;
-    case "water":       return `💧 浇水 ${e}${n}`;
-    case "fertilize":   return `🌿 施肥 ${e}${n}`;
-    case "pest_remove": return `🐛 除虫 ${e}${n}`;
-    case "harvest":     return `${e} 收获${n}${entry.extra > 1 ? ` ×${entry.extra}` : ""}`;
+    case "plant":       return `${e} 种下${n}${by}`;
+    case "water":       return `💧 浇水 ${e}${n}${by}`;
+    case "fertilize":   return `🌿 施肥 ${e}${n}${by}`;
+    case "pest_remove": return `🐛 除虫 ${e}${n}${by}`;
+    case "harvest":     return `${e} 收获${n}${entry.extra > 1 ? ` ×${entry.extra}` : ""}${by}`;
     case "raccoon":     return `🦝 浣熊偷了${e}${n}`;
     case "pest_rot":    return `🐛 ${e}${n}烂掉了`;
-    case "wilt":        return `🥀 ${e}${n}开始枯萎`;
-    case "dead":        return `💀 ${e}${n}枯死了`;
-    case "clear":       return `🗑️ 铲掉了${e}${n}`;
+    case "wilt":        return `🥀 ${e}${n}枯萎 [系统]`;
+    case "dead":        return `💀 ${e}${n}枯死 [系统]`;
+    case "clear":       return `🗑️ 铲掉了${e}${n}${by}`;
     default:            return entry.action;
   }
-}
-
-function raccoonStole(plot) {
-  if (!plot.crop || !plot.plantedAt) return false;
-  const crop = CROPS.find(c => c.id === plot.crop);
-  if (!crop) return false;
-  const overdue = Date.now() - plot.plantedAt - crop.grow;
-  if (overdue < 15 * 60 * 1000) return false;
-  return Math.random() < 0.25;
 }
 
 function PlotCard({ plot, index, theme: t, onPlant, onHarvest, onWater, onFertilize, onPestRemove, onClear }) {
@@ -248,7 +202,6 @@ function PlotCard({ plot, index, theme: t, onPlant, onHarvest, onWater, onFertil
 function AnimalCard({ animal, animalState, theme: t, onCollect }) {
   const ready = isAnimalReady(animalState);
   const [ms, setMs] = useState(() => animalTimeLeft(animalState));
-
   useEffect(() => {
     if (ready) return;
     const id = setInterval(() => setMs(animalTimeLeft(animalState)), 1000);
@@ -280,12 +233,8 @@ function AnimalCard({ animal, animalState, theme: t, onCollect }) {
 
 function SeedPicker({ theme: t, onPick, onClose }) {
   const [balance, setBalance] = useState(null);
-
   useEffect(() => {
-    fetch("/api/coins")
-      .then(r => r.json())
-      .then(d => setBalance(d.balance ?? 0))
-      .catch(() => setBalance(0));
+    fetch("/api/coins").then(r => r.json()).then(d => setBalance(d.balance ?? 0)).catch(() => setBalance(0));
   }, []);
 
   return (
@@ -335,199 +284,103 @@ function SeedPicker({ theme: t, onPick, onClose }) {
 }
 
 export default function FarmGarden({ theme: t }) {
-  const [farm, setFarm] = useState(loadFarm);
+  const [farm, setFarm] = useState(null);
   const [picking, setPicking] = useState(null);
   const [toast, setToast] = useState(null);
+
+  const fetchFarm = useCallback(() => {
+    fetch("/api/farm").then(r => r.json()).then(setFarm).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchFarm();
+    const id = setInterval(fetchFarm, 30000);
+    return () => clearInterval(id);
+  }, [fetchFarm]);
 
   function showToast(msg) {
     setToast(msg);
     setTimeout(() => setToast(null), 2400);
   }
 
-  // 30s tick: wilt / die / pest spawn
-  useEffect(() => {
-    const tick = () => {
-      setFarm(prev => {
-        const now = Date.now();
-        let changed = false;
-        const newLog = [...prev.log];
-
-        const plots = prev.plots.map(plot => {
-          if (!plot.crop || plot.dead) return plot;
-          const crop = CROPS.find(c => c.id === plot.crop);
-          if (!crop) return plot;
-          const elapsed = now - plot.plantedAt;
-          if (elapsed >= crop.grow) return plot;
-
-          let p = { ...plot };
-
-          if (!p.watered && !p.wiltedAt && elapsed >= crop.grow * WILT_AT) {
-            p = { ...p, wiltedAt: now };
-            changed = true;
-            newLog.unshift({ action:"wilt", cropId:p.crop, ts:now });
-          }
-          if (p.wiltedAt && !p.dead && (now - p.wiltedAt) >= DIE_AFTER) {
-            p = { ...p, dead: true };
-            changed = true;
-            newLog.unshift({ action:"dead", cropId:p.crop, ts:now });
-          }
-          const progress = elapsed / crop.grow;
-          if (!p.pest && !p.dead && progress >= PEST_START && progress <= PEST_END) {
-            if (Math.random() < PEST_CHANCE) {
-              p = { ...p, pest: now };
-              changed = true;
-            }
-          }
-          return p;
-        });
-
-        if (!changed) return prev;
-        const next = { ...prev, plots, log: newLog.slice(0, 50) };
-        saveFarm(next);
-        return next;
-      });
-    };
-
-    const id = setInterval(tick, 30000);
-    tick();
-    return () => clearInterval(id);
-  }, []);
-
-  function handleWater(index) {
-    const plot = farm.plots[index];
-    if (!plot.crop) return;
-    const next = {
-      ...farm,
-      plots: farm.plots.map((p, i) => i !== index ? p : { ...p, watered: true, wiltedAt: null }),
-      log: [{ action:"water", cropId:plot.crop, ts:Date.now() }, ...farm.log].slice(0, 50),
-    };
-    saveFarm(next);
-    setFarm(next);
-    showToast(`💧 ${CROPS.find(c => c.id === plot.crop)?.name} 浇上水了`);
+  async function apiPost(endpoint, body) {
+    const res = await fetch("/api/farm" + endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json()).catch(() => ({ ok: false }));
+    fetchFarm();
+    return res;
   }
 
-  function handleFertilize(index) {
-    const plot = farm.plots[index];
-    if (!plot.crop) return;
-    const next = {
-      ...farm,
-      plots: farm.plots.map((p, i) => i !== index ? p : { ...p, fertilized: true }),
-      log: [{ action:"fertilize", cropId:plot.crop, ts:Date.now() }, ...farm.log].slice(0, 50),
-    };
-    saveFarm(next);
-    setFarm(next);
-    showToast(`🌿 施肥了！${CROPS.find(c => c.id === plot.crop)?.name} 收获翻倍 ×2`);
+  async function handleWater(index) {
+    const crop = CROPS.find(c => c.id === farm?.plots[index]?.crop);
+    await apiPost("/water", { plotIndex: index });
+    showToast(`💧 ${crop?.name ?? ""} 浇上水了`);
   }
 
-  function handlePestRemove(index) {
-    const plot = farm.plots[index];
-    if (!plot.crop) return;
-    const next = {
-      ...farm,
-      plots: farm.plots.map((p, i) => i !== index ? p : { ...p, pest: null }),
-      log: [{ action:"pest_remove", cropId:plot.crop, ts:Date.now() }, ...farm.log].slice(0, 50),
-    };
-    saveFarm(next);
-    setFarm(next);
-    showToast(`🐛 虫子除掉了！${CROPS.find(c => c.id === plot.crop)?.name} 安全了`);
+  async function handleFertilize(index) {
+    const crop = CROPS.find(c => c.id === farm?.plots[index]?.crop);
+    await apiPost("/fertilize", { plotIndex: index });
+    showToast(`🌿 施肥了！${crop?.name ?? ""} 收获翻倍 ×2`);
   }
 
-  function handleClear(index) {
-    const cropId = farm.plots[index].crop;
-    const next = {
-      ...farm,
-      plots: farm.plots.map((p, i) => i !== index ? p : DEFAULT_PLOT()),
-      log: [{ action:"clear", cropId, ts:Date.now() }, ...farm.log].slice(0, 50),
-    };
-    saveFarm(next);
-    setFarm(next);
+  async function handlePestRemove(index) {
+    const crop = CROPS.find(c => c.id === farm?.plots[index]?.crop);
+    await apiPost("/pest-remove", { plotIndex: index });
+    showToast(`🐛 虫子除掉了！${crop?.name ?? ""} 安全了`);
+  }
+
+  async function handleClear(index) {
+    await apiPost("/clear", { plotIndex: index });
     showToast("🗑️ 铲掉了");
   }
 
-  function handleHarvest(index) {
-    const plot = farm.plots[index];
-    const crop = CROPS.find(c => c.id === plot.crop);
-    if (!crop) return;
-
-    if (raccoonStole(plot)) {
-      const next = {
-        ...farm,
-        plots: farm.plots.map((p, i) => i !== index ? p : DEFAULT_PLOT()),
-        log: [{ action:"raccoon", cropId:plot.crop, ts:Date.now() }, ...farm.log].slice(0, 50),
-      };
-      saveFarm(next);
-      setFarm(next);
-      showToast("😭 被浣熊偷走了！！");
+  async function handleHarvest(index) {
+    const res = await apiPost("/harvest", { plotIndex: index });
+    if (res.raccoon) { showToast("😭 被浣熊偷走了！！"); return; }
+    if (res.pest_rot) {
+      const crop = CROPS.find(c => c.id === res.crop);
+      showToast(`🐛 ${crop?.emoji ?? ""} ${crop?.name ?? ""} 被虫咬烂了…`);
       return;
     }
-
-    if (plot.pest) {
-      const next = {
-        ...farm,
-        plots: farm.plots.map((p, i) => i !== index ? p : DEFAULT_PLOT()),
-        log: [{ action:"pest_rot", cropId:plot.crop, ts:Date.now() }, ...farm.log].slice(0, 50),
-      };
-      saveFarm(next);
-      setFarm(next);
-      showToast(`🐛 ${crop.emoji} ${crop.name} 被虫咬烂了…`);
-      return;
+    if (res.ok && res.crop) {
+      const qty = loadQty();
+      qty[res.crop] = (qty[res.crop] || 0) + (res.yieldAmt || 1);
+      saveQty(qty);
+      showToast(`${res.cropEmoji ?? ""} 收了 ${res.yieldAmt} 份${res.cropName}！${res.yieldAmt > 1 ? "施肥翻倍 ×2 🎉" : "放进厨房了"}`);
     }
-
-    const yieldAmt = plot.fertilized ? 2 : 1;
-    const qty = loadQty();
-    qty[crop.id] = (qty[crop.id] || 0) + yieldAmt;
-    saveQty(qty);
-
-    const next = {
-      ...farm,
-      plots: farm.plots.map((p, i) => i !== index ? p : DEFAULT_PLOT()),
-      log: [{ action:"harvest", cropId:plot.crop, extra:yieldAmt, ts:Date.now() }, ...farm.log].slice(0, 50),
-    };
-    saveFarm(next);
-    setFarm(next);
-    showToast(`${crop.emoji} 收了 ${yieldAmt} 份${crop.name}！${plot.fertilized ? "施肥翻倍 ×2 🎉" : "放进厨房了"}`);
   }
 
-  function handleCollectAnimal(animalId) {
-    const animal = ANIMALS.find(a => a.id === animalId);
-    if (!animal) return;
-    const qty = loadQty();
-    qty[animal.product] = (qty[animal.product] || 0) + 1;
-    saveQty(qty);
-    const next = {
-      ...farm,
-      animals: { ...farm.animals, [animalId]: { readyAt: Date.now() + animal.cooldown } },
-    };
-    saveFarm(next);
-    setFarm(next);
-    showToast(`${animal.productEmoji} 收了一份${animal.productName}！放进厨房了`);
+  async function handleCollectAnimal(animalId) {
+    const res = await apiPost("/collect-animal", { animalId });
+    if (res.ok && res.product) {
+      const qty = loadQty();
+      qty[res.product] = (qty[res.product] || 0) + 1;
+      saveQty(qty);
+      const animal = ANIMALS.find(a => a.id === animalId);
+      showToast(`${res.productEmoji ?? animal?.productEmoji ?? ""} 收了一份${res.productName}！放进厨房了`);
+    }
   }
 
   async function handlePickSeed(cropId) {
     const crop = CROPS.find(c => c.id === cropId);
-    const res = await fetch("/api/coins/spend", {
+    const coinRes = await fetch("/api/coins/spend", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ amount: 2, who: "farm", reason: `买${crop?.name}种子` }),
     }).then(r => r.json()).catch(() => ({ ok: false }));
-
-    if (!res.ok) {
-      showToast("🪙 金币不够买种子！");
-      return;
-    }
-
-    const next = {
-      ...farm,
-      plots: farm.plots.map((p, i) =>
-        i !== picking ? p : { ...DEFAULT_PLOT(), crop: cropId, plantedAt: Date.now() }
-      ),
-      log: [{ action:"plant", cropId, ts:Date.now() }, ...farm.log].slice(0, 50),
-    };
-    saveFarm(next);
-    setFarm(next);
+    if (!coinRes.ok) { showToast("🪙 金币不够买种子！"); return; }
+    await apiPost("/plant", { plotIndex: picking, cropId });
     setPicking(null);
     showToast(`${crop?.emoji} ${crop?.name} 种下去了 🌱`);
   }
+
+  if (!farm) return (
+    <div style={{ padding:40, textAlign:"center", color: t.textMuted, fontSize:12, fontFamily:"'Noto Serif SC',serif" }}>
+      菜园加载中…
+    </div>
+  );
 
   return (
     <div style={{ padding:"20px 16px 36px", fontFamily:"'Noto Serif SC',serif", position:"relative" }}>
@@ -563,13 +416,13 @@ export default function FarmGarden({ theme: t }) {
         padding:"10px 14px", background:"rgba(180,140,80,0.08)",
         border:"1px solid rgba(180,140,80,0.2)", borderRadius:10,
         fontSize:10, color:t.textMuted, textAlign:"center", lineHeight:1.8,
-        marginBottom: farm.log.length ? 16 : 0,
+        marginBottom: farm.log?.length ? 16 : 0,
       }}>
         🦝 附近有浣熊出没 &nbsp;·&nbsp; 🐛 虫害随机出现<br/>
         勤浇水施肥，熟了别放太久
       </div>
 
-      {farm.log.length > 0 && (
+      {farm.log?.length > 0 && (
         <div>
           <div style={{ fontSize:11, color:t.textMuted, marginBottom:8, fontWeight:500 }}>📋 操作记录</div>
           <div style={{
