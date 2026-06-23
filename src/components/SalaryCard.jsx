@@ -94,6 +94,8 @@ export default function SalaryCard({ theme: t }) {
 
   const duBal = data.du?.balance ?? 0;
   const leeBal = data.lee?.balance ?? 0;
+  const pending = data.pending || [];
+  const pendingTotal = pending.reduce((s, p) => s + p.amount, 0);
 
   return (
     <div style={{ padding: "18px 16px 28px", fontFamily: "'Noto Serif SC',serif", maxHeight: "70vh", overflowY: "auto" }}>
@@ -101,6 +103,17 @@ export default function SalaryCard({ theme: t }) {
       <div style={{ textAlign: "center", marginBottom: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(230,200,130,.9)", letterSpacing: ".08em" }}>💰 工资卡</div>
       </div>
+
+      {/* 待领工资提示 */}
+      {pendingTotal > 0 && (
+        <div style={{ padding: "9px 14px", borderRadius: 10, marginBottom: 12, background: "rgba(244,192,48,.1)", border: "1px solid rgba(244,192,48,.3)", textAlign: "center" }}>
+          <div style={{ fontSize: 12, color: GOLD, fontWeight: 600 }}>🪙 待领工资 +{pendingTotal} 币</div>
+          <div style={{ fontSize: 10, color: "rgba(200,170,80,.6)", marginTop: 2 }}>
+            {pending.map(p => p.note || p.type).join("、")}
+          </div>
+          <div style={{ fontSize: 9, color: "rgba(180,150,60,.4)", marginTop: 2 }}>笃调 salary_collect 可领取</div>
+        </div>
+      )}
 
       {/* 两张卡 */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
