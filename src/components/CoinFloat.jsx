@@ -46,7 +46,7 @@ export default function CoinFloat({ theme: t }) {
       <div
         onClick={() => setOpen(o => !o)}
         style={{
-          position: "fixed", bottom: 24, right: 24, zIndex: 9000,
+          position: "fixed", top: 16, left: 16, zIndex: 9000,
           display: "flex", alignItems: "center", gap: 6,
           background: open ? "#2a2018" : "#1a1410",
           border: `1.5px solid ${flash ? EARN_COLOR : "#5a4a2a"}`,
@@ -66,7 +66,7 @@ export default function CoinFloat({ theme: t }) {
       {/* 展开面板 */}
       {open && (
         <div style={{
-          position: "fixed", bottom: 72, right: 24, zIndex: 8999,
+          position: "fixed", top: 60, left: 16, zIndex: 8999,
           width: "min(320px, calc(100vw - 48px))",
           background: "#12100e",
           border: "1px solid #3a2e1a",
