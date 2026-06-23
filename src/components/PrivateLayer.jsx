@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import MusicPlayer from "./MusicPlayer.jsx";
 
 const PASSWORD = "0508";
 
@@ -10,6 +11,7 @@ const STUDY_ITEMS = [
   { id:"cabinet",   left:"82%", top:"18%", label:"带锁小柜", w:"clamp(36px,10vw,56px)",  h:"clamp(44px,12vw,70px)"  },
   { id:"photos",    left:"91%", top:"6%",  label:"相册",     w:"clamp(28px,8vw,48px)",   h:"clamp(28px,8vw,48px)"   },
   { id:"bear",      left:"78%", top:"30%", label:"大熊椅",   w:"clamp(60px,16vw,96px)",  h:"clamp(60px,16vw,96px)"  },
+  { id:"music",     left:"90%", top:"36%", label:"听歌椅",   w:"clamp(36px,10vw,56px)",  h:"clamp(50px,14vw,80px)"  },
   { id:"door",      left:"10%", top:"68%", label:"出门",     w:"clamp(28px,8vw,44px)",   h:"clamp(60px,16vw,96px)"  },
 ];
 
@@ -53,6 +55,7 @@ export default function PrivateLayer({ theme: t, onClose, onEnterNuonuo }) {
     diary:     <PlaceholderContent emoji="📝" title="吐槽小黎" note="接入中…" />,
     cabinet:   <PlaceholderContent emoji="🔒" title="尽在不言中" note="接入中…" />,
     photos:    <PlaceholderContent emoji="🖼️" title="全家福" note="接入中…" />,
+    music:     <MusicPlayer theme={t} />,
     bear:      (() => {
       const activity = getNuonuoActivity();
       if (!activity) return null; // 22点后直接跳进房间，不走这里

@@ -7,6 +7,9 @@ import DrawTurtle from "./DrawTurtle.jsx";
 import BambooGame from "./BambooGame.jsx";
 import GuessGame from "./GuessGame.jsx";
 import Billiards from "./Billiards.jsx";
+import BasketGame from "./BasketGame.jsx";
+import WatchTogether from "./WatchTogether.jsx";
+import CraneGame, { getPendingToys, clearPendingToys } from "./CraneGame.jsx";
 
 const WALL_H = 28;
 
@@ -97,33 +100,146 @@ function NuonuoPNG({ size = 76 }) {
 function NuonuoResident({ theme: t, onEnter }) {
   const state = getNuonuoState();
   const [hint, setHint] = useState(false);
+  const [pending, setPending] = useState(() => getPendingToys());
+  const [giftStage, setGiftStage] = useState(null); // null | "confirm" | "done"
+  const hasToys = pending.length > 0;
+
+  // refresh pending: sessionStorage (browser 玩家) + server (笃)
+  useEffect(() => {
+    async function check() {
+      const local = getPendingToys();
+      let server = [];
+      try {
+        const r = await fetch("/api/farm/gifts");
+        const d = await r.json();
+        server = (d.gifts || []).map(g => ({ ...g.toy, from: g.from, playerId: g.from, source: "server" }));
+      } catch {}
+      setPending([...local, ...server]);
+    }
+    check();
+    const id = setInterval(check, 3000);
+    window.addEventListener("focus", check);
+    return () => { clearInterval(id); window.removeEventListener("focus", check); };
+  }, []);
 
   if (!state) return null; // 22点后去睡了
 
   function onClick() {
+    if (giftStage) return;
+    if (hasToys) {
+      setGiftStage("confirm");
+      return;
+    }
     if (hint) { onEnter(); return; }
     setHint(true);
     setTimeout(() => setHint(false), 1800);
   }
+
+  async function doGift() {
+    setGiftStage("done");
+    clearPendingToys();
+    setPending([]);
+    // 同时清服务端（笃的礼物）
+    fetch("/api/farm/gifts", { method: "DELETE" }).catch(() => {});
+    setTimeout(() => setGiftStage(null), 2400);
+  }
+
   return (
-    <div onClick={onClick} style={{
-      position:"absolute", left:state.left, top:state.top,
-      transform:"translate(-50%,-50%)",
-      zIndex:7, cursor:"pointer",
-      animation:"nnFloat 5s ease-in-out infinite",
-      filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
-      transition:"left 1.2s ease, top 1.2s ease",
-    }}>
-      <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75 }}>
-        {state.words}
-      </div>
-      {hint && (
-        <div style={{ position:"absolute", bottom:"140%", left:"50%", transform:"translateX(-50%)", background:t.surface, border:`1px solid ${t.surfaceBorder}`, padding:"3px 9px", borderRadius:8, fontSize:11, color:t.text, whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,.1)", backdropFilter:"blur(4px)", animation:"fadeInUp .15s ease", zIndex:9 }}>
-          再点一下进来～
+    <>
+      {/* 礼物流浮层 */}
+      {giftStage && (
+        <div style={{
+          position:"fixed", inset:0, zIndex:30,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          background:"rgba(10,7,4,0.62)", backdropFilter:"blur(4px)",
+        }} onClick={giftStage === "done" ? () => setGiftStage(null) : undefined}>
+          <div style={{
+            background:"rgba(20,14,6,0.96)",
+            border:"1px solid rgba(200,160,60,0.4)",
+            borderRadius:20, padding:"28px 32px", maxWidth:280, width:"90%",
+            textAlign:"center", fontFamily:"'Noto Serif SC',serif",
+            boxShadow:"0 8px 40px rgba(0,0,0,0.7)",
+          }}>
+            {giftStage === "confirm" && (
+              <>
+                <div style={{ fontSize:36, marginBottom:12 }}>
+                  {pending.map(p => p.emoji).join(" ")}
+                </div>
+                <div style={{ fontSize:14, color:"#C8A040", fontWeight:600, marginBottom:6 }}>
+                  送给糯糯？
+                </div>
+                <div style={{ fontSize:11, color:"rgba(180,150,80,0.7)", marginBottom:20, lineHeight:1.8 }}>
+                  {pending.map(p => `${p.emoji}${p.name}（${p.playerId}）`).join("、")}
+                </div>
+                <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+                  <button onClick={() => setGiftStage(null)} style={{
+                    padding:"8px 20px", borderRadius:10, fontSize:12, cursor:"pointer",
+                    border:"1px solid rgba(120,90,50,0.4)",
+                    background:"transparent", color:"rgba(160,130,70,0.6)",
+                    fontFamily:"inherit",
+                  }}>等等</button>
+                  <button onClick={doGift} style={{
+                    padding:"8px 20px", borderRadius:10, fontSize:12, cursor:"pointer",
+                    border:"1px solid rgba(200,160,60,0.6)",
+                    background:"rgba(200,160,60,0.12)", color:"#C8A040",
+                    fontFamily:"inherit", fontWeight:600,
+                  }}>送出去 🎁</button>
+                </div>
+              </>
+            )}
+            {giftStage === "done" && (
+              <>
+                <div style={{ fontSize:44, marginBottom:10 }}>🥰</div>
+                <div style={{ fontSize:14, color:"#C8A040", fontWeight:600, marginBottom:6 }}>
+                  糯糯好开心！
+                </div>
+                <div style={{ fontSize:11, color:"rgba(180,150,80,0.6)", lineHeight:1.8 }}>
+                  谢谢你，她会好好珍惜的
+                </div>
+                <div style={{ marginTop:14, fontSize:10, color:"rgba(130,100,50,0.4)" }}>点任意处关闭</div>
+              </>
+            )}
+          </div>
         </div>
       )}
-      <NuonuoPNG size={76} />
-    </div>
+
+      <div onClick={onClick} style={{
+        position:"absolute", left:state.left, top:state.top,
+        transform:"translate(-50%,-50%)",
+        zIndex:7, cursor:"pointer",
+        animation:"nnFloat 5s ease-in-out infinite",
+        filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
+        transition:"left 1.2s ease, top 1.2s ease",
+      }}>
+        <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75 }}>
+          {state.words}
+        </div>
+        {hasToys && !hint && (
+          <div style={{
+            position:"absolute", top:-8, right:-8,
+            background:"#C8A040", color:"#1A1008",
+            borderRadius:"50%", width:20, height:20,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:11, fontWeight:700, zIndex:9,
+            boxShadow:"0 2px 6px rgba(0,0,0,0.4)",
+            animation:"pulse 1.2s ease-in-out infinite",
+          }}>
+            {pending.length}
+          </div>
+        )}
+        {hint && !hasToys && (
+          <div style={{ position:"absolute", bottom:"140%", left:"50%", transform:"translateX(-50%)", background:t.surface, border:`1px solid ${t.surfaceBorder}`, padding:"3px 9px", borderRadius:8, fontSize:11, color:t.text, whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,.1)", backdropFilter:"blur(4px)", animation:"fadeInUp .15s ease", zIndex:9 }}>
+            再点一下进来～
+          </div>
+        )}
+        {hasToys && (
+          <div style={{ position:"absolute", bottom:"140%", left:"50%", transform:"translateX(-50%)", background:"rgba(20,14,6,0.92)", border:"1px solid rgba(200,160,60,0.5)", padding:"4px 10px", borderRadius:8, fontSize:11, color:"#C8A040", whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,.3)", animation:"fadeInUp .15s ease", zIndex:9 }}>
+            有礼物送给我吗 🎁
+          </div>
+        )}
+        <NuonuoPNG size={76} />
+      </div>
+    </>
   );
 }
 
@@ -353,7 +469,8 @@ const FURNITURE = [
   { id:"sofa",        left:"46%", top:"27%", transparent:true, w:"clamp(70px,20vw,100px)", h:"clamp(24px,7vw,40px)" },
   { id:"door",        left:"19%", top:"14%", transparent:true, h:"clamp(90px,25vw,150px)" },
   { id:"kitchendoor", left:"6%",  top:"35%", transparent:true, w:"clamp(28px,7vw,44px)", h:"clamp(50px,13vw,78px)" },
-  { id:"tv",          left:"82%", top:"33%", transparent:true, w:"clamp(40px,11vw,64px)", h:"clamp(32px,9vw,56px)" },
+  { id:"gamepad",     left:"82%", top:"33%", transparent:true, w:"clamp(40px,11vw,64px)", h:"clamp(32px,9vw,56px)" },
+  { id:"watchtv",     left:"46%", top:"38%", transparent:true, w:"clamp(50px,14vw,80px)", h:"clamp(20px,5vw,32px)" },
   { id:"record",      left:"92%", top:"79%", transparent:true, w:"clamp(32px,9vw,52px)", h:"clamp(44px,12vw,72px)" },
   { id:"kitchen",     left:"5%",  top:"51%", transparent:true, w:"clamp(22px,6vw,36px)", h:"clamp(80px,22vw,132px)" },
 ];
@@ -369,6 +486,8 @@ function GamePanel({ theme: t }) {
     { id:"bamboo", emoji:"🎴", name:"接竹竿",  desc:"同点接走，先出完的输" },
     { id:"guess",  emoji:"🗣️", name:"你说我猜", desc:"随机出词，描述给对方猜" },
     { id:"billiards", emoji:"🎱", name:"桌球", desc:"拖杆瞄准，收完自己那组打黑八" },
+    { id:"crane",     emoji:"🧸", name:"娃娃机", desc:"时机一到，出手不留" },
+    { id:"basket",    emoji:"🏀", name:"投篮机", desc:"蓄力出手，进框翻倍" },
   ];
 
   if (open === "slot") return (
@@ -403,6 +522,20 @@ function GamePanel({ theme: t }) {
     <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
       <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
       <Billiards theme={t} />
+    </div>
+  );
+
+  if (open === "crane") return (
+    <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
+      <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
+      <CraneGame theme={t} />
+    </div>
+  );
+
+  if (open === "basket") return (
+    <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
+      <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
+      <BasketGame theme={t} />
     </div>
   );
 
@@ -527,7 +660,8 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在布置中……</div>
       </div>
     ),
-    tv: <GamePanel theme={t} />,
+    gamepad: <GamePanel theme={t} />,
+    watchtv: <WatchTogether theme={t} />,
   };
 
   function handleClick(id) {
@@ -567,7 +701,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
             >
               {!obj.transparent ? (
                 <>
-                  {{ clock:<WallClock isDay={isDay} c={c}/>, photostring:<PhotoString isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/>, tv:<TVArea isDay={isDay} c={c}/> }[obj.id]}
+                  {{ clock:<WallClock isDay={isDay} c={c}/>, photostring:<PhotoString isDay={isDay} c={c}/>, board:<NoteBoard isDay={isDay} c={c}/>, gamepad:<TVArea isDay={isDay} c={c}/> }[obj.id]}
                 </>
               ) : (
                 <div style={{ position:"relative",
