@@ -146,31 +146,121 @@ function matchRecipe(selected, heatIdx) {
   return null;
 }
 
+const RESTOCK_COST = 3;   // 每份食材 3 公共币
+const RESTOCK_QTY  = 3;   // 每次补 3 份
+
 // 置物架面板（纯仓库，配方收藏册在灶台）
 export function PantryPanel({ theme: t }) {
-  const [qty] = useState(loadQty);
+  const [qty, setQty] = useState(loadQty);
+  const [shopping, setShopping] = useState(false);
+  const [cart, setCart] = useState({});   // { id: count }
+  const [coins, setCoins] = useState(null);
+  const [msg, setMsg] = useState("");
+
+  function openShop() {
+    fetch("/api/coins").then(r => r.json()).then(d => setCoins(d.balance)).catch(() => setCoins(0));
+    setCart({});
+    setShopping(true);
+  }
+
+  function toggleCart(id) {
+    setCart(c => {
+      const next = { ...c };
+      if (next[id]) delete next[id];
+      else next[id] = 1;
+      return next;
+    });
+  }
+
+  const cartIds = Object.keys(cart);
+  const totalCost = cartIds.length * RESTOCK_COST;
+
+  async function confirmRestock() {
+    if (!cartIds.length) return;
+    if (coins !== null && coins < totalCost) { setMsg("金币不够了"); return; }
+    const res = await fetch("/api/coins/spend", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ amount: totalCost, who: "小黎", reason: "厨房补货", note: cartIds.map(id => INGREDIENTS.find(x => x.id === id)?.name).join("、") }),
+    }).then(r => r.json()).catch(() => ({ ok: false }));
+    if (!res.ok) { setMsg(res.error === "insufficient" ? `余额不足（${coins} 币）` : "扣款失败"); return; }
+    const newQty = { ...qty };
+    cartIds.forEach(id => { newQty[id] = (newQty[id] || 0) + RESTOCK_QTY; });
+    saveQty(newQty);
+    setQty(newQty);
+    setCoins(res.balance);
+    setMsg(`✓ 买到了！剩余 ${res.balance} 币`);
+    setCart({});
+    setTimeout(() => { setMsg(""); setShopping(false); }, 1600);
+  }
 
   return (
     <div style={{ padding:"20px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
-      <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>置物架</div>
-      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:18, fontStyle:"italic" }}>进灶台用这里的食材做菜</div>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
+        <div style={{ fontSize:13, fontWeight:600, color:t.text }}>置物架</div>
+        <button onClick={shopping ? () => setShopping(false) : openShop} style={{
+          fontSize:11, padding:"4px 10px", borderRadius:8, cursor:"pointer",
+          border:`1px solid ${shopping ? t.surfaceBorder : "#F4C03066"}`,
+          background: shopping ? t.surface : "#F4C03018",
+          color: shopping ? t.textMuted : "#F4C030",
+        }}>
+          {shopping ? "取消" : "🛒 补货"}
+        </button>
+      </div>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:14, fontStyle:"italic" }}>
+        {shopping ? `每份 ${RESTOCK_COST} 🪙 · 补 ${RESTOCK_QTY} 份` : "进灶台用这里的食材做菜"}
+      </div>
+
       <div style={{ display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center" }}>
         {INGREDIENTS.map(ing => {
           const q = qty[ing.id] ?? 0;
+          const inCart = !!cart[ing.id];
           return (
-            <div key={ing.id} style={{
-              width:60, textAlign:"center",
-              opacity: q === 0 ? 0.4 : 1,
-            }}>
+            <div key={ing.id}
+              onClick={shopping && ing.id !== "water" ? () => toggleCart(ing.id) : undefined}
+              style={{
+                width:60, textAlign:"center", cursor: shopping && ing.id !== "water" ? "pointer" : "default",
+                opacity: q === 0 ? (shopping ? 1 : 0.4) : 1,
+                background: inCart ? "#F4C03022" : "transparent",
+                border: inCart ? "1px solid #F4C03066" : "1px solid transparent",
+                borderRadius: 8, padding:"4px 0",
+                transition:"all .15s",
+              }}>
               <div style={{ fontSize:26 }}>{ing.emoji}</div>
               <div style={{ fontSize:10, color:t.textSub, marginTop:2 }}>{ing.name}</div>
               <div style={{ fontSize:10, color: q === 0 ? "#E87070" : t.textMuted, marginTop:1 }}>
                 {q === 99 ? "∞" : q === 0 ? "缺货" : `×${q}`}
               </div>
+              {inCart && <div style={{ fontSize:9, color:"#F4C030", marginTop:1 }}>已选</div>}
             </div>
           );
         })}
       </div>
+
+      {shopping && (
+        <div style={{ marginTop:16, borderTop:`1px solid ${t.surfaceBorder}`, paddingTop:14 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+            <div style={{ fontSize:11, color:t.textMuted }}>
+              已选 {cartIds.length} 种 · 共 <span style={{ color:"#F4C030", fontWeight:600 }}>{totalCost} 🪙</span>
+              {coins !== null && <span style={{ color:t.textMuted }}> / 余额 {coins}</span>}
+            </div>
+          </div>
+          {msg && <div style={{ fontSize:11, color:"#F4C030", textAlign:"center", marginBottom:8 }}>{msg}</div>}
+          <button
+            onClick={confirmRestock}
+            disabled={!cartIds.length}
+            style={{
+              width:"100%", padding:"10px 0", borderRadius:10, fontSize:13, fontWeight:600,
+              cursor: cartIds.length ? "pointer" : "not-allowed",
+              background: cartIds.length ? "#F4C030" : t.surface,
+              color: cartIds.length ? "#1a1200" : t.textMuted,
+              border:"none",
+            }}
+          >
+            {cartIds.length ? `确认购买 · -${totalCost} 🪙` : "请选择食材"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
