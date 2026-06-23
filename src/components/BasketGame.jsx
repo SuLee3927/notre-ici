@@ -110,12 +110,26 @@ export default function BasketGame({ theme: t }) {
   const [_balance, _setBalance]  = useState(null); // unused, kept for compat
   const [streak,  setStreakUI]  = useState(0);
   const [wind,    setWind]     = useState(0);  // current shot wind (-1~1 normalized)
+  const [tab,     setTab]      = useState("game");
+  const [records, setRecords]  = useState([]);
   const [betAmt,  setBetAmt]   = useState(2);
   const [lastMsg, setLastMsg]  = useState("");
   const [isLee,   setIsLee]    = useState(false);
   const [pubBal,  setPubBal]   = useState(null);
   const [privBal, setPrivBal]  = useState(null);
   const [wallet,  setWallet]   = useState("public");
+
+  const isLeeRef  = useRef(false);
+  const walletRef = useRef("public");
+  const betRef    = useRef(2);
+  useEffect(() => { isLeeRef.current = isLee; }, [isLee]);
+  useEffect(() => { walletRef.current = wallet; }, [wallet]);
+  useEffect(() => { betRef.current = betAmt; }, [betAmt]);
+
+  async function loadRecords() {
+    const d = await fetch("/api/farm/game-records?game=basket&limit=30").then(r => r.json()).catch(() => ({ records: [] }));
+    setRecords(d.records || []);
+  }
 
   const fetchBal = useCallback(async () => {
     try {
@@ -269,25 +283,41 @@ export default function BasketGame({ theme: t }) {
 
   async function resolveResult(scored) {
     const s = g.current;
+    const curBet = betRef.current;
+    const curIsLee = isLeeRef.current;
+    const curWallet = walletRef.current;
+    const who = curIsLee ? "黎" : "游客";
     if (scored) {
       const newStreak = s.streak + 1;
       s.streak = newStreak;
       setStreakUI(newStreak);
-      let earn = betAmt * 3;
-      if (newStreak >= 3) earn = betAmt * 5;
-      else if (newStreak === 2) earn = betAmt * 4;
-      const earnWho = isLee ? "黎" : "游客";
+      let earn = curBet * 3;
+      if (newStreak >= 3) earn = curBet * 5;
+      else if (newStreak === 2) earn = curBet * 4;
       await fetch("/api/coins/earn", {
-        method:"POST",
-        headers:{"content-type":"application/json"},
-        body: JSON.stringify({ amount: earn, who: earnWho, source:"投篮机", note: newStreak >= 2 ? `连${newStreak}` : "" }),
+        method:"POST", headers:{"content-type":"application/json"},
+        body: JSON.stringify({ amount: earn, who, source:"投篮机", note: newStreak >= 2 ? `连${newStreak}` : "" }),
       }).catch(() => {});
-      setLastMsg(newStreak >= 3 ? `🔥 连${newStreak}！+${earn}币` : newStreak === 2 ? `🎯 连两球！+${earn}币` : `✓ 进了！+${earn}币`);
+      const msg = newStreak >= 3 ? `🔥 连${newStreak}！+${earn}币` : newStreak === 2 ? `🎯 连两球！+${earn}币` : `✓ 进了！+${earn}币`;
+      setLastMsg(msg);
+      fetch("/api/farm/game-records", {
+        method:"POST", headers:{"content-type":"application/json"},
+        body: JSON.stringify({
+          game:"basket", who, wallet: curIsLee ? curWallet : null,
+          bet: curBet, result:"win",
+          detail: newStreak >= 2 ? `连${newStreak} +${earn}币` : `+${earn}币`,
+        }),
+      }).catch(() => {});
       fetchBal();
     } else {
-      s.streak = 0;
-      setStreakUI(0);
-      setLastMsg("差一点… 💨");
+      s.streak = 0; setStreakUI(0); setLastMsg("差一点… 💨");
+      fetch("/api/farm/game-records", {
+        method:"POST", headers:{"content-type":"application/json"},
+        body: JSON.stringify({
+          game:"basket", who, wallet: curIsLee ? curWallet : null,
+          bet: curBet, result:"lose", detail:"没进",
+        }),
+      }).catch(() => {});
     }
   }
 
@@ -305,8 +335,48 @@ export default function BasketGame({ theme: t }) {
   const canPlay = phase === "idle" && balance !== null && balance >= betAmt;
   const powerPct = Math.round(power * 100);
 
+  function fmtTime(iso) {
+    const d = new Date(iso);
+    return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  }
+
   return (
     <div style={{ fontFamily:"'Noto Serif SC',serif", userSelect:"none", maxWidth:320, margin:"0 auto" }}>
+
+      {/* Tab */}
+      <div style={{ display:"flex", borderBottom:`1px solid ${t.surfaceBorder}`, marginBottom:12 }}>
+        {[["game","游戏"],["records","游戏记录"]].map(([k, label]) => (
+          <button key={k} onClick={() => { setTab(k); if (k === "records") loadRecords(); }}
+            style={{
+              flex:1, padding:"10px 0", background:"none", border:"none", cursor:"pointer",
+              fontSize:12, fontFamily:"'Noto Serif SC',serif",
+              color: tab === k ? "#C8A040" : t.textMuted,
+              borderBottom: tab === k ? "2px solid #C8A040" : "2px solid transparent",
+            }}>{label}</button>
+        ))}
+      </div>
+
+      {tab === "records" ? (
+        <div style={{ padding:"4px 2px 24px" }}>
+          {records.length === 0 ? (
+            <div style={{ textAlign:"center", fontSize:12, color:t.textMuted, padding:"32px 0" }}>还没有游戏记录</div>
+          ) : records.map((r, i) => (
+            <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+              padding:"10px 4px", borderBottom:`1px solid ${t.surfaceBorder}`, fontSize:12 }}>
+              <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
+                <span>
+                  <span style={{ color: r.result === "win" ? "#C8A040" : t.textMuted }}>{r.result === "win" ? "✦ " : "✗ "}</span>
+                  <span style={{ color: t.text }}>{r.who}</span>
+                  <span style={{ color:t.textMuted, margin:"0 4px" }}>投{r.bet}币</span>
+                  <span style={{ color: r.result === "win" ? "#C8A040" : t.textMuted }}>{r.detail}</span>
+                </span>
+                {r.wallet === "private" && <span style={{ fontSize:10, color:"rgba(200,160,60,0.5)" }}>私密币投入</span>}
+              </div>
+              <span style={{ fontSize:10, color:t.textMuted, whiteSpace:"nowrap", marginLeft:8 }}>{fmtTime(r.t)}</span>
+            </div>
+          ))}
+        </div>
+      ) : (<>
 
       {/* 状态栏 */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
@@ -489,6 +559,7 @@ export default function BasketGame({ theme: t }) {
         {" · "}连中2球得{betAmt * 4}币
         {" · "}连中3球得{betAmt * 5}币
       </div>
+      </>)}
     </div>
   );
 }
