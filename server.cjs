@@ -778,6 +778,11 @@ const COIN_HOST = process.env.COIN_HOST || "129.226.158.222";
 const COIN_PORT = Number(process.env.COIN_PORT || "4322");
 app.use("/api/coins", makeProxy(COIN_HOST, COIN_PORT, "/coins"));
 
+// ── /api/salary → proxy to salary-service VPS server ────────────────────────
+const SALARY_HOST = process.env.SALARY_HOST || "129.226.158.222";
+const SALARY_PORT = Number(process.env.SALARY_PORT || "4323");
+app.use("/api/salary", makeProxy(SALARY_HOST, SALARY_PORT, "/salary"));
+
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import VitalsPanel from "./VitalsPanel";
+import SalaryCard from "./SalaryCard";
 
 const DESIRE_API = "/api/desire/state";
 
@@ -483,6 +484,7 @@ function UnlockPanel({ theme: t, onUnlock }) {
 // ── 家具热点 ──
 // 坐标基于 941×1672 图片百分比
 const FURNITURE = [
+  { id:"wardrobe",  left:"8%",  top:"32%", label:"大衣橱",   w:"clamp(36px,10vw,60px)", h:"clamp(54px,15vw,88px)" },
   { id:"mirror",    left:"88%", top:"30%", label:"镜子",    w:"clamp(28px,7vw,44px)",  h:"clamp(50px,13vw,76px)" },
   { id:"pillow",    left:"57%", top:"19%", label:"枕头",    w:"clamp(50px,14vw,80px)", h:"clamp(18px,5vw,28px)" },
   { id:"nightstand",left:"40%", top:"21%", label:"床头柜",  w:"clamp(32px,9vw,52px)",  h:"clamp(30px,8vw,50px)" },
@@ -515,6 +517,7 @@ export default function Bedroom({ theme: t, mode, onClose }) {
   }
 
   const contentMap = {
+    wardrobe:   locked(<SalaryCard      theme={t} />),
     mirror:     locked(<MirrorPanel     theme={t} />),
     pillow:     locked(<DesirePanel     theme={t} />),
     nightstand: locked(<LettersPanel    theme={t} />),
