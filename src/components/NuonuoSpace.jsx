@@ -731,7 +731,7 @@ export default function NuonuoSpace({ onClose, mode }) {
           transform:"translate(-50%,-50%)",
           zIndex:5, pointerEvents:"none",
         }}>
-          <img src="/nuonuo-sleep.png" alt="糯糯睡觉" style={{width:"clamp(60px,18vw,110px)",height:"auto",opacity:.95}}/>
+          <img src="/nuonuo-sleep.webp" alt="糯糯睡觉" style={{width:"clamp(60px,18vw,110px)",height:"auto",opacity:.95}}/>
         </div>
       )}
 

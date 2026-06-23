@@ -53,9 +53,9 @@ function BedroomBg({ isDay, isDusk }) {
   );
   return (
     <div style={{ position:"absolute", inset:0, background: isDay ? "#b8935a" : "#130f08" }}>
-      {img("/bedroom-bg.png",       "day")}
-      {img("/bedroom-bg-night.png", "night")}
-      {img("/bedroom-bg-dusk.png",  "dusk")}
+      {img("/bedroom-bg.webp",       "day")}
+      {img("/bedroom-bg-night.webp", "night")}
+      {img("/bedroom-bg-dusk.webp",  "dusk")}
     </div>
   );
 }

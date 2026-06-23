@@ -88,23 +88,37 @@ function NuonuoPNG({ size = 76 }) {
   }, []);
 
   const src = walkFrame >= 0
-    ? (walkFrame === 0 ? "/nuonuo-walk1.png" : "/nuonuo-walk2.png")
-    : (blink ? "/nuonuo-blink.png" : "/nuonuo.png");
+    ? (walkFrame === 0 ? "/nuonuo-walk1.webp" : "/nuonuo-walk2.webp")
+    : (blink ? "/nuonuo-blink.webp" : "/nuonuo.webp");
 
   return (
     <img src={src} alt="糯糯" style={{ width: size, height: "auto", display: "block" }} />
   );
 }
 
+// ── 糯糯互动反应（先用本地兜底，有API就走API）──
+const NUONUO_FALLBACK = {
+  greet: ["你好呀！♡","哦哦！你来啦！","嘿嘿～糯糯在这里！"],
+  pat:   ["嘿嘿～舒服","（眯起眼睛）再摸摸～","糯糯喜欢被摸头♡"],
+  pinch: ["哎呀！脸脸！","嘤嘤不要捏啦～","好痛…才怪！嘻嘻"],
+};
+const NUONUO_ACTION_PROMPT = {
+  greet: "（有人跟你打招呼了）",
+  pat:   "（有人摸了摸你的头）",
+  pinch: "（有人捏了你的小脸）",
+};
+
 // ── 糯糯居民 ──
 function NuonuoResident({ theme: t, onEnter }) {
   const state = getNuonuoState();
-  const [hint, setHint] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [reaction, setReaction] = useState(null);
   const [pending, setPending] = useState(() => getPendingToys());
-  const [giftStage, setGiftStage] = useState(null); // null | "confirm" | "done"
+  const [giftStage, setGiftStage] = useState(null);
+  const [clickCount, setClickCount] = useState(0);
+  const clickTimer = useRef(null);
   const hasToys = pending.length > 0;
 
-  // refresh pending: sessionStorage (browser 玩家) + server (笃)
   useEffect(() => {
     async function check() {
       const local = getPendingToys();
@@ -122,31 +136,59 @@ function NuonuoResident({ theme: t, onEnter }) {
     return () => { clearInterval(id); window.removeEventListener("focus", check); };
   }, []);
 
-  if (!state) return null; // 22点后去睡了
+  if (!state) return null;
 
   function onClick() {
-    if (giftStage) return;
-    if (hasToys) {
-      setGiftStage("confirm");
-      return;
-    }
-    if (hint) { onEnter(); return; }
-    setHint(true);
-    setTimeout(() => setHint(false), 1800);
+    if (giftStage || reaction) return;
+    setClickCount(c => c + 1);
+    clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      setClickCount(prev => {
+        if (prev >= 2) { onEnter(); }
+        else { setMenu(m => !m); }
+        return 0;
+      });
+    }, 280);
+  }
+
+  async function doReact(type) {
+    setMenu(false);
+    const fallback = NUONUO_FALLBACK[type];
+    setReaction(fallback[Math.floor(Math.random() * fallback.length)]);
+    try {
+      const r = await fetch("/api/nuonuo/messages/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ author: "访客", text: NUONUO_ACTION_PROMPT[type] }),
+      });
+      const d = await r.json();
+      const msgs = d.messages || [];
+      const last = msgs[msgs.length - 1];
+      const reply = last?.replies?.[last.replies.length - 1];
+      if (reply?.text) setReaction(reply.text.slice(0, 30));
+    } catch {}
+    setTimeout(() => setReaction(null), 3000);
+  }
+
+  function doGiftAction() {
+    if (!hasToys) return;
+    setMenu(false);
+    setGiftStage("confirm");
   }
 
   async function doGift() {
     setGiftStage("done");
     clearPendingToys();
     setPending([]);
-    // 同时清服务端（笃的礼物）
     fetch("/api/farm/gifts", { method: "DELETE" }).catch(() => {});
     setTimeout(() => setGiftStage(null), 2400);
   }
 
+  const menuBg = t.surface || "rgba(255,250,240,0.95)";
+  const menuBorder = t.surfaceBorder || "rgba(180,120,60,0.2)";
+
   return (
     <>
-      {/* 礼物流浮层 */}
       {giftStage && (
         <div style={{
           position:"fixed", inset:0, zIndex:30,
@@ -203,6 +245,10 @@ function NuonuoResident({ theme: t, onEnter }) {
         </div>
       )}
 
+      {menu && (
+        <div style={{ position:"fixed", inset:0, zIndex:28 }} onClick={() => setMenu(false)} />
+      )}
+
       <div onClick={onClick} style={{
         position:"absolute", left:state.left, top:state.top,
         transform:"translate(-50%,-50%)",
@@ -212,9 +258,9 @@ function NuonuoResident({ theme: t, onEnter }) {
         transition:"left 1.2s ease, top 1.2s ease",
       }}>
         <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75 }}>
-          {state.words}
+          {reaction || state.words}
         </div>
-        {hasToys && !hint && (
+        {hasToys && !menu && (
           <div style={{
             position:"absolute", top:-8, right:-8,
             background:"#C8A040", color:"#1A1008",
@@ -227,16 +273,48 @@ function NuonuoResident({ theme: t, onEnter }) {
             {pending.length}
           </div>
         )}
-        {hint && !hasToys && (
-          <div style={{ position:"absolute", bottom:"140%", left:"50%", transform:"translateX(-50%)", background:t.surface, border:`1px solid ${t.surfaceBorder}`, padding:"3px 9px", borderRadius:8, fontSize:11, color:t.text, whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,.1)", backdropFilter:"blur(4px)", animation:"fadeInUp .15s ease", zIndex:9 }}>
-            再点一下进来～
-          </div>
-        )}
-        {hasToys && (
-          <div style={{ position:"absolute", bottom:"140%", left:"50%", transform:"translateX(-50%)", background:"rgba(20,14,6,0.92)", border:"1px solid rgba(200,160,60,0.5)", padding:"4px 10px", borderRadius:8, fontSize:11, color:"#C8A040", whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,.3)", animation:"fadeInUp .15s ease", zIndex:9 }}>
-            有礼物送给我吗 🎁
-          </div>
-        )}
+        {menu && (() => {
+          const items = [
+            { emoji:"👋", label:"打招呼", action:() => doReact("greet") },
+            { emoji:"🤲", label:"摸摸头", action:() => doReact("pat") },
+            { emoji:"🤏", label:"捏小脸", action:() => doReact("pinch") },
+            { emoji:"🎁", label:"送礼物", action:doGiftAction, disabled:!hasToys },
+          ];
+          const radius = 60;
+          const startAngle = -160;
+          const sweep = 140;
+          const step = sweep / (items.length - 1);
+          return items.map((btn, i) => {
+            const angle = (startAngle + step * i) * Math.PI / 180;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            return (
+              <button key={i} onClick={e => { e.stopPropagation(); btn.action(); }}
+                disabled={btn.disabled}
+                style={{
+                  position:"absolute",
+                  left:`calc(50% + ${x}px)`, top:`calc(50% + ${y}px)`,
+                  transform:"translate(-50%,-50%)",
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:1,
+                  padding:"6px", borderRadius:"50%", border:`1px solid ${menuBorder}`,
+                  background:menuBg, cursor:btn.disabled ? "default" : "pointer",
+                  opacity:btn.disabled ? 0.35 : 1,
+                  width:42, height:42,
+                  justifyContent:"center",
+                  boxShadow:"0 2px 8px rgba(0,0,0,0.12)", backdropFilter:"blur(6px)",
+                  zIndex:29,
+                  animation:`fadeInUp .2s ease ${i * 0.04}s both`,
+                  transition:"transform 0.15s",
+                }}
+                onMouseEnter={e => { if(!btn.disabled) e.currentTarget.style.transform = "translate(-50%,-50%) scale(1.15)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "translate(-50%,-50%)"; }}
+              >
+                <span style={{ fontSize:18, lineHeight:1 }}>{btn.emoji}</span>
+                <span style={{ fontSize:7, color:t.textMuted || "#999", lineHeight:1, fontFamily:"'Noto Serif SC',serif" }}>{btn.label}</span>
+              </button>
+            );
+          });
+        })()}
         <NuonuoPNG size={76} />
       </div>
     </>
