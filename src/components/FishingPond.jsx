@@ -39,7 +39,9 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
         body: JSON.stringify({ command, who: "黎" }),
       });
       const d = await r.json();
-      setOutput(d.text || "");
+      let text = d.text || "";
+      text = text.replace(/\n📊 \{.*\}$/m, "");
+      setOutput(text);
       fetchLog();
     } catch (e) {
       setOutput("连接失败：" + e.message);
