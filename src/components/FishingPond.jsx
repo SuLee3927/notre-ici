@@ -41,6 +41,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       const d = await r.json();
       let text = d.text || "";
       text = text.replace(/\n📊 \{.*\}$/m, "");
+      text = text.replace(/💡.*?。\n?/g, "");
       setOutput(text);
       fetchLog();
     } catch (e) {
