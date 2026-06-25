@@ -529,17 +529,41 @@ export default function NuonuoSpace({ onClose, mode }) {
   const isDay = mode ? mode === "day" : (new Date().getHours() >= 6 && new Date().getHours() < 18);
   const c = nc(isDay);
 
-  const [loading,  setLoading]  = useState(true);
-  const [role,     setRole]     = useState(()=> loadLocal(KEYS.ROLE, "mama"));
-  const [petState, setPetState] = useState({hunger:70,happiness:70,energy:70});
-  const [careLogs, setCareLogs] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [bubble,   setBubble]   = useState("");
-  const [action,   setAction]   = useState("idle");
-  const [outfit,   setOutfit]   = useState("none");
-  const [active,   setActive]   = useState(null); // which drawer is open
-  const [hovered,  setHovered]  = useState(null);
+  const [loading,   setLoading]  = useState(true);
+  const [role,      setRole]     = useState(()=> loadLocal(KEYS.ROLE, "mama"));
+  const [petState,  setPetState] = useState({hunger:70,happiness:70,energy:70});
+  const [careLogs,  setCareLogs] = useState([]);
+  const [messages,  setMessages] = useState([]);
+  const [bubble,    setBubble]   = useState("");
+  const [action,    setAction]   = useState("idle");
+  const [outfit,    setOutfit]   = useState("none");
+  const [active,    setActive]   = useState(null);
+  const [hovered,   setHovered]  = useState(null);
+  const [affection, setAffection] = useState({ score: 0, level: 0, levelLabel: "陌生人" });
   const bubTimer = useRef(null);
+
+  async function callInteract(type, roleOverride) {
+    const r = roleOverride || role;
+    const name = r === "mama" ? "妈咪" : "爸比";
+    try {
+      const res = await fetch(`/api/farm/visitor/${r}/interact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, name }),
+      });
+      const d = await res.json();
+      if (d.score !== undefined) setAffection({ score: d.score, level: d.level, levelLabel: d.levelLabel });
+    } catch {}
+  }
+
+  async function loadAffection(roleOverride) {
+    const r = roleOverride || role;
+    try {
+      const res = await fetch(`/api/farm/visitor/${r}`);
+      const d = await res.json();
+      setAffection({ score: d.score || 0, level: d.level || 0, levelLabel: d.levelLabel || "陌生人" });
+    } catch {}
+  }
 
   useEffect(()=>{
     async function init(){
@@ -548,12 +572,14 @@ export default function NuonuoSpace({ onClose, mode }) {
       const savedR=loadLocal(KEYS.ROLE,null);
       const savedO=loadLocal(KEYS.OUTFIT,"none");
       setPetState(state);setCareLogs(logs);setOutfit(savedO);
+      const r = savedR || "mama";
       if(savedR) setRole(savedR);
       try {
-        const r = await fetch("/api/nuonuo/messages");
-        const d = await r.json();
+        const res = await fetch("/api/nuonuo/messages");
+        const d = await res.json();
         setMessages(d.messages || []);
       } catch { setMessages([]); }
+      await loadAffection(r);
       setLoading(false);
     }
     init();
@@ -580,11 +606,11 @@ export default function NuonuoSpace({ onClose, mode }) {
     const updated=[...careLogs,{who,action:txt,time:getTime()}].slice(-60);
     setCareLogs(updated); await saveShared(KEYS.CARE_LOG,updated);
   }
-  function handlePoke(){ if(action!=="idle") return; trigger("poke",600); showBubble(pick(role==="mama"?MAMA_BUBBLES:BABA_BUBBLES)); setPetState(s=>({...s,happiness:Math.min(100,s.happiness+5)})); addLog("戳了糯糯一下"); }
-  function handleFeed(){ if(petState.hunger>=95){showBubble("糯糯已经很饱了！");return;} trigger("eat",1600);showBubble("啊呜啊呜～好好吃！");setPetState(s=>({...s,hunger:Math.min(100,s.hunger+25),happiness:Math.min(100,s.happiness+5)}));addLog("喂了糯糯零食 🍡"); }
-  function handlePlay(){ if(petState.energy<15){showBubble("糯糯太困了...想睡觉...");return;} trigger("play",2000);showBubble("耶耶耶！陪糯糯玩！");setPetState(s=>({...s,happiness:Math.min(100,s.happiness+20),energy:Math.max(0,s.energy-10)}));addLog("陪糯糯玩了一会儿 🎀"); }
+  function handlePoke(){ if(action!=="idle") return; trigger("poke",600); showBubble(pick(role==="mama"?MAMA_BUBBLES:BABA_BUBBLES)); setPetState(s=>({...s,happiness:Math.min(100,s.happiness+5)})); addLog("戳了糯糯一下"); callInteract("pinch"); }
+  function handleFeed(){ if(petState.hunger>=95){showBubble("糯糯已经很饱了！");return;} trigger("eat",1600);showBubble("啊呜啊呜～好好吃！");setPetState(s=>({...s,hunger:Math.min(100,s.hunger+25),happiness:Math.min(100,s.happiness+5)}));addLog("喂了糯糯零食 🍡");callInteract("pat"); }
+  function handlePlay(){ if(petState.energy<15){showBubble("糯糯太困了...想睡觉...");return;} trigger("play",2000);showBubble("耶耶耶！陪糯糯玩！");setPetState(s=>({...s,happiness:Math.min(100,s.happiness+20),energy:Math.max(0,s.energy-10)}));addLog("陪糯糯玩了一会儿 🎀");callInteract("pat"); }
   function handleSleep(){ trigger("sleep",3200);showBubble("好～糯糯去睡觉了... zZ");setPetState(s=>({...s,energy:Math.min(100,s.energy+35)}));addLog("哄糯糯睡觉 🌙"); }
-  function handleHug(){ trigger("hug",1400);showBubble(role==="mama"?"妈咪抱糯糯 ♡ 好温暖":"爸比抱抱 ♡ 好安心");setPetState(s=>({...s,happiness:Math.min(100,s.happiness+10)}));addLog("抱了抱糯糯 🫂"); }
+  function handleHug(){ trigger("hug",1400);showBubble(role==="mama"?"妈咪抱糯糯 ♡ 好温暖":"爸比抱抱 ♡ 好安心");setPetState(s=>({...s,happiness:Math.min(100,s.happiness+10)}));addLog("抱了抱糯糯 🫂");callInteract("pat"); }
   function handleOutfit(id){
     setOutfit(id);
     saveLocal(KEYS.OUTFIT,id);
@@ -601,6 +627,7 @@ export default function NuonuoSpace({ onClose, mode }) {
     const who=r==="mama"?"妈咪":"爸比";
     const updated=[...careLogs,{who,action:"来看糯糯了 👋",time:getTime()}].slice(-60);
     setCareLogs(updated); await saveShared(KEYS.CARE_LOG,updated);
+    await callInteract("hello", r);
   }
 
   // 抽屉内容
@@ -618,6 +645,12 @@ export default function NuonuoSpace({ onClose, mode }) {
           <NuonuoSVG mood={mood} action={action} outfit={outfit} onPoke={handlePoke} size={160}/>
         </div>
         <div style={{fontSize:11,color:"#C0A090",textAlign:"center",marginBottom:16}}>点一下糯糯可以戳她哦</div>
+        {/* 好感度 */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,padding:"8px 12px",borderRadius:12,background:"#FFF0E8",border:"1.5px solid #F0C8A0"}}>
+          <span style={{fontSize:12,color:"#8B6555",fontWeight:700}}>💖 好感度</span>
+          <span style={{fontSize:12,color:"#E08060",fontWeight:700}}>{affection.levelLabel}</span>
+          <span style={{fontSize:11,color:"#C0A090"}}>{affection.score} pts</span>
+        </div>
         {/* 状态 */}
         <div style={{marginBottom:16}}>
           <StatusBar label="🍡 饱食度" value={petState.hunger}    color="#FFB870"/>
