@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import CookingGame, { PantryPanel, loadTrash } from "./CookingGame.jsx";
 import FarmGarden from "./FarmGarden.jsx";
+import FishingPond from "./FishingPond.jsx";
 
 // 垃圾桶：失败菜品回收记录
 function TrashBin({ theme: t }) {
@@ -163,7 +164,8 @@ export default function Kitchen({ theme: t, mode, onClose }) {
     stove:  <CookingGame theme={t} />,
     shelf: <PantryPanel theme={t} />,
     sink: <SinkMurmurs theme={t} />,
-    window: <FarmGarden theme={t} />,
+    window: <FarmGarden theme={t} onOpenPond={() => setActive("pond")} />,
+    pond: <FishingPond theme={t} onBack={() => setActive("window")} onBackKitchen={() => setActive(null)} />,
     trash: <TrashBin theme={t} />,
   };
 

@@ -283,7 +283,7 @@ function SeedPicker({ theme: t, onPick, onClose }) {
   );
 }
 
-export default function FarmGarden({ theme: t }) {
+export default function FarmGarden({ theme: t, onOpenPond }) {
   const [farm, setFarm] = useState(null);
   const [picking, setPicking] = useState(null);
   const [toast, setToast] = useState(null);
@@ -411,6 +411,19 @@ export default function FarmGarden({ theme: t }) {
             theme={t} onCollect={handleCollectAnimal} />
         ))}
       </div>
+
+      {onOpenPond && (
+        <div onClick={onOpenPond} style={{
+          padding:"14px", background:"rgba(80,140,200,0.1)",
+          border:"1.5px solid rgba(80,140,200,0.3)", borderRadius:14,
+          fontSize:12, color:t.text, textAlign:"center", cursor:"pointer",
+          marginBottom:16, transition:"all 0.2s",
+        }}>
+          <div style={{ fontSize:22, marginBottom:4 }}>🎣</div>
+          <div style={{ fontWeight:500 }}>笃之塘</div>
+          <div style={{ fontSize:10, color:t.textMuted, marginTop:2 }}>菜地旁边的池塘 · 去钓鱼</div>
+        </div>
+      )}
 
       <div style={{
         padding:"10px 14px", background:"rgba(180,140,80,0.08)",

@@ -1,0 +1,225 @@
+import { useState, useEffect, useRef } from "react";
+
+const COOKABLE = new Set([
+  "crucian","mud_carp","reed_perch","silver_pike","dusk_eel",
+  "copper_bream","tidal_trout","mangrove_snapper","star_sand_darter",
+  "silver_dace","moonscale_carp",
+]);
+
+export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
+  const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [log, setLog] = useState([]);
+  const [tab, setTab] = useState("fish");
+  const outputRef = useRef(null);
+
+  useEffect(() => {
+    runCmd("status");
+    fetchLog();
+  }, []);
+
+  useEffect(() => {
+    if (outputRef.current) outputRef.current.scrollTop = outputRef.current.scrollHeight;
+  }, [output]);
+
+  async function fetchLog() {
+    try {
+      const r = await fetch("/api/fishing/log");
+      const d = await r.json();
+      setLog(Array.isArray(d) ? d.slice(-30).reverse() : []);
+    } catch {}
+  }
+
+  async function runCmd(command) {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/fishing/cmd", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ command, who: "黎" }),
+      });
+      const d = await r.json();
+      setOutput(d.text || "");
+      fetchLog();
+    } catch (e) {
+      setOutput("连接失败：" + e.message);
+    }
+    setLoading(false);
+  }
+
+  const quickBtns = [
+    { label: "🎣 抛竿", cmd: "cast" },
+    { label: "🎣×5", cmd: "cast 5" },
+    { label: "🎣×10 遇新停", cmd: "cast 10 stop=new" },
+    { label: "📊 状态", cmd: "status" },
+    { label: "🛒 商店", cmd: "shop" },
+    { label: "🎒 渔篓", cmd: "inventory" },
+    { label: "📖 图鉴", cmd: "encyclopedia" },
+    { label: "🗺️ 钓点", cmd: "goto" },
+  ];
+
+  const btnStyle = {
+    padding: "8px 12px",
+    background: t.surface,
+    border: `1.5px solid ${t.surfaceBorder || "rgba(80,140,200,0.3)"}`,
+    borderRadius: 10,
+    fontSize: 11,
+    color: t.text,
+    cursor: "pointer",
+    transition: "all 0.15s",
+    flexShrink: 0,
+  };
+
+  return (
+    <div style={{ padding: "16px 14px 30px", fontFamily: "'Noto Serif SC',serif", position: "relative" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <div onClick={onBack} style={{
+          fontSize: 11, color: t.textMuted, cursor: "pointer", padding: "4px 8px",
+          border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.2)"}`, borderRadius: 8,
+        }}>← 菜园</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: t.text }}>🎣 笃之塘</div>
+        {onBackKitchen ? (
+          <div onClick={onBackKitchen} style={{
+            fontSize: 11, color: t.textMuted, cursor: "pointer", padding: "4px 8px",
+            border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.2)"}`, borderRadius: 8,
+          }}>厨房 →</div>
+        ) : <div style={{ width: 50 }} />}
+      </div>
+
+      <div style={{ fontSize: 10, color: t.textMuted, textAlign: "center", marginBottom: 14, fontStyle: "italic" }}>
+        菜地旁边的一汪池塘，水面偶有涟漪
+      </div>
+
+      <div style={{
+        display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginBottom: 14,
+      }}>
+        {quickBtns.map(b => (
+          <div key={b.cmd} onClick={() => !loading && runCmd(b.cmd)} style={{
+            ...btnStyle, opacity: loading ? 0.5 : 1,
+          }}>{b.label}</div>
+        ))}
+      </div>
+
+      <div ref={outputRef} style={{
+        background: "rgba(20,30,40,0.6)",
+        border: "1px solid rgba(80,140,200,0.2)",
+        borderRadius: 12,
+        padding: "14px 12px",
+        minHeight: 200,
+        maxHeight: 360,
+        overflowY: "auto",
+        fontSize: 12,
+        color: "#e8e0d0",
+        lineHeight: 1.7,
+        whiteSpace: "pre-wrap",
+        fontFamily: "'Noto Serif SC', serif",
+        marginBottom: 14,
+      }}>
+        {loading ? "钓鱼中…" : (output || "加载中…")}
+      </div>
+
+      <CommandInput onSubmit={runCmd} loading={loading} theme={t} />
+
+      <div style={{ display: "flex", gap: 8, marginTop: 16, marginBottom: 8 }}>
+        {[
+          { id: "fish", label: "快捷操作" },
+          { id: "log", label: "钓鱼记录" },
+        ].map(tb => (
+          <div key={tb.id} onClick={() => setTab(tb.id)} style={{
+            flex: 1, textAlign: "center", padding: "6px 0",
+            fontSize: 11, fontWeight: tab === tb.id ? 600 : 400,
+            color: tab === tb.id ? t.text : t.textMuted,
+            borderBottom: tab === tb.id ? `2px solid rgba(80,140,200,0.6)` : "2px solid transparent",
+            cursor: "pointer",
+          }}>{tb.label}</div>
+        ))}
+      </div>
+
+      {tab === "fish" && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
+          {[
+            { label: "买蚯蚓×5", cmd: "buy basic_worm 5" },
+            { label: "买荧光饵×3", cmd: "buy glow_bait 3" },
+            { label: "买氧气瓶", cmd: "buy oxygen" },
+            { label: "🤿 潜水", cmd: "dive" },
+            { label: "💰 全卖", cmd: "sell all" },
+          ].map(b => (
+            <div key={b.cmd} onClick={() => !loading && runCmd(b.cmd)} style={{
+              ...btnStyle, fontSize: 10, padding: "6px 10px", opacity: loading ? 0.5 : 1,
+            }}>{b.label}</div>
+          ))}
+        </div>
+      )}
+
+      {tab === "log" && (
+        <div style={{
+          maxHeight: 180, overflowY: "auto",
+          borderRadius: 10, border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.15)"}`,
+          padding: "6px 10px",
+        }}>
+          {log.length === 0 && <div style={{ fontSize: 11, color: t.textMuted, padding: 8, textAlign: "center" }}>还没有记录</div>}
+          {log.map((entry, i) => (
+            <div key={i} style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "3px 0",
+              borderBottom: i < log.length - 1 ? `1px solid rgba(120,90,30,.08)` : "none",
+            }}>
+              <span style={{ fontSize: 11, color: "rgba(200,170,100,.75)" }}>
+                {entry.who === "笃" ? "🎣" : "🐟"} {entry.who} · {entry.action}
+              </span>
+              <span style={{ fontSize: 9, color: "rgba(140,110,50,.45)", marginLeft: 8, flexShrink: 0 }}>
+                {entry.ts?.slice(5, 16).replace("T", " ")}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+      `}</style>
+    </div>
+  );
+}
+
+function CommandInput({ onSubmit, loading, theme: t }) {
+  const [val, setVal] = useState("");
+
+  function handle(e) {
+    e.preventDefault();
+    if (!val.trim() || loading) return;
+    onSubmit(val.trim());
+    setVal("");
+  }
+
+  return (
+    <form onSubmit={handle} style={{ display: "flex", gap: 8 }}>
+      <input
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        placeholder="输入指令 (cast / buy / goto / sell ...)"
+        style={{
+          flex: 1,
+          padding: "8px 12px",
+          background: t.surface,
+          border: `1.5px solid ${t.surfaceBorder || "rgba(80,140,200,0.3)"}`,
+          borderRadius: 10,
+          fontSize: 11,
+          color: t.text,
+          outline: "none",
+          fontFamily: "'Noto Serif SC',serif",
+        }}
+      />
+      <button type="submit" disabled={loading} style={{
+        padding: "8px 16px",
+        background: "rgba(80,140,200,0.2)",
+        border: `1.5px solid rgba(80,140,200,0.4)`,
+        borderRadius: 10,
+        fontSize: 11,
+        color: t.text,
+        cursor: loading ? "wait" : "pointer",
+        fontFamily: "'Noto Serif SC',serif",
+      }}>执行</button>
+    </form>
+  );
+}
