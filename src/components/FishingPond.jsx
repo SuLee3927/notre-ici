@@ -11,16 +11,26 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
   const [loading, setLoading] = useState(false);
   const [log, setLog] = useState([]);
   const [tab, setTab] = useState("fish");
+  const [discovery, setDiscovery] = useState({});
   const outputRef = useRef(null);
 
   useEffect(() => {
     runCmd("status");
     fetchLog();
+    fetchDiscovery();
   }, []);
 
   useEffect(() => {
     if (outputRef.current) outputRef.current.scrollTop = outputRef.current.scrollHeight;
   }, [output]);
+
+  async function fetchDiscovery() {
+    try {
+      const r = await fetch("/api/fishing/discovery");
+      const d = await r.json();
+      setDiscovery(d || {});
+    } catch {}
+  }
 
   async function fetchLog() {
     try {
@@ -44,6 +54,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       text = text.replace(/💡.*?。\n?/g, "");
       setOutput(text);
       fetchLog();
+      fetchDiscovery();
     } catch (e) {
       setOutput("连接失败：" + e.message);
     }
@@ -127,6 +138,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
         {[
           { id: "fish", label: "快捷操作" },
           { id: "log", label: "钓鱼记录" },
+          { id: "disc", label: "首钓记录" },
         ].map(tb => (
           <div key={tb.id} onClick={() => setTab(tb.id)} style={{
             flex: 1, textAlign: "center", padding: "6px 0",
@@ -161,17 +173,55 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
           padding: "6px 10px",
         }}>
           {log.length === 0 && <div style={{ fontSize: 11, color: t.textMuted, padding: 8, textAlign: "center" }}>还没有记录</div>}
-          {log.map((entry, i) => (
-            <div key={i} style={{
+          {log.map((entry, i) => {
+            const isCast = entry.action?.startsWith("cast") || entry.action?.startsWith("dive");
+            const hasFish = isCast && entry.detail && !entry.detail.startsWith("🎣");
+            return (
+              <div key={i} style={{
+                padding: "4px 0",
+                borderBottom: i < log.length - 1 ? `1px solid rgba(120,90,30,.08)` : "none",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 11, color: "rgba(200,170,100,.75)" }}>
+                    {entry.who === "笃" ? "🎣" : "🐟"} {entry.who} · {entry.action}
+                  </span>
+                  <span style={{ fontSize: 9, color: "rgba(140,110,50,.45)", marginLeft: 8, flexShrink: 0 }}>
+                    {entry.ts?.slice(5, 16).replace("T", " ")}
+                  </span>
+                </div>
+                {hasFish && (
+                  <div style={{ fontSize: 10, color: "rgba(180,160,120,.6)", marginTop: 2, paddingLeft: 18 }}>
+                    {entry.detail}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "disc" && (
+        <div style={{
+          maxHeight: 180, overflowY: "auto",
+          borderRadius: 10, border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.15)"}`,
+          padding: "6px 10px",
+        }}>
+          {Object.keys(discovery).length === 0 && (
+            <div style={{ fontSize: 11, color: t.textMuted, padding: 8, textAlign: "center" }}>
+              还没有首钓记录，去抛竿试试
+            </div>
+          )}
+          {Object.entries(discovery).sort((a, b) => a[1].ts?.localeCompare(b[1].ts)).map(([fish, info], i) => (
+            <div key={fish} style={{
+              padding: "5px 0",
+              borderBottom: i < Object.keys(discovery).length - 1 ? `1px solid rgba(120,90,30,.08)` : "none",
               display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "3px 0",
-              borderBottom: i < log.length - 1 ? `1px solid rgba(120,90,30,.08)` : "none",
             }}>
-              <span style={{ fontSize: 11, color: "rgba(200,170,100,.75)" }}>
-                {entry.who === "笃" ? "🎣" : "🐟"} {entry.who} · {entry.action}
+              <span style={{ fontSize: 11, color: "rgba(200,170,100,.85)" }}>
+                🆕 {fish}
               </span>
-              <span style={{ fontSize: 9, color: "rgba(140,110,50,.45)", marginLeft: 8, flexShrink: 0 }}>
-                {entry.ts?.slice(5, 16).replace("T", " ")}
+              <span style={{ fontSize: 10, color: "rgba(180,160,120,.6)" }}>
+                {info.who === "笃" ? "🎣" : "🐟"} {info.who} · {info.ts?.slice(5, 16).replace("T", " ")}
               </span>
             </div>
           ))}
