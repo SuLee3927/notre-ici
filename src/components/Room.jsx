@@ -171,16 +171,16 @@ function NuonuoResident({ theme: t, onEnter }) {
         const dist = Math.sqrt((target.lx - cur.lx) ** 2 + (target.ty - cur.ty) ** 2);
         const walkDur = Math.max(2500, dist * 55);
 
-        // 先启动走路帧，再下一帧改位置，确保帧动画先渲染
+        // 先渲染走路帧，60ms 后再触发位移
         setWalkFrame(0);
         let f = 0;
         const iv = setInterval(() => { f = (f + 1) % 2; setWalkFrame(f); }, 280);
 
-        requestAnimationFrame(() => {
-          setMoveDur(walkDur);
+        setTimeout(() => {
+          setMoveDur(walkDur - 60);
           setPos(target);
           posRef.current = target;
-        });
+        }, 60);
 
         setTimeout(() => {
           clearInterval(iv);
@@ -340,23 +340,27 @@ function NuonuoResident({ theme: t, onEnter }) {
         filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
         transition: moveDur > 0 ? `left ${moveDur}ms linear, top ${moveDur}ms linear` : "none",
       }}>
-        {(reaction || bubble) ? (
+        {(reaction || bubble || state?.sleepy) && (
           <div style={{
-            position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)",
-            background: t.surface || "rgba(255,248,235,0.95)",
-            border: `1.5px solid ${t.surfaceBorder || "rgba(180,140,80,0.3)"}`,
-            borderRadius:10, padding:"5px 10px", fontSize:11, color: t.text,
-            fontFamily:"'Noto Serif SC',serif",
-            boxShadow:"0 2px 8px rgba(0,0,0,0.15)", maxWidth:140, textAlign:"center", lineHeight:1.5,
+            position:"absolute", bottom:"115%", left:"50%", transform:"translateX(-50%)",
+            background:"rgba(255,252,242,0.88)",
+            borderRadius:14, padding:"6px 11px",
+            fontSize:11, color:"#5a3e1b",
+            fontFamily:"'Noto Serif SC',serif", fontStyle:"italic",
+            boxShadow:"0 2px 10px rgba(120,80,20,0.13)",
+            maxWidth:130, textAlign:"center", lineHeight:1.55,
             whiteSpace:"normal",
+            backdropFilter:"blur(4px)",
           }}>
-            {reaction || bubble}
+            {reaction || bubble || (state?.sleepy ? YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length] : null)}
+            <div style={{
+              position:"absolute", bottom:-7, left:"50%", transform:"translateX(-50%)",
+              width:0, height:0,
+              borderLeft:"6px solid transparent", borderRight:"6px solid transparent",
+              borderTop:"7px solid rgba(255,252,242,0.88)",
+            }} />
           </div>
-        ) : (state?.sleepy ? (
-          <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.6 }}>
-            {YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length]}
-          </div>
-        ) : null)}
+        )}
         {hasToys && !menu && (
           <div style={{
             position:"absolute", top:-8, right:-8,
