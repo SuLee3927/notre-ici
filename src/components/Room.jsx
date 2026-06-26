@@ -343,9 +343,10 @@ function NuonuoResident({ theme: t, onEnter }) {
         {(reaction || bubble) ? (
           <div style={{
             position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)",
-            background:"rgba(255,248,235,0.95)", border:"1.5px solid rgba(180,140,80,0.4)",
-            borderRadius:10, padding:"5px 10px", fontSize:11, color:"#3a2a10",
-            whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif",
+            background: t.surface || "rgba(255,248,235,0.95)",
+            border: `1.5px solid ${t.surfaceBorder || "rgba(180,140,80,0.3)"}`,
+            borderRadius:10, padding:"5px 10px", fontSize:11, color: t.text,
+            fontFamily:"'Noto Serif SC',serif",
             boxShadow:"0 2px 8px rgba(0,0,0,0.15)", maxWidth:140, textAlign:"center", lineHeight:1.5,
             whiteSpace:"normal",
           }}>
