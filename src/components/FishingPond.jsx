@@ -164,9 +164,9 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       {tab === "fish" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {[
-            { name: "普通蚯蚓 ×5", price: "50币", desc: "最朴素的蚯蚓，胜在便宜", cmd: "buy basic_worm 5" },
-            { name: "夜光饵 ×3", price: "105币", desc: "对夜行性鱼类格外有吸引力", cmd: "buy glow_bait 3" },
-            { name: "氧气瓶 ×1", price: "45币", desc: "一瓶可潜水一次，水下有专属鱼", cmd: "buy oxygen" },
+            { name: "普通蚯蚓 ×5", price: "50点", desc: "最朴素的蚯蚓，胜在便宜", cmd: "buy basic_worm 5" },
+            { name: "夜光饵 ×3", price: "105点", desc: "对夜行性鱼类格外有吸引力", cmd: "buy glow_bait 3" },
+            { name: "氧气瓶 ×1", price: "45点", desc: "一瓶可潜水一次，水下有专属鱼", cmd: "buy oxygen" },
           ].map(b => (
             <div key={b.cmd} onClick={() => !loading && runCmd(b.cmd)} style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
