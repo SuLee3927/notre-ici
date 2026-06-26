@@ -948,21 +948,17 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       <RoomBg isDay={isDay} weatherKey={weatherKey} isDusk={isDusk} />
       <RoomDecor />
 
-      {/* 游戏模式：梦境滤镜叠层 */}
-      {gameMode && (
-        <div style={{
-          position:"absolute", inset:0, zIndex:4, pointerEvents:"none",
-          background:"linear-gradient(160deg,rgba(108,92,231,.22) 0%,rgba(26,5,51,.18) 40%,rgba(10,26,58,.15) 100%)",
-          mixBlendMode:"multiply",
-        }} />
-      )}
-      {gameMode && (
-        <div style={{
-          position:"absolute", inset:0, zIndex:4, pointerEvents:"none",
-          backdropFilter:"hue-rotate(30deg) saturate(1.4)",
-          WebkitBackdropFilter:"hue-rotate(30deg) saturate(1.4)",
-        }} />
-      )}
+      {/* 游戏模式：梦境背景图 */}
+      <img
+        src="/dream-room.jpg"
+        alt=""
+        style={{
+          position:"absolute", top:0, left:0, width:"100%", height:"auto",
+          zIndex:2, pointerEvents:"none",
+          opacity: gameMode ? 1 : 0,
+          transition: "opacity 1.5s ease",
+        }}
+      />
 
       {/* 左上 logo */}
       <div style={{ position:"absolute", top:14, left:16, zIndex:10, fontSize:11, color:t.text, opacity:.38, fontFamily:"'Noto Serif SC',serif", letterSpacing:".1em" }}>克 &amp; Lee</div>
