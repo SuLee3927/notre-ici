@@ -133,7 +133,7 @@ export function LivingRoom({ onCollect }) {
             <>
               <div style={{ fontSize:22, letterSpacing:2 }}>🕯️🕯️🕯️</div>
               <div style={{ fontSize:28, marginTop:4 }}>🎂</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,.35)", marginTop:4, fontStyle:"italic" }}>「生日……是几岁来着？」</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,.35)", marginTop:4, fontStyle:"italic" }}>「呀……！是生日蛋糕诶。」</div>
             </>
           )}
         </div>
