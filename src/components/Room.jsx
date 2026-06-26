@@ -42,16 +42,40 @@ function rc(isDay) {
   };
 }
 
-// 糯糯根据小时出现在不同位置，22点后去自己房间睡了
 const YAWN_WORDS = ["呼～好困啊...", "眼睛要闭上了...", "打哈欠～zz", "糯糯要去睡觉了..."];
 function getNuonuoState() {
   const h = new Date().getHours();
-  if (h >= 22 || h < 6)  return null; // 睡着了，不在客厅
-  if (h >= 6  && h < 10) return { left:"20%", top:"60%", words:"早呀 ☀️" };
-  if (h >= 10 && h < 14) return { left:"35%", top:"72%", words:"上午好～" };
-  if (h >= 14 && h < 18) return { left:"50%", top:"68%", words:"今天过得怎么样？" };
-  if (h >= 18 && h < 21) return { left:"75%", top:"62%", words:["快回来呀","这是什么...🤔","进不去嘤","快回来呀"][Math.floor(Date.now()/30000)%4], nearGameBox:true };
-  return { left:"45%", top:"55%", words:YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length], sleepy:true };
+  if (h >= 22 || h < 6) return null;
+  return { sleepy: h >= 21 };
+}
+
+// 室内热点：位置（百分比）+ 触发用的 context 描述
+const HOTSPOTS = [
+  { id:"kitchen",     lx:5,  ty:51, context:"（走到厨房门口，闻到饭菜香气，好奇地张望）" },
+  { id:"gamepad",     lx:82, ty:33, context:"（发现游戏机，伸手想按按钮）" },
+  { id:"sofa",        lx:46, ty:27, context:"（走到沙发旁边，想往上爬）" },
+  { id:"watchtv",     lx:46, ty:38, context:"（站在电视前，歪头看画面）" },
+  { id:"record",      lx:92, ty:79, context:"（走到唱片机旁，听到音乐声）" },
+  { id:"board",       lx:73, ty:51, context:"（发现地板上有个有趣的东西，蹲下来研究）" },
+  { id:"door",        lx:19, ty:14, context:"（走到门口，扒着门框往外看）" },
+  { id:"kitchendoor", lx:6,  ty:35, context:"（走到卧室门口，探头探脑）" },
+];
+
+// 房间内可自由漫游的区域（百分比）
+const ROOM_BOUNDS = { minX:10, maxX:88, minY:30, maxY:82 };
+
+function randomRoomPos() {
+  const lx = ROOM_BOUNDS.minX + Math.random() * (ROOM_BOUNDS.maxX - ROOM_BOUNDS.minX);
+  const ty = ROOM_BOUNDS.minY + Math.random() * (ROOM_BOUNDS.maxY - ROOM_BOUNDS.minY);
+  return { lx, ty };
+}
+
+function nearestHotspot(lx, ty, threshold = 18) {
+  for (const h of HOTSPOTS) {
+    const d = Math.sqrt((lx - h.lx) ** 2 + (ty - h.ty) ** 2);
+    if (d < threshold) return h;
+  }
+  return null;
 }
 
 // ── 糯糯PNG（G老师插画版，眨眼+随机走路动画）──
@@ -86,10 +110,13 @@ function NuonuoResident({ theme: t, onEnter }) {
   const [clickCount, setClickCount] = useState(0);
   const [walkFrame, setWalkFrame] = useState(-1);
   const [blink, setBlink] = useState(false);
-  const [posOffset, setPosOffset] = useState({ dx: 0, dy: 0 });
+  const [pos, setPos] = useState(() => randomRoomPos());
+  const [bubble, setBubble] = useState(null); // 气泡文字
   const clickTimer = useRef(null);
   const blinkTimer = useRef(null);
   const walkTimer = useRef(null);
+  const bubbleTimer = useRef(null);
+  const lastHotspot = useRef(null);
   const hasToys = pending.length > 0;
 
   useEffect(() => {
@@ -101,28 +128,66 @@ function NuonuoResident({ theme: t, onEnter }) {
     }
     scheduleBlink();
 
+    async function triggerHotspot(hotspot) {
+      if (lastHotspot.current === hotspot.id) return; // 同一热点不重复
+      lastHotspot.current = hotspot.id;
+      try {
+        const r = await fetch("/api/nuonuo/messages/send", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ text: hotspot.context, author: "糯糯", context: "" }),
+        });
+        const d = await r.json();
+        // 取最新一条消息的糯糯回复
+        const msgs = d.messages || [];
+        const last = msgs[msgs.length - 1];
+        const reply = last?.replies?.find?.(r => r.author === "糯糯")?.text || last?.text;
+        if (reply) {
+          clearTimeout(bubbleTimer.current);
+          setBubble(reply);
+          bubbleTimer.current = setTimeout(() => { setBubble(null); lastHotspot.current = null; }, 5000);
+        }
+      } catch {}
+    }
+
     function scheduleWalk() {
+      const delay = 7000 + Math.random() * 8000;
       walkTimer.current = setTimeout(() => {
-        // 随机偏移方向（左右各±6%，上下±4%）
-        const dx = (Math.random() - 0.5) * 12;
-        const dy = (Math.random() - 0.5) * 8;
-        setPosOffset({ dx, dy });
+        // 偶尔往热点靠近（30%概率），其余随机
+        let target;
+        if (Math.random() < 0.3) {
+          const h = HOTSPOTS[Math.floor(Math.random() * HOTSPOTS.length)];
+          // 在热点附近落点（±8%），不完全重叠
+          target = {
+            lx: Math.min(ROOM_BOUNDS.maxX, Math.max(ROOM_BOUNDS.minX, h.lx + (Math.random() - 0.5) * 8)),
+            ty: Math.min(ROOM_BOUNDS.maxY, Math.max(ROOM_BOUNDS.minY, h.ty + (Math.random() - 0.5) * 8)),
+          };
+        } else {
+          target = randomRoomPos();
+        }
+        setPos(target);
+
+        // 走路帧动画
         let f = 0;
         setWalkFrame(0);
         const iv = setInterval(() => { f = (f + 1) % 2; setWalkFrame(f); }, 280);
+        const walkDur = 1800 + Math.random() * 800;
         setTimeout(() => {
           clearInterval(iv);
           setWalkFrame(-1);
-          setPosOffset({ dx: 0, dy: 0 }); // 走回原位
+          // 到达后检查热点
+          const hotspot = nearestHotspot(target.lx, target.ty);
+          if (hotspot) triggerHotspot(hotspot);
           scheduleWalk();
-        }, 2200);
-      }, 10000 + Math.random() * 10000);
+        }, walkDur);
+      }, delay);
     }
     scheduleWalk();
 
     return () => {
       clearTimeout(blinkTimer.current);
       clearTimeout(walkTimer.current);
+      clearTimeout(bubbleTimer.current);
     };
   }, []);
 
@@ -258,16 +323,16 @@ function NuonuoResident({ theme: t, onEnter }) {
 
       <div onClick={onClick} style={{
         position:"absolute",
-        left:`calc(${state.left} + ${posOffset.dx}%)`,
-        top:`calc(${state.top} + ${posOffset.dy}%)`,
+        left:`${pos.lx}%`,
+        top:`${pos.ty}%`,
         transform:"translate(-50%,-50%)",
         zIndex:7, cursor:"pointer",
         animation: walkFrame < 0 ? "nnFloat 5s ease-in-out infinite" : "none",
         filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
-        transition:"left 1.2s ease, top 1.2s ease",
+        transition:"left 1.8s ease, top 1.8s ease",
       }}>
-        <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75 }}>
-          {reaction || state.words}
+        <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75, maxWidth:120, textAlign:"center", lineHeight:1.4 }}>
+          {reaction || bubble || (state?.sleepy ? YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length] : null)}
         </div>
         {hasToys && !menu && (
           <div style={{
