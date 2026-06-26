@@ -14,12 +14,17 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
   const [discovery, setDiscovery] = useState({});
   const [catchList, setCatchList] = useState([]);
   const [kitchenMsg, setKitchenMsg] = useState("");
+  const [exchangeCoins, setExchangeCoins] = useState(1);
+  const [exchangePts, setExchangePts] = useState(100);
+  const [exchangeMsg, setExchangeMsg] = useState("");
+  const [leeBal, setLeeBal] = useState(null);
   const outputRef = useRef(null);
 
   useEffect(() => {
     runCmd("status");
     fetchLog();
     fetchDiscovery();
+    fetchLeeBal();
   }, []);
 
   useEffect(() => {
@@ -32,6 +37,48 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       const d = await r.json();
       setDiscovery(d || {});
     } catch {}
+  }
+
+  async function fetchLeeBal() {
+    try {
+      const r = await fetch("/api/salary");
+      const d = await r.json();
+      setLeeBal(d.lee?.balance ?? null);
+    } catch {}
+  }
+
+  async function doExchangeBuy() {
+    setExchangeMsg("");
+    const coins = Math.max(1, Math.floor(exchangeCoins));
+    try {
+      const r = await fetch("/api/fishing/exchange/buy", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ coins, who: "黎" }),
+      });
+      const d = await r.json();
+      if (!d.ok) { setExchangeMsg(`❌ ${d.error || "失败"}`); return; }
+      setExchangeMsg(`✅ 花${d.coins_spent}私密币 → +${d.pts_gained}点（现有${d.pts_now}点）`);
+      fetchLeeBal();
+      runCmd("status");
+    } catch { setExchangeMsg("❌ 连接失败"); }
+  }
+
+  async function doExchangeSell() {
+    setExchangeMsg("");
+    const pts = Math.max(100, Math.floor(exchangePts / 100) * 100);
+    try {
+      const r = await fetch("/api/fishing/exchange/sell", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pts, who: "黎" }),
+      });
+      const d = await r.json();
+      if (!d.ok) { setExchangeMsg(`❌ ${d.error || "失败"}`); return; }
+      setExchangeMsg(`✅ ${d.pts_spent}点 → +${d.coins_gained}私密币（还剩${d.pts_now}点）`);
+      fetchLeeBal();
+      runCmd("status");
+    } catch { setExchangeMsg("❌ 连接失败"); }
   }
 
   async function fetchCatchList() {
@@ -240,6 +287,33 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
                 opacity: loading ? 0.5 : 1,
               }}>{b.label}</div>
             ))}
+          </div>
+
+          <div style={{ marginTop: 14, padding: "12px 14px", background: t.surface, borderRadius: 12, border: `1.5px solid ${t.surfaceBorder || "rgba(80,140,200,0.2)"}` }}>
+            <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
+              <span>💱 点数 ⇄ 私密币</span>
+              {leeBal !== null && <span>私密币余额：{leeBal}</span>}
+            </div>
+            {exchangeMsg && (
+              <div style={{ fontSize: 10, color: exchangeMsg.startsWith("✅") ? "rgba(160,220,130,.9)" : "rgba(220,120,100,.9)", marginBottom: 8, lineHeight: 1.5 }}>
+                {exchangeMsg}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 10, color: t.textMuted, flexShrink: 0 }}>买入</span>
+              <input type="number" min="1" value={exchangeCoins} onChange={e => setExchangeCoins(Number(e.target.value))}
+                style={{ width: 48, padding: "4px 6px", background: "rgba(20,30,40,0.5)", border: `1px solid rgba(80,140,200,0.3)`, borderRadius: 6, fontSize: 11, color: t.text, textAlign: "center" }} />
+              <span style={{ fontSize: 10, color: t.textMuted }}>私密币 → {exchangeCoins * 50}点</span>
+              <div onClick={doExchangeBuy} style={{ marginLeft: "auto", fontSize: 10, padding: "4px 10px", background: "rgba(80,140,200,.15)", border: "1px solid rgba(80,140,200,.3)", borderRadius: 8, cursor: "pointer", color: "rgba(160,200,240,.9)", flexShrink: 0 }}>充值</div>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <span style={{ fontSize: 10, color: t.textMuted, flexShrink: 0 }}>变现</span>
+              <input type="number" min="100" step="100" value={exchangePts} onChange={e => setExchangePts(Number(e.target.value))}
+                style={{ width: 56, padding: "4px 6px", background: "rgba(20,30,40,0.5)", border: `1px solid rgba(80,140,200,0.3)`, borderRadius: 6, fontSize: 11, color: t.text, textAlign: "center" }} />
+              <span style={{ fontSize: 10, color: t.textMuted }}>点 → {Math.floor(exchangePts / 100)}私密币</span>
+              <div onClick={doExchangeSell} style={{ marginLeft: "auto", fontSize: 10, padding: "4px 10px", background: "rgba(180,140,60,.12)", border: "1px solid rgba(180,140,60,.3)", borderRadius: 8, cursor: "pointer", color: "rgba(220,180,100,.9)", flexShrink: 0 }}>变现</div>
+            </div>
+            <div style={{ fontSize: 9, color: "rgba(120,100,60,.5)", marginTop: 8 }}>1私密币=50点｜100点=1私密币</div>
           </div>
         </div>
       )}
