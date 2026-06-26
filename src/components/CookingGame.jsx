@@ -78,13 +78,27 @@ const INGREDIENTS = [
   { id:"bread",   emoji:"🍞", name:"面包" },
   { id:"lettuce", emoji:"🥬", name:"生菜" },
   { id:"sausage", emoji:"🥓", name:"火腿肠" },
-  { id:"lobster", emoji:"🦞", name:"小龙虾" },
+  { id:"lobster",          emoji:"🦞", name:"小龙虾" },
+  // 钓鱼送来的食材（初始0，从渔篓送厨房才有）
+  { id:"crucian",          emoji:"🐟", name:"鲫鱼" },
+  { id:"mud_carp",         emoji:"🐟", name:"泥鲤" },
+  { id:"reed_perch",       emoji:"🐟", name:"芦苇鲈" },
+  { id:"silver_pike",      emoji:"🐟", name:"银梭鱼" },
+  { id:"dusk_eel",         emoji:"🐡", name:"暮色鳗" },
+  { id:"copper_bream",     emoji:"🐟", name:"铜鲂" },
+  { id:"tidal_trout",      emoji:"🐟", name:"潮信鳟" },
+  { id:"mangrove_snapper", emoji:"🐠", name:"红树鲷" },
+  { id:"star_sand_darter", emoji:"🐟", name:"星沙镖鲈" },
+  { id:"silver_dace",      emoji:"🐟", name:"银鲦" },
+  { id:"moonscale_carp",   emoji:"🌙", name:"月鳞鲤" },
 ];
 
 // 食材在置物架上的初始数量（无限用water，其他有限）
 const DEFAULT_QTY = {
   egg:3, tomato:2, rice:4, broccoli:2, garlic:3, pork:2, spring:3, water:99,
   oyster:2, noodle:2, ribs:2, claw:2, beef:2, lamb:2, pasta:2, instant:3, chili:3, bread:2, lettuce:2, sausage:2, lobster:2,
+  crucian:0, mud_carp:0, reed_perch:0, silver_pike:0, dusk_eel:0,
+  copper_bream:0, tidal_trout:0, mangrove_snapper:0, star_sand_darter:0, silver_dace:0, moonscale_carp:0,
 };
 
 // 配方表：ingredients（无序匹配）+ heat(低/中/旺) → 菜名+emoji
@@ -103,7 +117,15 @@ const RECIPES = [
   { ids:["bread","pork","lettuce"],  heat:"中", dish:"汉堡包",        emoji:"🍔" },
   { ids:["pasta","tomato","garlic"], heat:"中", dish:"意大利面",      emoji:"🍝" },
   { ids:["instant","egg","sausage"], heat:"中", dish:"升华方便面",    emoji:"🍜" },
-  { ids:["lobster","chili","spring"],heat:"中", dish:"麻辣小龙虾",    emoji:"🦞" },
+  { ids:["lobster","chili","spring"],    heat:"中", dish:"麻辣小龙虾",    emoji:"🦞" },
+  { ids:["crucian","spring","water"],    heat:"低", dish:"鲫鱼汤",        emoji:"🍲" },
+  { ids:["crucian","tomato"],            heat:"中", dish:"番茄鲫鱼",      emoji:"🍅" },
+  { ids:["reed_perch","garlic"],         heat:"旺", dish:"蒜烤芦苇鲈",   emoji:"🐟" },
+  { ids:["silver_pike","chili"],         heat:"中", dish:"辣炒银梭鱼",   emoji:"🌶️" },
+  { ids:["dusk_eel","spring","garlic"],  heat:"中", dish:"葱烧暮色鳗",   emoji:"🐡" },
+  { ids:["tidal_trout","water"],         heat:"低", dish:"清蒸潮信鳟",   emoji:"🐟" },
+  { ids:["mangrove_snapper","chili","garlic"], heat:"旺", dish:"香辣红树鲷", emoji:"🐠" },
+  { ids:["moonscale_carp","rice","water"], heat:"低", dish:"月鳞鲤粥",   emoji:"🌙" },
 ];
 
 const HEAT_LABELS = ["低火", "中火", "旺火"];
