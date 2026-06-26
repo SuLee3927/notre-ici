@@ -219,7 +219,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
             if (fishLog.length === 0) return <div style={{ fontSize: 11, color: t.textMuted, padding: 8, textAlign: "center" }}>还没有钓鱼记录</div>;
             return fishLog.map((entry, i) => {
               const actionZh = ACTION_ZH[entry.action] || (entry.action?.startsWith("cast") ? "抛竿" : entry.action);
-              const detail = (entry.detail || "").replace(/💡.*$/g, "").trim();
+              const detail = (entry.detail || "").replace(/💡[\s\S]*/g, "").trim();
               const hasFish = detail && !detail.startsWith("🎣");
               return (
                 <div key={i} style={{
