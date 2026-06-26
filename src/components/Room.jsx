@@ -111,12 +111,14 @@ function NuonuoResident({ theme: t, onEnter }) {
   const [walkFrame, setWalkFrame] = useState(-1);
   const [blink, setBlink] = useState(false);
   const [pos, setPos] = useState(() => randomRoomPos());
-  const [bubble, setBubble] = useState(null); // 气泡文字
+  const [moveDur, setMoveDur] = useState(0); // ms，按距离动态设置
+  const [bubble, setBubble] = useState(null);
   const clickTimer = useRef(null);
   const blinkTimer = useRef(null);
   const walkTimer = useRef(null);
   const bubbleTimer = useRef(null);
   const lastHotspot = useRef(null);
+  const posRef = useRef(pos); // 用 ref 在 effect 里读当前位置
   const hasToys = pending.length > 0;
 
   useEffect(() => {
@@ -151,13 +153,11 @@ function NuonuoResident({ theme: t, onEnter }) {
     }
 
     function scheduleWalk() {
-      const delay = 7000 + Math.random() * 8000;
+      const delay = 5000 + Math.random() * 7000;
       walkTimer.current = setTimeout(() => {
-        // 偶尔往热点靠近（30%概率），其余随机
         let target;
         if (Math.random() < 0.3) {
           const h = HOTSPOTS[Math.floor(Math.random() * HOTSPOTS.length)];
-          // 在热点附近落点（±8%），不完全重叠
           target = {
             lx: Math.min(ROOM_BOUNDS.maxX, Math.max(ROOM_BOUNDS.minX, h.lx + (Math.random() - 0.5) * 8)),
             ty: Math.min(ROOM_BOUNDS.maxY, Math.max(ROOM_BOUNDS.minY, h.ty + (Math.random() - 0.5) * 8)),
@@ -165,17 +165,26 @@ function NuonuoResident({ theme: t, onEnter }) {
         } else {
           target = randomRoomPos();
         }
-        setPos(target);
 
-        // 走路帧动画
-        let f = 0;
+        // 按实际距离算时长：每 1% 约 55ms，最短 2.5s
+        const cur = posRef.current;
+        const dist = Math.sqrt((target.lx - cur.lx) ** 2 + (target.ty - cur.ty) ** 2);
+        const walkDur = Math.max(2500, dist * 55);
+
+        // 先启动走路帧，再下一帧改位置，确保帧动画先渲染
         setWalkFrame(0);
+        let f = 0;
         const iv = setInterval(() => { f = (f + 1) % 2; setWalkFrame(f); }, 280);
-        const walkDur = 1800 + Math.random() * 800;
+
+        requestAnimationFrame(() => {
+          setMoveDur(walkDur);
+          setPos(target);
+          posRef.current = target;
+        });
+
         setTimeout(() => {
           clearInterval(iv);
           setWalkFrame(-1);
-          // 到达后检查热点
           const hotspot = nearestHotspot(target.lx, target.ty);
           if (hotspot) triggerHotspot(hotspot);
           scheduleWalk();
@@ -329,7 +338,7 @@ function NuonuoResident({ theme: t, onEnter }) {
         zIndex:7, cursor:"pointer",
         animation: walkFrame < 0 ? "nnFloat 5s ease-in-out infinite" : "none",
         filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
-        transition:"left 1.8s ease, top 1.8s ease",
+        transition: moveDur > 0 ? `left ${moveDur}ms linear, top ${moveDur}ms linear` : "none",
       }}>
         <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75, maxWidth:120, textAlign:"center", lineHeight:1.4 }}>
           {reaction || bubble || (state?.sleepy ? YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length] : null)}
