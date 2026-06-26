@@ -17,7 +17,8 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
   const [exchangeCoins, setExchangeCoins] = useState(1);
   const [exchangePts, setExchangePts] = useState(100);
   const [exchangeMsg, setExchangeMsg] = useState("");
-  const [leeBal, setLeeBal] = useState(null);
+  const [exchangeWho, setExchangeWho] = useState("黎");
+  const [balances, setBalances] = useState({ lee: null, du: null });
   const outputRef = useRef(null);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
     try {
       const r = await fetch("/api/salary");
       const d = await r.json();
-      setLeeBal(d.lee?.balance ?? null);
+      setBalances({ lee: d.lee?.balance ?? null, du: d.du?.balance ?? null });
     } catch {}
   }
 
@@ -54,7 +55,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       const r = await fetch("/api/fishing/exchange/buy", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ coins, who: "黎" }),
+        body: JSON.stringify({ coins, who: exchangeWho }),
       });
       const d = await r.json();
       if (!d.ok) { setExchangeMsg(`❌ ${d.error || "失败"}`); return; }
@@ -71,7 +72,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       const r = await fetch("/api/fishing/exchange/sell", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ pts, who: "黎" }),
+        body: JSON.stringify({ pts, who: exchangeWho }),
       });
       const d = await r.json();
       if (!d.ok) { setExchangeMsg(`❌ ${d.error || "失败"}`); return; }
@@ -290,9 +291,23 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
           </div>
 
           <div style={{ marginTop: 14, padding: "12px 14px", background: t.surface, borderRadius: 12, border: `1.5px solid ${t.surfaceBorder || "rgba(80,140,200,0.2)"}` }}>
-            <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
+            <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span>💱 点数 ⇄ 私密币</span>
-              {leeBal !== null && <span>私密币余额：{leeBal}</span>}
+              <div style={{ display: "flex", gap: 4 }}>
+                {["黎", "笃"].map(w => (
+                  <div key={w} onClick={() => setExchangeWho(w)} style={{
+                    padding: "2px 8px", borderRadius: 6, fontSize: 10, cursor: "pointer",
+                    background: exchangeWho === w ? "rgba(80,140,200,.25)" : "transparent",
+                    border: `1px solid ${exchangeWho === w ? "rgba(80,140,200,.5)" : "rgba(120,100,60,.2)"}`,
+                    color: exchangeWho === w ? "rgba(160,200,240,.9)" : t.textMuted,
+                  }}>{w}</div>
+                ))}
+                {balances[exchangeWho === "黎" ? "lee" : "du"] !== null && (
+                  <span style={{ fontSize: 9, color: t.textMuted, marginLeft: 4, lineHeight: "20px" }}>
+                    {balances[exchangeWho === "黎" ? "lee" : "du"]}币
+                  </span>
+                )}
+              </div>
             </div>
             {exchangeMsg && (
               <div style={{ fontSize: 10, color: exchangeMsg.startsWith("✅") ? "rgba(160,220,130,.9)" : "rgba(220,120,100,.9)", marginBottom: 8, lineHeight: 1.5 }}>
