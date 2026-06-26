@@ -981,6 +981,17 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
           transition: "opacity 1.5s ease",
         }}
       />
+      {/* 游戏模式：梦境背景图（糯糯房间） */}
+      <img
+        src="/dream-nono.jpg"
+        alt=""
+        style={{
+          position:"absolute", top:0, left:0, width:"100%", height:"auto",
+          zIndex:2, pointerEvents:"none",
+          opacity: gameMode && active === "nono" ? 1 : 0,
+          transition: "opacity 1.5s ease",
+        }}
+      />
 
       {/* 左上 logo */}
       <div style={{ position:"absolute", top:14, left:16, zIndex:10, fontSize:11, color:t.text, opacity:.38, fontFamily:"'Noto Serif SC',serif", letterSpacing:".1em" }}>克 &amp; Lee</div>
