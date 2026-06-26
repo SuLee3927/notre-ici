@@ -151,18 +151,45 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       </div>
 
       {tab === "fish" && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {[
-            { label: "买蚯蚓×5", cmd: "buy basic_worm 5" },
-            { label: "买荧光饵×3", cmd: "buy glow_bait 3" },
-            { label: "买氧气瓶", cmd: "buy oxygen" },
-            { label: "🤿 潜水", cmd: "dive" },
-            { label: "💰 全卖", cmd: "sell all" },
+            { name: "普通蚯蚓 ×5", price: "50币", desc: "最朴素的蚯蚓，胜在便宜", cmd: "buy basic_worm 5" },
+            { name: "夜光饵 ×3", price: "105币", desc: "对夜行性鱼类格外有吸引力", cmd: "buy glow_bait 3" },
+            { name: "氧气瓶 ×1", price: "45币", desc: "一瓶可潜水一次，水下有专属鱼", cmd: "buy oxygen" },
           ].map(b => (
             <div key={b.cmd} onClick={() => !loading && runCmd(b.cmd)} style={{
-              ...btnStyle, fontSize: 10, padding: "6px 10px", opacity: loading ? 0.5 : 1,
-            }}>{b.label}</div>
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "10px 14px",
+              background: t.surface,
+              border: `1.5px solid ${t.surfaceBorder || "rgba(80,140,200,0.3)"}`,
+              borderRadius: 12,
+              cursor: loading ? "default" : "pointer",
+              opacity: loading ? 0.5 : 1,
+              transition: "all 0.15s",
+            }}>
+              <div>
+                <div style={{ fontSize: 12, color: t.text, fontWeight: 500 }}>{b.name}</div>
+                <div style={{ fontSize: 10, color: t.textMuted, marginTop: 2 }}>{b.desc}</div>
+              </div>
+              <div style={{
+                fontSize: 11, color: "rgba(200,170,100,.85)",
+                background: "rgba(200,170,100,.1)",
+                border: "1px solid rgba(200,170,100,.2)",
+                borderRadius: 8, padding: "3px 8px", flexShrink: 0,
+              }}>{b.price}</div>
+            </div>
           ))}
+          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+            {[
+              { label: "🤿 潜水", cmd: "dive" },
+              { label: "💰 全部卖出", cmd: "sell all" },
+            ].map(b => (
+              <div key={b.cmd} onClick={() => !loading && runCmd(b.cmd)} style={{
+                ...btnStyle, flex: 1, textAlign: "center", fontSize: 11, padding: "8px",
+                opacity: loading ? 0.5 : 1,
+              }}>{b.label}</div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -172,31 +199,39 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
           borderRadius: 10, border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.15)"}`,
           padding: "6px 10px",
         }}>
-          {log.length === 0 && <div style={{ fontSize: 11, color: t.textMuted, padding: 8, textAlign: "center" }}>还没有记录</div>}
-          {log.map((entry, i) => {
-            const isCast = entry.action?.startsWith("cast") || entry.action?.startsWith("dive");
-            const hasFish = isCast && entry.detail && !entry.detail.startsWith("🎣");
-            return (
-              <div key={i} style={{
-                padding: "4px 0",
-                borderBottom: i < log.length - 1 ? `1px solid rgba(120,90,30,.08)` : "none",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 11, color: "rgba(200,170,100,.75)" }}>
-                    {entry.who === "笃" ? "🎣" : "🐟"} {entry.who} · {entry.action}
-                  </span>
-                  <span style={{ fontSize: 9, color: "rgba(140,110,50,.45)", marginLeft: 8, flexShrink: 0 }}>
-                    {entry.ts?.slice(5, 16).replace("T", " ")}
-                  </span>
-                </div>
-                {hasFish && (
-                  <div style={{ fontSize: 10, color: "rgba(180,160,120,.6)", marginTop: 2, paddingLeft: 18 }}>
-                    {entry.detail}
+          {(() => {
+            const ACTION_ZH = { cast: "抛竿", "cast 5": "抛竿×5", "cast 10 stop=new": "抛竿×10", dive: "潜水", c: "抛竿" };
+            const fishLog = log.filter(e => {
+              const a = (e.action || "").toLowerCase();
+              return a.startsWith("cast") || a.startsWith("dive") || a === "c";
+            });
+            if (fishLog.length === 0) return <div style={{ fontSize: 11, color: t.textMuted, padding: 8, textAlign: "center" }}>还没有钓鱼记录</div>;
+            return fishLog.map((entry, i) => {
+              const actionZh = ACTION_ZH[entry.action] || (entry.action?.startsWith("cast") ? "抛竿" : entry.action);
+              const detail = (entry.detail || "").replace(/💡.*$/g, "").trim();
+              const hasFish = detail && !detail.startsWith("🎣");
+              return (
+                <div key={i} style={{
+                  padding: "4px 0",
+                  borderBottom: i < fishLog.length - 1 ? `1px solid rgba(120,90,30,.08)` : "none",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 11, color: "rgba(200,170,100,.75)" }}>
+                      {entry.who === "笃" ? "🎣" : "🐟"} {entry.who} · {actionZh}
+                    </span>
+                    <span style={{ fontSize: 9, color: "rgba(140,110,50,.45)", marginLeft: 8, flexShrink: 0 }}>
+                      {entry.ts?.slice(5, 16).replace("T", " ")}
+                    </span>
                   </div>
-                )}
-              </div>
-            );
-          })}
+                  {hasFish && (
+                    <div style={{ fontSize: 10, color: "rgba(180,160,120,.6)", marginTop: 2, paddingLeft: 18 }}>
+                      {detail}
+                    </div>
+                  )}
+                </div>
+              );
+            });
+          })()}
         </div>
       )}
 
