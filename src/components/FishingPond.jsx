@@ -12,6 +12,8 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
   const [log, setLog] = useState([]);
   const [tab, setTab] = useState("fish");
   const [discovery, setDiscovery] = useState({});
+  const [catchList, setCatchList] = useState([]);
+  const [kitchenMsg, setKitchenMsg] = useState("");
   const outputRef = useRef(null);
 
   useEffect(() => {
@@ -30,6 +32,41 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       const d = await r.json();
       setDiscovery(d || {});
     } catch {}
+  }
+
+  async function fetchCatchList() {
+    try {
+      const r = await fetch("/api/fishing/catch-list");
+      const d = await r.json();
+      setCatchList(d.items || []);
+    } catch {}
+  }
+
+  async function sendToKitchen(instance_id, name) {
+    setKitchenMsg("");
+    try {
+      const r = await fetch("/api/fishing/to-kitchen", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ instance_id, who: "黎" }),
+      });
+      const d = await r.json();
+      if (!d.ok) {
+        setKitchenMsg(`❌ ${d.error || "失败"}`);
+        return;
+      }
+      // 更新 localStorage kitchen_qty
+      try {
+        const stored = JSON.parse(localStorage.getItem("kitchen_qty") || "{}");
+        const key = d.fish_id;
+        stored[key] = (stored[key] || 0) + 1;
+        localStorage.setItem("kitchen_qty", JSON.stringify(stored));
+      } catch {}
+      setKitchenMsg(`✅ ${name} 已送到厨房`);
+      fetchCatchList();
+    } catch {
+      setKitchenMsg("❌ 连接失败");
+    }
   }
 
   async function fetchLog() {
@@ -78,7 +115,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
     { label: "🎣×10 遇新停", cmd: "cast 10 stop=new" },
     { label: "📊 状态", cmd: "status" },
     { label: "🛒 商店", cmd: "shop" },
-    { label: "🎒 渔篓", cmd: "inventory" },
+    { label: "🎒 渔篓", tab: "bag" },
     { label: "📖 图鉴", cmd: "encyclopedia" },
     { label: "🗺️ 钓点", cmd: "goto" },
   ];
@@ -119,9 +156,11 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
         display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginBottom: 14,
       }}>
         {quickBtns.map(b => (
-          <div key={b.cmd} onClick={() => !loading && runCmd(b.cmd)} style={{
-            ...btnStyle, opacity: loading ? 0.5 : 1,
-          }}>{b.label}</div>
+          <div key={b.label} onClick={() => {
+            if (loading) return;
+            if (b.tab) { setTab(b.tab); if (b.tab === "bag") fetchCatchList(); }
+            else runCmd(b.cmd);
+          }} style={{ ...btnStyle, opacity: loading ? 0.5 : 1 }}>{b.label}</div>
         ))}
       </div>
 
@@ -148,6 +187,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       <div style={{ display: "flex", gap: 8, marginTop: 16, marginBottom: 8 }}>
         {[
           { id: "fish", label: "快捷操作" },
+          { id: "bag", label: "🎒 渔篓" },
           { id: "log", label: "钓鱼记录" },
           { id: "disc", label: "首钓记录" },
         ].map(tb => (
@@ -243,6 +283,49 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
               );
             });
           })()}
+        </div>
+      )}
+
+      {tab === "bag" && (
+        <div style={{
+          borderRadius: 10, border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.15)"}`,
+          padding: "8px 10px",
+        }}>
+          {kitchenMsg && (
+            <div style={{ fontSize: 11, color: "rgba(180,220,160,.9)", padding: "4px 0 6px", textAlign: "center" }}>
+              {kitchenMsg}
+            </div>
+          )}
+          {catchList.length === 0 ? (
+            <div style={{ fontSize: 11, color: t.textMuted, padding: 8, textAlign: "center" }}>渔篓是空的</div>
+          ) : (
+            catchList.map((item, i) => {
+              const cookable = COOKABLE.has(item.fish_id);
+              return (
+                <div key={item.instance_id} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "6px 2px",
+                  borderBottom: i < catchList.length - 1 ? `1px solid rgba(120,90,30,.08)` : "none",
+                }}>
+                  <div>
+                    <span style={{ fontSize: 12, color: t.text }}>{item.name}</span>
+                    <span style={{ fontSize: 10, color: t.textMuted, marginLeft: 6 }}>
+                      {item.size}cm · {item.value}点
+                    </span>
+                  </div>
+                  {cookable && (
+                    <div onClick={() => sendToKitchen(item.instance_id, item.name)} style={{
+                      fontSize: 10, padding: "3px 8px",
+                      background: "rgba(180,220,120,.12)",
+                      border: "1px solid rgba(180,220,120,.3)",
+                      borderRadius: 8, cursor: "pointer", flexShrink: 0,
+                      color: "rgba(180,220,120,.9)",
+                    }}>送厨房🍳</div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       )}
 
