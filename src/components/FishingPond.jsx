@@ -19,6 +19,10 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
   const [exchangeMsg, setExchangeMsg] = useState("");
   const [exchangeWho, setExchangeWho] = useState("黎");
   const [balances, setBalances] = useState({ lee: null, du: null });
+  const [bottleOpen, setBottleOpen] = useState(false);
+  const [bottleText, setBottleText] = useState("");
+  const [bottleWho, setBottleWho] = useState("黎");
+  const [bottleMsg, setBottleMsg] = useState("");
   const outputRef = useRef(null);
 
   useEffect(() => {
@@ -157,6 +161,28 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
     setLoading(false);
   }
 
+  async function sendBottle() {
+    if (!bottleText.trim()) return;
+    setBottleMsg("");
+    try {
+      const r = await fetch("/api/fishing/bottle/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: bottleText.trim(), author: bottleWho === "笃" ? "笃" : "黎" }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        setBottleMsg(`投进去了 🫙 池塘里现在有 ${d.total} 封纸条`);
+        setBottleText("");
+        setTimeout(() => setBottleOpen(false), 1800);
+      } else {
+        setBottleMsg(d.error || "投瓶失败");
+      }
+    } catch (e) {
+      setBottleMsg("网络错误：" + e.message);
+    }
+  }
+
   const quickBtns = [
     { label: "🎣 抛竿", cmd: "cast" },
     { label: "🎣×5", cmd: "cast 5" },
@@ -166,6 +192,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
     { label: "🎒 渔篓", tab: "bag" },
     { label: "📖 图鉴", cmd: "encyclopedia" },
     { label: "🗺️ 钓点", cmd: "goto" },
+    { label: "🫙 投瓶", action: () => setBottleOpen(v => !v) },
   ];
 
   const btnStyle = {
@@ -205,10 +232,11 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
       }}>
         {quickBtns.map(b => (
           <div key={b.label} onClick={() => {
+            if (b.action) { b.action(); return; }
             if (loading) return;
             if (b.tab) { setTab(b.tab); if (b.tab === "bag") fetchCatchList(); }
             else runCmd(b.cmd);
-          }} style={{ ...btnStyle, opacity: loading ? 0.5 : 1 }}>{b.label}</div>
+          }} style={{ ...btnStyle, opacity: (loading && !b.action) ? 0.5 : 1 }}>{b.label}</div>
         ))}
       </div>
 
@@ -443,6 +471,61 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
               </span>
             </div>
           ))}
+        </div>
+      )}
+
+      {bottleOpen && (
+        <div style={{
+          margin: "10px 0",
+          background: t.surface,
+          border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.2)"}`,
+          borderRadius: 12,
+          padding: "12px 14px",
+          animation: "fadeIn .2s",
+        }}>
+          <div style={{ fontSize: 12, color: t.text, marginBottom: 8, fontWeight: 600 }}>🫙 投一张纸条进池塘</div>
+          <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 8, fontStyle: "italic" }}>
+            钓鱼时偶尔会被人捞到，和内置的纸条混在一起随机出现
+          </div>
+          <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+            {["黎", "笃"].map(w => (
+              <div key={w} onClick={() => setBottleWho(w)} style={{
+                padding: "4px 12px", borderRadius: 8, fontSize: 11, cursor: "pointer",
+                background: bottleWho === w ? "rgba(80,140,200,0.25)" : "transparent",
+                border: `1px solid ${bottleWho === w ? "rgba(80,140,200,0.5)" : t.surfaceBorder || "rgba(140,120,80,0.2)"}`,
+                color: t.text,
+              }}>{w}</div>
+            ))}
+          </div>
+          <textarea
+            value={bottleText}
+            onChange={e => setBottleText(e.target.value)}
+            placeholder="写点什么塞进去…（最多200字）"
+            maxLength={200}
+            rows={3}
+            style={{
+              width: "100%", boxSizing: "border-box",
+              background: "rgba(0,0,0,0.15)",
+              border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.2)"}`,
+              borderRadius: 8, padding: "8px 10px",
+              fontSize: 11, color: t.text, resize: "none", outline: "none",
+              fontFamily: "'Noto Serif SC',serif", lineHeight: 1.6,
+            }}
+          />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+            <div style={{ fontSize: 10, color: t.textMuted }}>{bottleText.length}/200</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <div onClick={() => { setBottleOpen(false); setBottleMsg(""); }} style={{
+                padding: "5px 14px", borderRadius: 8, fontSize: 11, cursor: "pointer",
+                border: `1px solid ${t.surfaceBorder || "rgba(140,120,80,0.2)"}`, color: t.textMuted,
+              }}>取消</div>
+              <div onClick={sendBottle} style={{
+                padding: "5px 14px", borderRadius: 8, fontSize: 11, cursor: "pointer",
+                background: "rgba(80,140,200,0.2)", border: "1px solid rgba(80,140,200,0.4)", color: t.text,
+              }}>投进去</div>
+            </div>
+          </div>
+          {bottleMsg && <div style={{ fontSize: 11, color: "rgba(120,180,120,0.9)", marginTop: 6 }}>{bottleMsg}</div>}
         </div>
       )}
 
