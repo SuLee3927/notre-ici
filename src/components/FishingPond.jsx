@@ -40,6 +40,19 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
     } catch {}
   }
 
+  function cleanFishText(text, command) {
+    text = text.replace(/\n?📊 \{.*\}$/m, "");
+    text = text.replace(/💡[^。\n]*。?\n?/g, "");
+    const cmd = (command || "").trim().split(" ")[0].toLowerCase();
+    if (cmd === "shop") {
+      text = text.replace(/^【商店】（buy <id> \[数量\]）/m, "【商店】（购买：buy 商品ID 数量）");
+      text = text.replace(/^([a-z_]+)　/gm, "");
+      text = text.replace(/\bdive\b/g, "潜水(dive)");
+      text = text.replace(/\blook\b/g, "查看(look)");
+    }
+    return text;
+  }
+
   async function runCmd(command) {
     setLoading(true);
     try {
@@ -49,9 +62,7 @@ export default function FishingPond({ theme: t, onBack, onBackKitchen }) {
         body: JSON.stringify({ command, who: "黎" }),
       });
       const d = await r.json();
-      let text = d.text || "";
-      text = text.replace(/\n📊 \{.*\}$/m, "");
-      text = text.replace(/💡.*?。\n?/g, "");
+      let text = cleanFishText(d.text || "", command);
       setOutput(text);
       fetchLog();
       fetchDiscovery();
