@@ -10,7 +10,7 @@ import Billiards from "./Billiards.jsx";
 import BasketGame from "./BasketGame.jsx";
 import WatchTogether from "./WatchTogether.jsx";
 import CraneGame, { getPendingToys, clearPendingToys } from "./CraneGame.jsx";
-import NoonoDream from "./NoonoDream.jsx";
+import NoonoDream, { LivingRoom, BedroomRoom, KitchenRoom, NonoRoom, StudyLock, StudyEnding } from "./NoonoDream.jsx";
 
 const WALL_H = 28;
 
@@ -822,6 +822,30 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
   const [active, setActive] = useState(null);
   const [hovered, setHovered] = useState(null);
   const [dreamOpen, setDreamOpen] = useState(false);
+  // ── 游戏模式 ──
+  const [gameMode, setGameMode] = useState(false);
+  const [gameToast, setGameToast] = useState(false);   // 3s 入场提示
+  const [gameDigits, setGameDigits] = useState([null, null, null, null]);
+  const [gameStudyUnlocked, setGameStudyUnlocked] = useState(false);
+
+  const allFound = gameDigits.every(v => v != null);
+
+  function enterGameMode() {
+    if (gameMode) { setActive("gameStatus"); return; }
+    setGameToast(true);
+    setTimeout(() => { setGameToast(false); setGameMode(true); }, 3000);
+  }
+
+  function collectGameDigit(slot, digit) {
+    setGameDigits(prev => { const n=[...prev]; n[slot]=digit; return n; });
+  }
+
+  function exitGameMode() {
+    setGameMode(false);
+    setGameDigits([null,null,null,null]);
+    setGameStudyUnlocked(false);
+    setActive(null);
+  }
   const [weatherKey, setWeatherKey] = useState(null); // null=sunny; "cloudy"/"rain"/"rain-light" from API (TODO)
   const isDay = mode === "day";
   const hour = new Date().getHours();
@@ -832,6 +856,16 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
   const quote = getTodayQuote();
   const today = new Date();
   const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,"0")}.${String(today.getDate()).padStart(2,"0")}`;
+
+  // 游戏模式下的书房面板
+  const StudyGamePanel = (
+    <div style={{ fontFamily:"'Noto Serif SC',serif" }}>
+      {!gameStudyUnlocked
+        ? <StudyLock found={gameDigits} onUnlock={() => setGameStudyUnlocked(true)} />
+        : <StudyEnding onEnd={exitGameMode} />
+      }
+    </div>
+  );
 
   const contentMap = {
     clock: (
@@ -846,31 +880,66 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     ),
     photostring: <Timeline theme={t} />,
     board:    <GiftBoard theme={t} />,
-    sofa:     <StatusToday theme={t} />,
-    kitchendoor: (
+    sofa:     gameMode ? <LivingRoom  onCollect={(s,d)=>collectGameDigit(s,d)} /> : <StatusToday theme={t} />,
+    kitchendoor: gameMode ? <BedroomRoom onCollect={(s,d)=>collectGameDigit(s,d)} /> : (
       <div style={{ padding:"32px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
         <div style={{ fontSize:36, marginBottom:14 }}>🛏️</div>
         <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>卧室</div>
         <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在布置中……</div>
       </div>
     ),
-    kitchen: (
+    kitchen: gameMode ? <KitchenRoom onCollect={(s,d)=>collectGameDigit(s,d)} /> : (
       <div style={{ padding:"32px 24px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
         <div style={{ fontSize:36, marginBottom:14 }}>🍳</div>
         <div style={{ fontSize:14, fontWeight:600, color:t.text, marginBottom:8 }}>厨房</div>
         <div style={{ fontSize:12, color:t.textMuted, lineHeight:2 }}>正在布置中……</div>
       </div>
     ),
+    nono:    gameMode ? <NonoRoom onCollect={(s,d)=>collectGameDigit(s,d)} /> : null,
+    study:   gameMode ? StudyGamePanel : null,
+    gameStatus: gameMode ? (
+      <div style={{ padding:"24px 16px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
+        <div style={{ fontSize:13, color:t.textMuted, marginBottom:12 }}>🌙 梦境模式进行中</div>
+        <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:16 }}>
+          {gameDigits.map((d,i) => (
+            <div key={i} style={{
+              width:36, height:36, borderRadius:8,
+              background: d!=null ? "#ffd700" : t.surface,
+              border: `1.5px solid ${d!=null ? "#ffd700" : t.surfaceBorder}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:18, fontWeight:"bold", color:"#333",
+            }}>{d ?? "✦"}</div>
+          ))}
+        </div>
+        <div style={{ fontSize:12, color:t.textMuted, marginBottom:16 }}>
+          找到的数字 {gameDigits.filter(v=>v!=null).length} / 4
+        </div>
+        <button onClick={exitGameMode} style={{
+          background:"none", border:`1px solid ${t.surfaceBorder}`, borderRadius:20,
+          padding:"8px 20px", fontSize:12, color:t.textMuted, cursor:"pointer",
+        }}>退出游戏</button>
+      </div>
+    ) : null,
     gamepad: <GamePanel theme={t} />,
     watchtv: <WatchTogether theme={t} />,
   };
 
   function handleClick(id) {
-    if (id === "door")        { onEnterPrivate(); return; }
-    if (id === "kitchendoor") { onEnterBedroom(); return; }
-    if (id === "kitchen")     { onEnterKitchen(); return; }
+    if (id === "mat")         { enterGameMode(); return; }
     if (id === "record")      { setBgmOn(!bgmOn); return; }
-    if (id === "mat")         { setDreamOpen(true); return; }
+    if (gameMode) {
+      if (id === "door") {
+        if (allFound) { setActive("study"); }
+        else { setActive("gameStatus"); }
+        return;
+      }
+      if (id === "kitchendoor") { setActive("kitchendoor"); return; }
+      if (id === "kitchen")     { setActive("kitchen"); return; }
+    } else {
+      if (id === "door")        { onEnterPrivate(); return; }
+      if (id === "kitchendoor") { onEnterBedroom(); return; }
+      if (id === "kitchen")     { onEnterKitchen(); return; }
+    }
     setActive(id);
   }
 
@@ -885,7 +954,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       <div style={{ position:"absolute", bottom:12, right:14, zIndex:10, fontSize:12, opacity:.4 }}>{isDay?"☀️":"🌙"}</div>
 
       {/* 糯糯 */}
-      <NuonuoResident theme={t} onEnter={onEnterNuonuo} />
+      <NuonuoResident theme={t} onEnter={gameMode ? () => setActive("nono") : onEnterNuonuo} />
 
       {/* 图片对齐层：与图片完全重合，内部坐标 = 图片内百分比，不受屏幕高度影响 */}
       {/* 图片比例 941:1672，paddingBottom = 1672/941 = 177.7% */}
@@ -922,8 +991,84 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         </div>
       </div>
 
-      {/* 梦境大冒险 */}
+      {/* 梦境大冒险（旧独立全屏，保留备用） */}
       {dreamOpen && <NoonoDream onClose={() => setDreamOpen(false)} />}
+
+      {/* 游戏模式：3秒入场提示 */}
+      {gameToast && (
+        <div style={{
+          position:"fixed", inset:0, zIndex:80, display:"flex",
+          alignItems:"center", justifyContent:"center",
+          background:"rgba(0,0,0,.55)", animation:"fadeIn .3s ease",
+          pointerEvents:"none",
+        }}>
+          <div style={{
+            textAlign:"center", padding:"28px 36px",
+            background:"linear-gradient(160deg,#1a0533dd,#0d1a3add)",
+            borderRadius:20, border:"1px solid rgba(162,155,254,.4)",
+            boxShadow:"0 8px 40px rgba(108,92,231,.4)",
+          }}>
+            <div style={{ fontSize:40, marginBottom:10 }}>✨</div>
+            <div style={{ color:"#ffd700", fontSize:20, fontFamily:"'Noto Serif SC',serif", marginBottom:6 }}>
+              糯糯的梦境大冒险
+            </div>
+            <div style={{ color:"rgba(255,255,255,.75)", fontSize:13, lineHeight:1.7 }}>
+              书房的门在梦里迷路啦。<br/>帮糯糯找到四个数字，送它回家好不好？
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 游戏模式：浮动 HUD */}
+      {gameMode && (
+        <div style={{
+          position:"fixed", top:0, left:0, right:0, zIndex:30,
+          background:"linear-gradient(180deg,rgba(10,5,30,.85) 0%,transparent 100%)",
+          padding:"8px 16px 14px", display:"flex", alignItems:"center", gap:8,
+        }}>
+          <div style={{ fontSize:11, color:"rgba(162,155,254,.9)", marginRight:4 }}>🌙</div>
+          {gameDigits.map((d,i) => (
+            <div key={i} style={{
+              width:28, height:28, borderRadius:6,
+              background: d!=null ? "#ffd700" : "rgba(255,255,255,.12)",
+              border: `1.5px solid ${d!=null ? "#ffd700" : "rgba(255,255,255,.25)"}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:14, fontWeight:"bold", color:"#333",
+              transition:"all .3s",
+            }}>{d ?? ""}</div>
+          ))}
+          <div style={{ flex:1 }} />
+          <button onClick={() => setActive("gameStatus")} style={{
+            background:"none", border:"none", color:"rgba(255,255,255,.35)",
+            fontSize:11, cursor:"pointer", padding:"2px 6px",
+          }}>…</button>
+        </div>
+      )}
+
+      {/* 游戏模式：🔍 标记 on game hotspots */}
+      {gameMode && (
+        <div style={{ position:"absolute", top:0, left:0, width:"100%", paddingBottom:"177.7%", zIndex:7, pointerEvents:"none" }}>
+          <div style={{ position:"absolute", inset:0 }}>
+            {[
+              { left:"46%", top:"27%" }, // sofa → 客厅谜题
+              { left:"6%",  top:"35%" }, // kitchendoor → 卧室谜题
+              { left:"5%",  top:"51%" }, // kitchen → 厨房谜题
+              { left:"19%", top:"14%" }, // door → 书房（需集齐才亮）
+            ].map((pos, i) => {
+              const isDoor = i === 3;
+              const active_ = !isDoor || allFound;
+              return (
+                <div key={i} style={{
+                  position:"absolute", left:pos.left, top:pos.top,
+                  transform:"translate(-50%,-50%) translate(14px,-14px)",
+                  fontSize:11, opacity: active_ ? .9 : .3,
+                  pointerEvents:"none",
+                }}>🔍</div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 内容抽屉 */}
       {active && (
@@ -941,6 +1086,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       <style>{`
         @keyframes slideUp  { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
         @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+        @keyframes shakeX   { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
         @keyframes nnFloat  { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-3px)} }
         @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         @keyframes spin     { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }

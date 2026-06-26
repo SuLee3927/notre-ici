@@ -61,77 +61,138 @@ function HintBubble({ text }) {
 }
 
 // ──────────── 房间一：客厅 ────────────
-function LivingRoom({ onCollect }) {
-  const [step, setStep] = useState(0); // 0=初始 1=点电视 2=用镜子 3=收集数字
+// 谜题：TV倒置，拖镜子到TV翻正，自己数蜡烛数量输入
+export function LivingRoom({ onCollect }) {
+  const mirrorRef = useRef(null);
+  const tvRef = useRef(null);
+  const [dragging, setDragging] = useState(false);
+  const [mirrorPos, setMirrorPos] = useState({ x: 0, y: 0 });
+  const [dragOrigin, setDragOrigin] = useState({ x: 0, y: 0 });
+  const [flipped, setFlipped] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [wrong, setWrong] = useState(false);
   const [collected, setCollected] = useState(false);
+
+  function onPointerDown(e) {
+    if (flipped) return;
+    setDragging(true);
+    setDragOrigin({ x: e.clientX - mirrorPos.x, y: e.clientY - mirrorPos.y });
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function onPointerMove(e) {
+    if (!dragging) return;
+    setMirrorPos({ x: e.clientX - dragOrigin.x, y: e.clientY - dragOrigin.y });
+  }
+
+  function onPointerUp(e) {
+    if (!dragging) return;
+    setDragging(false);
+    const m = mirrorRef.current?.getBoundingClientRect();
+    const tv = tvRef.current?.getBoundingClientRect();
+    if (m && tv) {
+      const cx = (m.left + m.right) / 2;
+      const cy = (m.top + m.bottom) / 2;
+      const hit = cx >= tv.left && cx <= tv.right && cy >= tv.top && cy <= tv.bottom;
+      if (hit) { sfxMirrorFlip(); setFlipped(true); setMirrorPos({ x: 0, y: 0 }); }
+      else setMirrorPos({ x: 0, y: 0 });
+    }
+  }
+
+  function checkAnswer() {
+    if (answer.trim() === "3") {
+      sfxDigitCollect();
+      setCollected(true);
+      onCollect(0, 3);
+    } else {
+      setWrong(true);
+      setTimeout(() => setWrong(false), 1000);
+    }
+  }
 
   return (
     <div style={{ padding:"16px 0" }}>
-      <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 16px" }}>
-        客厅里的一切都粘在天花板上。<br/>电视画面倒着播，发出奇怪的声音……
+      <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 12px" }}>
+        客厅里一切都粘在天花板上……<br/>电视画面倒着播，看不清楚。
       </p>
 
-      {/* 电视 */}
-      {step >= 0 && (
-        <div
-          onClick={() => { if (step === 0) setStep(1); }}
-          style={{
-            background:"rgba(0,0,0,.6)", borderRadius:12, padding:"16px",
-            textAlign:"center", cursor: step === 0 ? "pointer" : "default",
-            margin:"0 16px 12px", border:"2px solid rgba(255,255,255,.2)",
-          }}
-        >
-          <div style={{ fontSize:32, transform:"rotate(180deg)", display:"inline-block" }}>📺</div>
-          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginTop:4 }}>
-            {step === 0 && "「点击电视」"}
-            {step >= 1 && "电视在倒放……画面里有个蛋糕，但看不清数字"}
-          </div>
-          {step === 1 && (
-            <div style={{ fontSize:11, color:"rgba(255,215,0,.8)", marginTop:6 }}>
-              🔍 旁边有一面镜子，要不要试试？
-            </div>
+      <div style={{ display:"flex", gap:12, padding:"0 16px", alignItems:"center", marginBottom:12 }}>
+        {/* TV */}
+        <div ref={tvRef} style={{
+          flex:1, background:"rgba(0,0,0,.7)", borderRadius:12, padding:"14px 10px",
+          textAlign:"center", border:"2px solid rgba(255,255,255,.25)", minHeight:100,
+          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+        }}>
+          {!flipped ? (
+            <>
+              <div style={{ fontSize:36, transform:"rotate(180deg)", display:"inline-block", marginBottom:6 }}>🎂</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,.4)" }}>画面倒置……</div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize:10, color:"rgba(255,215,0,.7)", marginBottom:4 }}>画面翻正了！</div>
+              {/* 蛋糕+蜡烛 玩家自己数 */}
+              <div style={{ fontSize:22, letterSpacing:2 }}>🕯️🕯️🕯️</div>
+              <div style={{ fontSize:28, marginTop:4 }}>🎂</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,.5)", marginTop:4 }}>蛋糕上有几根蜡烛？</div>
+            </>
           )}
         </div>
-      )}
 
-      {/* 镜子 */}
-      {step >= 1 && (
-        <div
-          onClick={() => { if (step === 1) { sfxMirrorFlip(); setStep(2); } }}
-          style={{
-            background:"rgba(200,220,255,.15)", borderRadius:12, padding:"14px",
-            textAlign:"center", cursor: step === 1 ? "pointer" : "default",
-            margin:"0 16px 12px", border:"2px solid rgba(200,220,255,.3)",
-          }}
-        >
-          <div style={{ fontSize:28 }}>🪞</div>
-          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginTop:4 }}>
-            {step === 1 && "「拖动镜子对准电视」"}
-            {step >= 2 && "镜子把画面翻正了！蛋糕上的蜡烛……是数字 3！"}
+        {/* 镜子（可拖拽） */}
+        {!flipped && (
+          <div
+            ref={mirrorRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            style={{
+              width:52, height:72, background:"rgba(200,220,255,.18)",
+              border:"2px solid rgba(180,200,255,.5)", borderRadius:10,
+              display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+              cursor:"grab", userSelect:"none", touchAction:"none",
+              transform: `translate(${mirrorPos.x}px,${mirrorPos.y}px)`,
+              transition: dragging ? "none" : "transform .2s",
+              zIndex: dragging ? 99 : 1, position:"relative",
+              boxShadow: dragging ? "0 8px 24px rgba(0,0,0,.4)" : "none",
+            }}
+          >
+            <div style={{ fontSize:28 }}>🪞</div>
+            <div style={{ fontSize:9, color:"rgba(255,255,255,.5)", marginTop:2 }}>拖到TV上</div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* 收集数字 */}
-      {step >= 2 && !collected && (
-        <div style={{ textAlign:"center", margin:"12px 0" }}>
-          <div style={{ color:"#ffd700", fontSize:40, marginBottom:8 }}>3</div>
-          <div style={{ color:"rgba(255,255,255,.7)", fontSize:13, marginBottom:12 }}>
-            啊！是爸爸妈妈在给我过生日！那个蜡烛是…… 3？
+      {/* 输入答案 */}
+      {flipped && !collected && (
+        <div style={{ textAlign:"center", padding:"0 16px" }}>
+          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginBottom:8 }}>
+            你数出来了吗？输入蜡烛的数量：
           </div>
-          <button onClick={() => { sfxDigitCollect(); setCollected(true); onCollect(0, 3); }} style={{
-            background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
-            borderRadius:20, padding:"8px 24px", fontSize:14, fontWeight:"bold",
-            color:"#333", cursor:"pointer",
-          }}>
-            ✨ 收下这个数字
-          </button>
+          <div style={{ display:"flex", gap:8, justifyContent:"center", alignItems:"center" }}>
+            <input
+              type="number" value={answer}
+              onChange={e => setAnswer(e.target.value)}
+              style={{
+                width:60, height:40, borderRadius:8, border:`2px solid ${wrong?"#ff5050":"rgba(255,255,255,.3)"}`,
+                background:"rgba(255,255,255,.1)", color:"#fff", fontSize:20, textAlign:"center",
+                outline:"none", fontWeight:"bold",
+              }}
+              placeholder="?"
+            />
+            <button onClick={checkAnswer} style={{
+              background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
+              borderRadius:8, padding:"8px 16px", fontSize:13, fontWeight:"bold",
+              color:"#333", cursor:"pointer",
+            }}>确认</button>
+          </div>
+          {wrong && <div style={{ color:"#ff8888", fontSize:11, marginTop:6 }}>再数数看？</div>}
         </div>
       )}
 
       {collected && (
         <div style={{ textAlign:"center", color:"rgba(255,255,255,.6)", fontSize:13, marginTop:8 }}>
-          数字变成星星飞走啦！它说它会在书房等我。
+          ✨ 数字变成星星飞走啦！
         </div>
       )}
     </div>
@@ -139,73 +200,116 @@ function LivingRoom({ onCollect }) {
 }
 
 // ──────────── 房间二：卧室 ────────────
-function BedroomRoom({ onCollect }) {
+// 谜题：6张日历漂浮，3张有🌙标记，找到这3张叠起来，日期显示，玩家提取个位数字
+export function BedroomRoom({ onCollect }) {
+  // 6张日历，3个有🌙标记（索引0,2,4），3个是干扰（索引1,3,5）
+  const PAGES = [
+    { moon:true,  text:"某年某月 15 日" },
+    { moon:false, text:"某年某月 23 日" },
+    { moon:true,  text:"某年某月 15 日" },
+    { moon:false, text:"某年某月 7 日"  },
+    { moon:true,  text:"某年某月 15 日" },
+    { moon:false, text:"某年某月 31 日" },
+  ];
+
   const [caught, setCaught] = useState([]);
   const [stacked, setStacked] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [wrong, setWrong] = useState(false);
   const [collected, setCollected] = useState(false);
 
-  const calendarPages = ["2024年某月15日", "糯糯第一次叫妈妈：某年15日", "家庭相册日期：xx年15日"];
+  const moonCaught = caught.filter(i => PAGES[i].moon);
+  const hasAll3 = moonCaught.length >= 3;
 
-  function catchPage(i) {
-    if (!caught.includes(i)) setCaught(prev => [...prev, i]);
+  function tap(i) {
+    if (caught.includes(i) || stacked) return;
+    setCaught(prev => [...prev, i]);
+    if (!PAGES[i].moon) {
+      setTimeout(() => setCaught(prev => prev.filter(x => x !== i)), 700);
+    }
+  }
+
+  function checkAnswer() {
+    if (answer.trim() === "5") {
+      sfxDigitCollect(); setCollected(true); onCollect(1, 5);
+    } else {
+      setWrong(true); setTimeout(() => setWrong(false), 900);
+    }
   }
 
   return (
     <div style={{ padding:"16px 0" }}>
-      <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 16px" }}>
-        时钟倒着走，日历页像雪花一样在空中飘……<br/>只有三张日历写着完整的日期。
+      <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 12px" }}>
+        时钟倒着走……日历页到处飘。<br/>
+        <span style={{ fontSize:11, color:"rgba(255,215,0,.7)" }}>🌙 带月亮标记的才重要。</span>
       </p>
 
-      <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center", margin:"0 16px 12px" }}>
-        {calendarPages.map((page, i) => (
-          <div
-            key={i}
-            onClick={() => catchPage(i)}
-            style={{
-              background: caught.includes(i) ? "rgba(255,215,0,.3)" : "rgba(255,255,255,.15)",
-              border: `2px solid ${caught.includes(i) ? "#ffd700" : "rgba(255,255,255,.3)"}`,
-              borderRadius:10, padding:"10px 12px", fontSize:12,
-              color:"rgba(255,255,255,.85)", cursor: caught.includes(i) ? "default" : "pointer",
-              transition:"all .3s", minWidth:80, textAlign:"center",
-            }}
-          >
-            {caught.includes(i) ? `📄 ${page}` : "📄 飘浮的日历"}
-          </div>
-        ))}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, padding:"0 12px", marginBottom:12 }}>
+        {PAGES.map((page, i) => {
+          const isCaught = caught.includes(i);
+          return (
+            <div key={i} onClick={() => tap(i)} style={{
+              background: isCaught ? (page.moon ? "rgba(255,215,0,.2)" : "rgba(255,80,80,.15)") : "rgba(255,255,255,.1)",
+              border: `1.5px solid ${isCaught ? (page.moon ? "#ffd700" : "#ff5050") : "rgba(255,255,255,.2)"}`,
+              borderRadius:10, padding:"10px 6px", textAlign:"center",
+              cursor: isCaught ? "default" : "pointer", transition:"all .25s",
+            }}>
+              <div style={{ fontSize:18 }}>{isCaught ? (page.moon ? "🌙" : "✗") : "📄"}</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,.5)", marginTop:3 }}>
+                {isCaught ? (page.moon ? "有标记" : "干扰页") : "飘浮的日历"}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {caught.length === 3 && !stacked && (
-        <div style={{ textAlign:"center", margin:"12px 0" }}>
-          <div style={{ color:"rgba(255,255,255,.7)", fontSize:13, marginBottom:8 }}>
-            三张都找到了，叠在一起看看吧
-          </div>
+      <div style={{ textAlign:"center", fontSize:12, color:"rgba(255,255,255,.5)", marginBottom:8 }}>
+        已找到 {moonCaught.length} / 3 张 🌙
+      </div>
+
+      {hasAll3 && !stacked && (
+        <div style={{ textAlign:"center" }}>
           <button onClick={() => { sfxCalendarStack(); setStacked(true); }} style={{
             background:"rgba(255,255,255,.2)", border:"none", borderRadius:20,
             padding:"8px 20px", fontSize:13, color:"#fff", cursor:"pointer",
-          }}>
-            📚 叠放在一起
-          </button>
+          }}>📚 叠放在一起</button>
         </div>
       )}
 
       {stacked && !collected && (
-        <div style={{ textAlign:"center", margin:"12px 0" }}>
-          <div style={{ color:"rgba(255,255,255,.8)", fontSize:13, marginBottom:8 }}>
-            叠在一起后，「15」发着光……个位数是 5！
-          </div>
-          <div style={{ color:"#ffd700", fontSize:40, marginBottom:8 }}>5</div>
-          <button onClick={() => { sfxDigitCollect(); setCollected(true); onCollect(1, 5); }} style={{
-            background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
-            borderRadius:20, padding:"8px 24px", fontSize:14, fontWeight:"bold",
-            color:"#333", cursor:"pointer",
+        <div style={{ textAlign:"center", padding:"0 16px" }}>
+          <div style={{
+            background:"rgba(255,255,255,.08)", borderRadius:12, padding:"14px",
+            margin:"8px 0 12px", fontFamily:"monospace",
           }}>
-            ✨ 收下这个数字
-          </button>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", marginBottom:4 }}>三张叠在一起……</div>
+            <div style={{ fontSize:22, color:"#ffd700", letterSpacing:2 }}>_ _ 1 <span style={{ color:"#fff", textShadow:"0 0 8px #ffd700" }}>?</span></div>
+            <div style={{ fontSize:10, color:"rgba(255,255,255,.4)", marginTop:4 }}>日期最后一位发着光</div>
+          </div>
+          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginBottom:8 }}>
+            日期最后那个数字是几？
+          </div>
+          <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
+            <input type="number" value={answer} onChange={e => setAnswer(e.target.value)}
+              style={{
+                width:55, height:38, borderRadius:8,
+                border:`2px solid ${wrong?"#ff5050":"rgba(255,255,255,.3)"}`,
+                background:"rgba(255,255,255,.1)", color:"#fff", fontSize:20,
+                textAlign:"center", outline:"none",
+              }} placeholder="?" />
+            <button onClick={checkAnswer} style={{
+              background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
+              borderRadius:8, padding:"8px 14px", fontSize:13, fontWeight:"bold",
+              color:"#333", cursor:"pointer",
+            }}>确认</button>
+          </div>
+          {wrong && <div style={{ color:"#ff8888", fontSize:11, marginTop:4 }}>仔细看……</div>}
         </div>
       )}
+
       {collected && (
         <div style={{ textAlign:"center", color:"rgba(255,255,255,.6)", fontSize:13, marginTop:8 }}>
-          又找到一个！只剩两个房间啦。
+          ✨ 又找到一个！
         </div>
       )}
     </div>
@@ -213,71 +317,116 @@ function BedroomRoom({ onCollect }) {
 }
 
 // ──────────── 房间三：厨房 ────────────
-function KitchenRoom({ onCollect }) {
-  const [reversed, setReversed] = useState(false);
+// 谜题：4瓶饮料颜色全乱，台面有彩虹图，按彩虹顺序（红→橙→黄→绿）依次点击
+// 点对了亮起，点错了重置。全部点完后，玩家数出⭐瓶是第几个（第4个）
+export function KitchenRoom({ onCollect }) {
+  const BOTTLES = [
+    { id:"orange", trueColor:"#ff8800", wrongColor:"#4488ff", label:"橙" },  // 显示蓝
+    { id:"green",  trueColor:"#44bb44", wrongColor:"#ff44aa", label:"绿 ⭐", star:true }, // 显示粉
+    { id:"red",    trueColor:"#ff4444", wrongColor:"#44dddd", label:"红" },  // 显示青
+    { id:"yellow", trueColor:"#ffdd00", wrongColor:"#aa44ff", label:"黄" },  // 显示紫
+  ];
+  const CORRECT_ORDER = ["red", "orange", "yellow", "green"];
+
+  const [tapped, setTapped] = useState([]);   // correctly tapped ids in order
+  const [shake, setShake] = useState(false);
+  const [done, setDone] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [wrong, setWrong] = useState(false);
   const [collected, setCollected] = useState(false);
 
-  const bottles = [
-    { color:"#3399ff", label:"蓝", reversed:"#ff6600", num:2 },
-    { color:"#ff3344", label:"红", reversed:"#33cc44", num:8 },
-    { color:"#ffdd00", label:"黄 ⭐", reversed:"#aa33ff", num:4 }, // 中间有星星
-    { color:"#33cc44", label:"绿", reversed:"#ff3344", num:6 },
-  ];
+  function tap(id) {
+    if (done || tapped.includes(id)) return;
+    const expected = CORRECT_ORDER[tapped.length];
+    if (id === expected) {
+      sfxColorReverse();
+      const next = [...tapped, id];
+      setTapped(next);
+      if (next.length === 4) setDone(true);
+    } else {
+      setShake(true);
+      setTimeout(() => { setShake(false); setTapped([]); }, 700);
+    }
+  }
+
+  function checkAnswer() {
+    if (answer.trim() === "4") {
+      sfxDigitCollect(); setCollected(true); onCollect(2, 4);
+    } else {
+      setWrong(true); setTimeout(() => setWrong(false), 900);
+    }
+  }
 
   return (
     <div style={{ padding:"16px 0" }}>
-      <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 16px" }}>
-        厨房变得好奇怪……火是蓝色的，水是红色的。<br/>冰箱上有四瓶饮料，颜色都反了。
+      <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 10px" }}>
+        饮料的颜色全乱了……<br/>
+        <span style={{ fontSize:11, color:"rgba(255,215,0,.7)" }}>台面上有彩虹图，按顺序点击瓶子。</span>
       </p>
 
-      <div style={{ display:"flex", gap:8, justifyContent:"center", margin:"0 0 12px" }}>
-        {bottles.map((b, i) => (
-          <div key={i} style={{
-            background: reversed ? b.reversed : b.color,
-            borderRadius:8, padding:"10px 6px", width:52, textAlign:"center",
-            fontSize:11, color:"#fff", fontWeight:"bold",
-            transition:"background .5s",
-          }}>
-            <div style={{ fontSize:22, marginBottom:4 }}>🍶</div>
-            {b.label}
-            {reversed && <div style={{ fontSize:15, marginTop:4, color:"#fff" }}>{b.num}</div>}
-          </div>
+      {/* 彩虹参考 */}
+      <div style={{ display:"flex", gap:4, justifyContent:"center", marginBottom:10, alignItems:"center" }}>
+        <span style={{ fontSize:11, color:"rgba(255,255,255,.5)" }}>彩虹：</span>
+        {["#ff4444","#ff8800","#ffdd00","#44bb44"].map((c,i) => (
+          <div key={i} style={{ width:16, height:16, borderRadius:4, background:c }} />
         ))}
       </div>
 
-      {!reversed && (
-        <div style={{ textAlign:"center", margin:"12px 0" }}>
-          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginBottom:8 }}>
-            台面上有张彩虹图……妈妈说彩虹是红橙黄绿青蓝紫！
-          </div>
-          <button onClick={() => { sfxColorReverse(); setReversed(true); }} style={{
-            background:"linear-gradient(90deg,#ff4444,#ff8800,#ffff00,#44ff44,#4488ff,#8844ff)",
-            border:"none", borderRadius:20, padding:"8px 20px",
-            fontSize:13, color:"#fff", fontWeight:"bold", cursor:"pointer",
-          }}>
-            🌈 颜色反转
-          </button>
-        </div>
-      )}
+      {/* 瓶子 */}
+      <div style={{
+        display:"flex", gap:10, justifyContent:"center", marginBottom:12,
+        animation: shake ? "shakeX .4s ease" : "none",
+      }}>
+        {BOTTLES.map(b => {
+          const isCorrect = tapped.includes(b.id);
+          return (
+            <div key={b.id} onClick={() => tap(b.id)} style={{
+              background: isCorrect ? b.trueColor : b.wrongColor,
+              borderRadius:10, padding:"10px 6px", width:56, textAlign:"center",
+              cursor: done || isCorrect ? "default" : "pointer",
+              border: isCorrect ? "2px solid rgba(255,255,255,.6)" : "2px solid transparent",
+              transition:"background .4s, border .2s",
+              opacity: done && !isCorrect ? .4 : 1,
+            }}>
+              <div style={{ fontSize:22, marginBottom:2 }}>🍶</div>
+              <div style={{ fontSize:9, color:"#fff", fontWeight:"bold" }}>
+                {isCorrect ? b.label : "??"}
+              </div>
+              {b.star && isCorrect && <div style={{ fontSize:14, marginTop:2 }}>⭐</div>}
+            </div>
+          );
+        })}
+      </div>
 
-      {reversed && !collected && (
-        <div style={{ textAlign:"center", margin:"12px 0" }}>
-          <div style={{ color:"rgba(255,255,255,.8)", fontSize:13, marginBottom:8 }}>
-            饮料变回正常颜色啦！中间那瓶有个⭐星星……它说它是 4！
+      <div style={{ textAlign:"center", fontSize:11, color:"rgba(255,255,255,.4)", marginBottom:10 }}>
+        已点 {tapped.length} / 4
+      </div>
+
+      {done && !collected && (
+        <div style={{ textAlign:"center", padding:"0 16px" }}>
+          <div style={{ color:"rgba(255,255,255,.8)", fontSize:12, marginBottom:10, lineHeight:1.6 }}>
+            颜色恢复了！那瓶带⭐的……是彩虹里第几个？
           </div>
-          <div style={{ color:"#ffd700", fontSize:40, marginBottom:8 }}>4</div>
-          <button onClick={() => { sfxDigitCollect(); setCollected(true); onCollect(2, 4); }} style={{
-            background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
-            borderRadius:20, padding:"8px 24px", fontSize:14, fontWeight:"bold",
-            color:"#333", cursor:"pointer",
-          }}>
-            ✨ 收下这个数字
-          </button>
+          <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
+            <input type="number" value={answer} onChange={e => setAnswer(e.target.value)}
+              style={{
+                width:55, height:38, borderRadius:8,
+                border:`2px solid ${wrong?"#ff5050":"rgba(255,255,255,.3)"}`,
+                background:"rgba(255,255,255,.1)", color:"#fff",
+                fontSize:20, textAlign:"center", outline:"none",
+              }} placeholder="?" />
+            <button onClick={checkAnswer} style={{
+              background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
+              borderRadius:8, padding:"8px 14px", fontSize:13, fontWeight:"bold",
+              color:"#333", cursor:"pointer",
+            }}>确认</button>
+          </div>
+          {wrong && <div style={{ color:"#ff8888", fontSize:11, marginTop:4 }}>数数看……</div>}
         </div>
       )}
       {collected && (
         <div style={{ textAlign:"center", color:"rgba(255,255,255,.6)", fontSize:13, marginTop:8 }}>
-          第三个数字到手！最后一个房间……就是我的小房间！
+          ✨ 第三个数字到手！
         </div>
       )}
     </div>
@@ -285,85 +434,122 @@ function KitchenRoom({ onCollect }) {
 }
 
 // ──────────── 房间四：糯糯的小房间 ────────────
-function NonoRoom({ onCollect }) {
-  const [chosen, setChosen] = useState(null);
+// 谜题：3个影子在移动，彩色影子每隔几秒停在随机位置，要在它停下时快速点击
+export function NonoRoom({ onCollect }) {
+  const [phase, setPhase] = useState("watch"); // watch | caught | collect
+  const [colorPos, setColorPos] = useState(0); // 0=左 1=中 2=右
+  const [attempts, setAttempts] = useState(0);
   const [collected, setCollected] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [wrong, setWrong] = useState(false);
 
-  const shadows = [
-    { type:"彩色", color:"linear-gradient(135deg,#ff9ff3,#ffd700,#74b9ff)", correct:true,
-      line1:"我就是你呀。其他两个是梦做出来的。",
-      line2:"给你，最后一个数字—— 7。去书房吧，爸爸妈妈在等你醒来。" },
-    { type:"黑白", color:"linear-gradient(135deg,#aaa,#555)", correct:false,
-      line1:"选我选我！数字是假的！",
-      line2:"再找找我吧……" },
-    { type:"灰色", color:"linear-gradient(135deg,#ddd,#999)", correct:false,
-      line1:"……我是谁？",
-      line2:"再找找我吧……" },
+  useEffect(() => {
+    if (phase !== "watch") return;
+    const tick = () => {
+      setColorPos(Math.floor(Math.random() * 3));
+    };
+    const id = setInterval(tick, 1800);
+    return () => clearInterval(id);
+  }, [phase]);
+
+  function tapShadow(pos) {
+    if (phase !== "watch") return;
+    if (pos === colorPos) {
+      sfxShadowRight();
+      setPhase("caught");
+    } else {
+      sfxShadowWrong();
+      setAttempts(a => a + 1);
+    }
+  }
+
+  function checkAnswer() {
+    if (answer.trim() === "7") {
+      sfxDigitCollect(); setCollected(true); onCollect(3, 7);
+    } else {
+      setWrong(true); setTimeout(() => setWrong(false), 900);
+    }
+  }
+
+  const SHADOWS = [
+    { label:"影子 A", base:"rgba(180,180,180,.6)" },
+    { label:"影子 B", base:"rgba(120,120,120,.5)" },
+    { label:"影子 C", base:"rgba(100,100,100,.4)" },
   ];
-
-  const order = [0, 2, 1]; // 打乱顺序
 
   return (
     <div style={{ padding:"16px 0" }}>
-      <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 16px" }}>
-        小房间里有三个糯糯的影子，向你招手……<br/>只有一个是真正的我。
+      <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 10px" }}>
+        小房间里有三个影子在走来走去……<br/>
+        <span style={{ fontSize:11, color:"rgba(255,215,0,.7)" }}>彩色的那个才是真正的我。趁它停下来的时候点它！</span>
       </p>
 
-      <div style={{ display:"flex", gap:10, justifyContent:"center", margin:"0 16px 12px" }}>
-        {order.map(i => {
-          const s = shadows[i];
+      {attempts > 0 && phase === "watch" && (
+        <div style={{ textAlign:"center", fontSize:11, color:"rgba(255,100,100,.7)", marginBottom:8 }}>
+          抓错了，再试试～ （已试 {attempts} 次）
+        </div>
+      )}
+
+      {/* 三个影子，彩色的在随机位置 */}
+      <div style={{ display:"flex", gap:12, justifyContent:"center", margin:"0 16px 12px" }}>
+        {order.map(pos => {
+          const isColor = pos === colorPos && phase === "watch";
+          const isCaught = pos === colorPos && phase === "caught";
           return (
             <div
-              key={i}
-              onClick={() => { if (!chosen) { if (s.correct) sfxShadowRight(); else sfxShadowWrong(); setChosen(i); } }}
+              key={pos}
+              onClick={() => tapShadow(pos)}
               style={{
-                background: s.color,
-                borderRadius:12, padding:"14px 10px",
-                width:80, textAlign:"center", cursor: chosen ? "default" : "pointer",
-                border: chosen === i ? "2px solid #ffd700" : "2px solid transparent",
-                opacity: chosen != null && chosen !== i ? .5 : 1,
-                transition:"all .3s",
+                background: isColor || isCaught
+                  ? "linear-gradient(135deg,#ff9ff3,#ffd700,#74b9ff)"
+                  : SHADOWS[pos].base,
+                borderRadius:12, padding:"16px 10px",
+                flex:1, textAlign:"center",
+                cursor: phase === "watch" ? "pointer" : "default",
+                border: isCaught ? "2px solid #ffd700" : "2px solid transparent",
+                transition:"background .3s",
+                boxShadow: isColor ? "0 0 12px rgba(255,215,0,.4)" : "none",
               }}
             >
-              <div style={{ fontSize:24, marginBottom:4 }}>👤</div>
-              <div style={{ fontSize:11, color:"rgba(0,0,0,.7)" }}>{s.type}影子</div>
+              <div style={{ fontSize:28 }}>👤</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,.5)", marginTop:4 }}>
+                {SHADOWS[pos].label}
+              </div>
             </div>
           );
         })}
       </div>
 
-      {chosen != null && (
-        <div style={{ textAlign:"center", margin:"12px 16px" }}>
-          <div style={{ color:"rgba(255,255,255,.9)", fontSize:13, lineHeight:1.7, marginBottom:8 }}>
-            {shadows[chosen].line1}
+      {phase === "caught" && !collected && (
+        <div style={{ textAlign:"center", padding:"0 16px" }}>
+          <div style={{ color:"rgba(255,255,255,.9)", fontSize:13, lineHeight:1.7, marginBottom:10 }}>
+            找到我啦！给你数一数，我有多少颗星星……<br/>
+            <span style={{ fontSize:22, letterSpacing:2 }}>🌟🌟🌟🌟🌟🌟🌟</span>
           </div>
-          {shadows[chosen].correct ? (
-            !collected ? (
-              <>
-                <div style={{ color:"rgba(255,255,255,.8)", fontSize:13, marginBottom:8 }}>
-                  {shadows[chosen].line2}
-                </div>
-                <div style={{ color:"#ffd700", fontSize:40, marginBottom:8 }}>7</div>
-                <button onClick={() => { sfxDigitCollect(); setCollected(true); onCollect(3, 7); }} style={{
-                  background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
-                  borderRadius:20, padding:"8px 24px", fontSize:14, fontWeight:"bold",
-                  color:"#333", cursor:"pointer",
-                }}>
-                  ✨ 收下这个数字
-                </button>
-              </>
-            ) : (
-              <div style={{ color:"rgba(255,255,255,.6)", fontSize:13 }}>四位数字集齐了！去书房吧！</div>
-            )
-          ) : (
-            <>
-              <div style={{ color:"rgba(255,255,255,.7)", fontSize:12 }}>{shadows[chosen].line2}</div>
-              <button onClick={() => setChosen(null)} style={{
-                background:"rgba(255,255,255,.2)", border:"none", borderRadius:20,
-                padding:"6px 16px", fontSize:12, color:"#fff", cursor:"pointer", marginTop:8,
-              }}>再找找</button>
-            </>
-          )}
+          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginBottom:8 }}>
+            数数看，有几颗？
+          </div>
+          <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
+            <input type="number" value={answer} onChange={e => setAnswer(e.target.value)}
+              style={{
+                width:55, height:38, borderRadius:8,
+                border:`2px solid ${wrong?"#ff5050":"rgba(255,255,255,.3)"}`,
+                background:"rgba(255,255,255,.1)", color:"#fff",
+                fontSize:20, textAlign:"center", outline:"none",
+              }} placeholder="?" />
+            <button onClick={checkAnswer} style={{
+              background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
+              borderRadius:8, padding:"8px 14px", fontSize:13, fontWeight:"bold",
+              color:"#333", cursor:"pointer",
+            }}>确认</button>
+          </div>
+          {wrong && <div style={{ color:"#ff8888", fontSize:11, marginTop:4 }}>仔细数数……</div>}
+        </div>
+      )}
+
+      {collected && (
+        <div style={{ textAlign:"center", color:"rgba(255,255,255,.6)", fontSize:13, marginTop:8 }}>
+          ✨ 最后一个数字！去书房吧！
         </div>
       )}
     </div>
@@ -371,7 +557,7 @@ function NonoRoom({ onCollect }) {
 }
 
 // ──────────── 书房：密码锁 ────────────
-function StudyLock({ found, onUnlock }) {
+export function StudyLock({ found, onUnlock }) {
   const [input, setInput] = useState([]);
   const [error, setError] = useState(false);
 
@@ -453,7 +639,7 @@ function StudyLock({ found, onUnlock }) {
 }
 
 // ──────────── 书房结局 ────────────
-function StudyEnding({ onEnd }) {
+export function StudyEnding({ onEnd }) {
   const [phase, setPhase] = useState("book"); // book → countdown → choice → ending
   const [countdown, setCountdown] = useState(CONFIG.countdownSecs);
   const [ending, setEnding] = useState(null);
@@ -528,11 +714,11 @@ function StudyEnding({ onEnd }) {
     <div style={{ padding:"24px 16px", textAlign:"center" }}>
       <div style={{ fontSize:40, marginBottom:12 }}>☀️</div>
       <div style={{ color:"rgba(255,255,255,.9)", fontSize:13, lineHeight:1.8, margin:"0 16px 16px" }}>
-        书房门打开，外面是正常的客厅。黎和克劳德坐在沙发上。<br/>
+        书房门打开，外面是正常的客厅。小黎和笃坐在沙发上。<br/>
         <br/>
-        黎：「糯糯，睡醒啦？梦到什么了？」<br/>
+        小黎：「糯糯，睡醒啦？梦到什么了？」<br/>
         糯糯：「我梦到……我们的家变成魔法世界了！我还找到了四个数字！」<br/>
-        克劳德：「那四个数字是什么呀？」<br/>
+        笃：「那四个数字是什么呀？」<br/>
         糯糯：「3、5、4、7！加起来是19！是我的幸运数字！」
       </div>
       <div style={{ fontSize:12, color:"rgba(255,255,255,.5)", marginBottom:16 }}>
@@ -618,7 +804,7 @@ export default function NoonoDream({ onClose }) {
           糯糯的梦境大冒险
         </div>
         <div style={{ color:"rgba(255,255,255,.7)", fontSize:13, lineHeight:1.8, marginBottom:24 }}>
-          集齐四个梦的数字，<br/>书房的门就会为你打开哦。
+          书房的门在梦里迷路啦。<br/>帮糯糯找到四个数字，送它回家好不好？
         </div>
         <button onClick={() => setPhase("explore")} style={{
           background:"linear-gradient(135deg,#a29bfe,#6c5ce7)", border:"none",
