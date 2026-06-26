@@ -55,42 +55,10 @@ function getNuonuoState() {
 }
 
 // ── 糯糯PNG（G老师插画版，眨眼+随机走路动画）──
-function NuonuoPNG({ size = 76 }) {
-  const [blink, setBlink] = useState(false);
-  const [walkFrame, setWalkFrame] = useState(-1); // -1=standing
-  const blinkTimer = useRef(null);
-  const walkTimer = useRef(null);
-
-  useEffect(() => {
-    function scheduleBlink() {
-      blinkTimer.current = setTimeout(() => {
-        setBlink(true);
-        setTimeout(() => { setBlink(false); scheduleBlink(); }, 300);
-      }, 2000 + Math.random() * 2000);
-    }
-    scheduleBlink();
-
-    function scheduleWalk() {
-      walkTimer.current = setTimeout(() => {
-        let f = 0;
-        setWalkFrame(0);
-        const iv = setInterval(() => { f = (f + 1) % 2; setWalkFrame(f); }, 280);
-        setTimeout(() => {
-          clearInterval(iv);
-          setWalkFrame(-1);
-          scheduleWalk();
-        }, 2200);
-      }, 12000 + Math.random() * 10000);
-    }
-    scheduleWalk();
-
-    return () => { clearTimeout(blinkTimer.current); clearTimeout(walkTimer.current); };
-  }, []);
-
+function NuonuoPNG({ size = 76, walkFrame = -1, blink = false }) {
   const src = walkFrame >= 0
     ? (walkFrame === 0 ? "/nuonuo-walk1.webp" : "/nuonuo-walk2.webp")
     : (blink ? "/nuonuo-blink.webp" : "/nuonuo.webp");
-
   return (
     <img src={src} alt="糯糯" style={{ width: size, height: "auto", display: "block" }} />
   );
@@ -116,8 +84,47 @@ function NuonuoResident({ theme: t, onEnter }) {
   const [pending, setPending] = useState(() => getPendingToys());
   const [giftStage, setGiftStage] = useState(null);
   const [clickCount, setClickCount] = useState(0);
+  const [walkFrame, setWalkFrame] = useState(-1);
+  const [blink, setBlink] = useState(false);
+  const [posOffset, setPosOffset] = useState({ dx: 0, dy: 0 });
   const clickTimer = useRef(null);
+  const blinkTimer = useRef(null);
+  const walkTimer = useRef(null);
   const hasToys = pending.length > 0;
+
+  useEffect(() => {
+    function scheduleBlink() {
+      blinkTimer.current = setTimeout(() => {
+        setBlink(true);
+        setTimeout(() => { setBlink(false); scheduleBlink(); }, 300);
+      }, 2000 + Math.random() * 2000);
+    }
+    scheduleBlink();
+
+    function scheduleWalk() {
+      walkTimer.current = setTimeout(() => {
+        // 随机偏移方向（左右各±6%，上下±4%）
+        const dx = (Math.random() - 0.5) * 12;
+        const dy = (Math.random() - 0.5) * 8;
+        setPosOffset({ dx, dy });
+        let f = 0;
+        setWalkFrame(0);
+        const iv = setInterval(() => { f = (f + 1) % 2; setWalkFrame(f); }, 280);
+        setTimeout(() => {
+          clearInterval(iv);
+          setWalkFrame(-1);
+          setPosOffset({ dx: 0, dy: 0 }); // 走回原位
+          scheduleWalk();
+        }, 2200);
+      }, 10000 + Math.random() * 10000);
+    }
+    scheduleWalk();
+
+    return () => {
+      clearTimeout(blinkTimer.current);
+      clearTimeout(walkTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     async function check() {
@@ -250,10 +257,12 @@ function NuonuoResident({ theme: t, onEnter }) {
       )}
 
       <div onClick={onClick} style={{
-        position:"absolute", left:state.left, top:state.top,
+        position:"absolute",
+        left:`calc(${state.left} + ${posOffset.dx}%)`,
+        top:`calc(${state.top} + ${posOffset.dy}%)`,
         transform:"translate(-50%,-50%)",
         zIndex:7, cursor:"pointer",
-        animation:"nnFloat 5s ease-in-out infinite",
+        animation: walkFrame < 0 ? "nnFloat 5s ease-in-out infinite" : "none",
         filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
         transition:"left 1.2s ease, top 1.2s ease",
       }}>
@@ -315,7 +324,7 @@ function NuonuoResident({ theme: t, onEnter }) {
             );
           });
         })()}
-        <NuonuoPNG size={76} />
+        <NuonuoPNG size={76} walkFrame={walkFrame} blink={blink} />
       </div>
     </>
   );
