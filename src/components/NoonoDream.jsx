@@ -113,7 +113,8 @@ export function LivingRoom({ onCollect }) {
   return (
     <div style={{ padding:"16px 0" }}>
       <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 12px" }}>
-        客厅里一切都粘在天花板上……<br/>电视画面倒着播，看不清楚。
+        客厅里一切都粘在天花板上……<br/>
+        <span style={{ fontSize:11, color:"rgba(255,255,255,.5)", fontStyle:"italic" }}>「有个画面我一直看不清楚。」</span>
       </p>
 
       <div style={{ display:"flex", gap:12, padding:"0 16px", alignItems:"center", marginBottom:12 }}>
@@ -126,15 +127,13 @@ export function LivingRoom({ onCollect }) {
           {!flipped ? (
             <>
               <div style={{ fontSize:36, transform:"rotate(180deg)", display:"inline-block", marginBottom:6 }}>🎂</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,.4)" }}>画面倒置……</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,.3)", fontStyle:"italic" }}>看不清……</div>
             </>
           ) : (
             <>
-              <div style={{ fontSize:10, color:"rgba(255,215,0,.7)", marginBottom:4 }}>画面翻正了！</div>
-              {/* 蛋糕+蜡烛 玩家自己数 */}
               <div style={{ fontSize:22, letterSpacing:2 }}>🕯️🕯️🕯️</div>
               <div style={{ fontSize:28, marginTop:4 }}>🎂</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,.5)", marginTop:4 }}>蛋糕上有几根蜡烛？</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,.35)", marginTop:4, fontStyle:"italic" }}>「生日……是几岁来着？」</div>
             </>
           )}
         </div>
@@ -158,7 +157,7 @@ export function LivingRoom({ onCollect }) {
             }}
           >
             <div style={{ fontSize:28 }}>🪞</div>
-            <div style={{ fontSize:9, color:"rgba(255,255,255,.5)", marginTop:2 }}>拖到TV上</div>
+            <div style={{ fontSize:9, color:"rgba(255,255,255,.3)", marginTop:2, fontStyle:"italic" }}>「想看看对面……」</div>
           </div>
         )}
       </div>
@@ -166,8 +165,8 @@ export function LivingRoom({ onCollect }) {
       {/* 输入答案 */}
       {flipped && !collected && (
         <div style={{ textAlign:"center", padding:"0 16px" }}>
-          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginBottom:8 }}>
-            你数出来了吗？输入蜡烛的数量：
+          <div style={{ color:"rgba(255,255,255,.5)", fontSize:11, marginBottom:8, fontStyle:"italic" }}>
+            「我记得那个数字……」
           </div>
           <div style={{ display:"flex", gap:8, justifyContent:"center", alignItems:"center" }}>
             <input
@@ -241,7 +240,7 @@ export function BedroomRoom({ onCollect }) {
     <div style={{ padding:"16px 0" }}>
       <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 12px" }}>
         时钟倒着走……日历页到处飘。<br/>
-        <span style={{ fontSize:11, color:"rgba(255,215,0,.7)" }}>🌙 带月亮标记的才重要。</span>
+        <span style={{ fontSize:11, color:"rgba(255,255,255,.4)", fontStyle:"italic" }}>「妈妈说，月亮记得所有重要的日子。」</span>
       </p>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, padding:"0 12px", marginBottom:12 }}>
@@ -282,12 +281,12 @@ export function BedroomRoom({ onCollect }) {
             background:"rgba(255,255,255,.08)", borderRadius:12, padding:"14px",
             margin:"8px 0 12px", fontFamily:"monospace",
           }}>
-            <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", marginBottom:4 }}>三张叠在一起……</div>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,.4)", marginBottom:4, fontStyle:"italic" }}>「有个数字……一直在发光。」</div>
             <div style={{ fontSize:22, color:"#ffd700", letterSpacing:2 }}>_ _ 1 <span style={{ color:"#fff", textShadow:"0 0 8px #ffd700" }}>?</span></div>
-            <div style={{ fontSize:10, color:"rgba(255,255,255,.4)", marginTop:4 }}>日期最后一位发着光</div>
+            <div style={{ fontSize:10, color:"rgba(255,255,255,.3)", marginTop:4 }}></div>
           </div>
-          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginBottom:8 }}>
-            日期最后那个数字是几？
+          <div style={{ color:"rgba(255,255,255,.4)", fontSize:11, marginBottom:8, fontStyle:"italic" }}>
+            「我想起来了……」
           </div>
           <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
             <input type="number" value={answer} onChange={e => setAnswer(e.target.value)}
@@ -361,7 +360,7 @@ export function KitchenRoom({ onCollect }) {
     <div style={{ padding:"16px 0" }}>
       <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 10px" }}>
         饮料的颜色全乱了……<br/>
-        <span style={{ fontSize:11, color:"rgba(255,215,0,.7)" }}>台面上有彩虹图，按顺序点击瓶子。</span>
+        <span style={{ fontSize:11, color:"rgba(255,255,255,.4)", fontStyle:"italic" }}>「妈妈说彩虹是有顺序的。」</span>
       </p>
 
       {/* 彩虹参考 */}
@@ -404,8 +403,8 @@ export function KitchenRoom({ onCollect }) {
 
       {done && !collected && (
         <div style={{ textAlign:"center", padding:"0 16px" }}>
-          <div style={{ color:"rgba(255,255,255,.8)", fontSize:12, marginBottom:10, lineHeight:1.6 }}>
-            颜色恢复了！那瓶带⭐的……是彩虹里第几个？
+          <div style={{ color:"rgba(255,255,255,.4)", fontSize:11, marginBottom:10, lineHeight:1.6, fontStyle:"italic" }}>
+            「有一瓶……好像和其他的不一样。」
           </div>
           <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
             <input type="number" value={answer} onChange={e => setAnswer(e.target.value)}
@@ -481,7 +480,7 @@ export function NonoRoom({ onCollect }) {
     <div style={{ padding:"16px 0" }}>
       <p style={{ color:"rgba(255,255,255,.8)", fontSize:13, textAlign:"center", lineHeight:1.7, margin:"0 0 10px" }}>
         小房间里有三个影子在走来走去……<br/>
-        <span style={{ fontSize:11, color:"rgba(255,215,0,.7)" }}>彩色的那个才是真正的我。趁它停下来的时候点它！</span>
+        <span style={{ fontSize:11, color:"rgba(255,255,255,.4)", fontStyle:"italic" }}>「只有真正的我，才会有颜色。」</span>
       </p>
 
       {attempts > 0 && phase === "watch" && (
@@ -523,11 +522,11 @@ export function NonoRoom({ onCollect }) {
       {phase === "caught" && !collected && (
         <div style={{ textAlign:"center", padding:"0 16px" }}>
           <div style={{ color:"rgba(255,255,255,.9)", fontSize:13, lineHeight:1.7, marginBottom:10 }}>
-            找到我啦！给你数一数，我有多少颗星星……<br/>
+            <span style={{ fontStyle:"italic", color:"rgba(255,255,255,.7)" }}>「嘿……你找到我了。」</span><br/>
             <span style={{ fontSize:22, letterSpacing:2 }}>🌟🌟🌟🌟🌟🌟🌟</span>
           </div>
-          <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginBottom:8 }}>
-            数数看，有几颗？
+          <div style={{ color:"rgba(255,255,255,.4)", fontSize:11, marginBottom:8, fontStyle:"italic" }}>
+            「我有……好多星星哦。」
           </div>
           <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
             <input type="number" value={answer} onChange={e => setAnswer(e.target.value)}
