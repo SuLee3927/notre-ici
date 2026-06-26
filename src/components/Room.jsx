@@ -10,6 +10,7 @@ import Billiards from "./Billiards.jsx";
 import BasketGame from "./BasketGame.jsx";
 import WatchTogether from "./WatchTogether.jsx";
 import CraneGame, { getPendingToys, clearPendingToys } from "./CraneGame.jsx";
+import NoonoDream from "./NoonoDream.jsx";
 
 const WALL_H = 28;
 
@@ -652,6 +653,7 @@ const FURNITURE = [
   { id:"watchtv",     left:"46%", top:"38%", transparent:true, w:"clamp(50px,14vw,80px)", h:"clamp(20px,5vw,32px)" },
   { id:"record",      left:"92%", top:"79%", transparent:true, w:"clamp(32px,9vw,52px)", h:"clamp(44px,12vw,72px)" },
   { id:"kitchen",     left:"5%",  top:"51%", transparent:true, w:"clamp(22px,6vw,36px)", h:"clamp(80px,22vw,132px)" },
+  { id:"mat",         left:"50%", top:"88%", transparent:true, w:"clamp(60px,17vw,100px)", h:"clamp(20px,5vw,32px)" },
 ];
 
 // ── 游戏面板 ──
@@ -721,6 +723,25 @@ function GamePanel({ theme: t }) {
   return (
     <div style={{ padding:"16px 16px 24px", fontFamily:"'Noto Serif SC',serif", display:"flex", flexDirection:"column", gap:10 }}>
       <div style={{ fontSize:14, fontWeight:600, color:t.text, textAlign:"center", marginBottom:6 }}>游戏区</div>
+
+      {/* 糯糯的梦境大冒险入口引导 */}
+      <div style={{
+        background:"linear-gradient(135deg,rgba(108,92,231,.15),rgba(162,155,254,.1))",
+        border:"1.5px dashed rgba(162,155,254,.5)",
+        borderRadius:12, padding:"12px 16px",
+        display:"flex", alignItems:"center", gap:12,
+      }}>
+        <div style={{ fontSize:22 }}>🌙</div>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:13, color:t.text, marginBottom:2 }}>隐藏游戏</div>
+          <div style={{ fontSize:11, color:t.textMuted, lineHeight:1.5 }}>
+            听说客厅地垫上有个秘密……<br/>
+            <span style={{ color:"rgba(162,155,254,.9)" }}>去踩踩试试？</span>
+          </div>
+        </div>
+        <div style={{ fontSize:16, opacity:.5 }}>↓</div>
+      </div>
+
       {GAMES.map(g => g.href ? (
         <a key={g.id} href={g.href} target="_blank" rel="noopener noreferrer"
           style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:t.surface, borderRadius:12, border:`1px solid ${t.surfaceBorder}` }}>
@@ -800,6 +821,7 @@ function SlotGate({ theme: t }) {
 export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, onEnterNuonuo, onEnterBedroom, onEnterKitchen }) {
   const [active, setActive] = useState(null);
   const [hovered, setHovered] = useState(null);
+  const [dreamOpen, setDreamOpen] = useState(false);
   const [weatherKey, setWeatherKey] = useState(null); // null=sunny; "cloudy"/"rain"/"rain-light" from API (TODO)
   const isDay = mode === "day";
   const hour = new Date().getHours();
@@ -848,6 +870,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
     if (id === "kitchendoor") { onEnterBedroom(); return; }
     if (id === "kitchen")     { onEnterKitchen(); return; }
     if (id === "record")      { setBgmOn(!bgmOn); return; }
+    if (id === "mat")         { setDreamOpen(true); return; }
     setActive(id);
   }
 
@@ -899,6 +922,9 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
         </div>
       </div>
 
+      {/* 梦境大冒险 */}
+      {dreamOpen && <NoonoDream onClose={() => setDreamOpen(false)} />}
+
       {/* 内容抽屉 */}
       {active && (
         <div style={{ position:"fixed", inset:0, zIndex:50, background:"rgba(0,0,0,0.42)", display:"flex", alignItems:"flex-end" }} onClick={e => { if (e.target===e.currentTarget) setActive(null); }}>
@@ -914,6 +940,7 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
 
       <style>{`
         @keyframes slideUp  { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+        @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
         @keyframes nnFloat  { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-3px)} }
         @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(4px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         @keyframes spin     { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
