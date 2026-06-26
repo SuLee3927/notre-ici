@@ -1,4 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import {
+  sfxDigitCollect, sfxMirrorFlip, sfxCalendarStack,
+  sfxColorReverse, sfxShadowRight, sfxShadowWrong,
+  sfxPasswordRight, sfxPasswordWrong, sfxCountdownTick, sfxDoorClose,
+  bgmStart, bgmStopAll,
+} from "../utils/gameAudio.js";
 
 const CONFIG = {
   password: [3, 5, 4, 7],
@@ -91,7 +97,7 @@ function LivingRoom({ onCollect }) {
       {/* 镜子 */}
       {step >= 1 && (
         <div
-          onClick={() => { if (step === 1) setStep(2); }}
+          onClick={() => { if (step === 1) { sfxMirrorFlip(); setStep(2); } }}
           style={{
             background:"rgba(200,220,255,.15)", borderRadius:12, padding:"14px",
             textAlign:"center", cursor: step === 1 ? "pointer" : "default",
@@ -113,7 +119,7 @@ function LivingRoom({ onCollect }) {
           <div style={{ color:"rgba(255,255,255,.7)", fontSize:13, marginBottom:12 }}>
             啊！是爸爸妈妈在给我过生日！那个蜡烛是…… 3？
           </div>
-          <button onClick={() => { setCollected(true); onCollect(0, 3); }} style={{
+          <button onClick={() => { sfxDigitCollect(); setCollected(true); onCollect(0, 3); }} style={{
             background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
             borderRadius:20, padding:"8px 24px", fontSize:14, fontWeight:"bold",
             color:"#333", cursor:"pointer",
@@ -173,7 +179,7 @@ function BedroomRoom({ onCollect }) {
           <div style={{ color:"rgba(255,255,255,.7)", fontSize:13, marginBottom:8 }}>
             三张都找到了，叠在一起看看吧
           </div>
-          <button onClick={() => setStacked(true)} style={{
+          <button onClick={() => { sfxCalendarStack(); setStacked(true); }} style={{
             background:"rgba(255,255,255,.2)", border:"none", borderRadius:20,
             padding:"8px 20px", fontSize:13, color:"#fff", cursor:"pointer",
           }}>
@@ -188,7 +194,7 @@ function BedroomRoom({ onCollect }) {
             叠在一起后，「15」发着光……个位数是 5！
           </div>
           <div style={{ color:"#ffd700", fontSize:40, marginBottom:8 }}>5</div>
-          <button onClick={() => { setCollected(true); onCollect(1, 5); }} style={{
+          <button onClick={() => { sfxDigitCollect(); setCollected(true); onCollect(1, 5); }} style={{
             background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
             borderRadius:20, padding:"8px 24px", fontSize:14, fontWeight:"bold",
             color:"#333", cursor:"pointer",
@@ -244,7 +250,7 @@ function KitchenRoom({ onCollect }) {
           <div style={{ color:"rgba(255,255,255,.7)", fontSize:12, marginBottom:8 }}>
             台面上有张彩虹图……妈妈说彩虹是红橙黄绿青蓝紫！
           </div>
-          <button onClick={() => setReversed(true)} style={{
+          <button onClick={() => { sfxColorReverse(); setReversed(true); }} style={{
             background:"linear-gradient(90deg,#ff4444,#ff8800,#ffff00,#44ff44,#4488ff,#8844ff)",
             border:"none", borderRadius:20, padding:"8px 20px",
             fontSize:13, color:"#fff", fontWeight:"bold", cursor:"pointer",
@@ -260,7 +266,7 @@ function KitchenRoom({ onCollect }) {
             饮料变回正常颜色啦！中间那瓶有个⭐星星……它说它是 4！
           </div>
           <div style={{ color:"#ffd700", fontSize:40, marginBottom:8 }}>4</div>
-          <button onClick={() => { setCollected(true); onCollect(2, 4); }} style={{
+          <button onClick={() => { sfxDigitCollect(); setCollected(true); onCollect(2, 4); }} style={{
             background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
             borderRadius:20, padding:"8px 24px", fontSize:14, fontWeight:"bold",
             color:"#333", cursor:"pointer",
@@ -309,7 +315,7 @@ function NonoRoom({ onCollect }) {
           return (
             <div
               key={i}
-              onClick={() => { if (!chosen) setChosen(i); }}
+              onClick={() => { if (!chosen) { if (s.correct) sfxShadowRight(); else sfxShadowWrong(); setChosen(i); } }}
               style={{
                 background: s.color,
                 borderRadius:12, padding:"14px 10px",
@@ -338,7 +344,7 @@ function NonoRoom({ onCollect }) {
                   {shadows[chosen].line2}
                 </div>
                 <div style={{ color:"#ffd700", fontSize:40, marginBottom:8 }}>7</div>
-                <button onClick={() => { setCollected(true); onCollect(3, 7); }} style={{
+                <button onClick={() => { sfxDigitCollect(); setCollected(true); onCollect(3, 7); }} style={{
                   background:"linear-gradient(135deg,#ffd700,#ffaa00)", border:"none",
                   borderRadius:20, padding:"8px 24px", fontSize:14, fontWeight:"bold",
                   color:"#333", cursor:"pointer",
@@ -377,8 +383,10 @@ function StudyLock({ found, onUnlock }) {
   function check() {
     const correct = input.length === 4 && input.every((v, i) => v === CONFIG.password[i]);
     if (correct) {
+      sfxPasswordRight();
       onUnlock();
     } else {
+      sfxPasswordWrong();
       setError(true);
       setTimeout(() => { setError(false); setInput([]); }, 1200);
     }
@@ -453,6 +461,7 @@ function StudyEnding({ onEnd }) {
   useEffect(() => {
     if (phase !== "countdown") return;
     if (countdown <= 0) { setPhase("choice"); return; }
+    sfxCountdownTick();
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [phase, countdown]);
@@ -467,7 +476,7 @@ function StudyEnding({ onEnd }) {
         <br/>
         书房的门关上后，如果你在10秒内再打开，梦就醒了。如果你不打开，梦就延续下去。
       </div>
-      <button onClick={() => setPhase("countdown")} style={{
+      <button onClick={() => { sfxDoorClose(); setPhase("countdown"); bgmStart("tense"); }} style={{
         background:"linear-gradient(135deg,#a29bfe,#6c5ce7)", border:"none",
         borderRadius:20, padding:"10px 28px", fontSize:14, color:"#fff",
         cursor:"pointer", fontWeight:"bold",
@@ -485,7 +494,7 @@ function StudyEnding({ onEnd }) {
       <div style={{ fontSize:72, color:"#ffd700", fontWeight:"bold", marginBottom:16, fontFamily:"monospace" }}>
         {countdown}
       </div>
-      <button onClick={() => { setEnding("wake"); setPhase("ending"); }} style={{
+      <button onClick={() => { setEnding("wake"); setPhase("ending"); bgmStart("wakeEnd"); }} style={{
         background:"rgba(255,255,255,.9)", border:"none",
         borderRadius:20, padding:"10px 28px", fontSize:14, color:"#333",
         cursor:"pointer", fontWeight:"bold",
@@ -501,12 +510,12 @@ function StudyEnding({ onEnd }) {
         倒计时结束了……你还在书房里。
       </div>
       <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
-        <button onClick={() => { setEnding("wake"); setPhase("ending"); }} style={{
+        <button onClick={() => { setEnding("wake"); setPhase("ending"); bgmStart("wakeEnd"); }} style={{
           background:"rgba(255,255,255,.9)", border:"none",
           borderRadius:20, padding:"10px 20px", fontSize:13, color:"#333",
           cursor:"pointer",
         }}>打开门，醒来 ☀️</button>
-        <button onClick={() => { setEnding("dream"); setPhase("ending"); }} style={{
+        <button onClick={() => { setEnding("dream"); setPhase("ending"); bgmStart("dreamEnd"); }} style={{
           background:"linear-gradient(135deg,#fd79a8,#6c5ce7)", border:"none",
           borderRadius:20, padding:"10px 20px", fontSize:13, color:"#fff",
           cursor:"pointer",
@@ -581,6 +590,11 @@ export default function NoonoDream({ onClose }) {
 
   const roomOrder = CONFIG.roomOrder;
   const allFound = found.every(v => v != null);
+
+  useEffect(() => {
+    bgmStart("dream");
+    return () => bgmStopAll();
+  }, []);
 
   function collectDigit(slotIndex, digit) {
     setFound(prev => { const n=[...prev]; n[slotIndex]=digit; return n; });
