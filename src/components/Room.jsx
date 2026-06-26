@@ -948,14 +948,25 @@ export default function Room({ theme: t, bgmOn, setBgmOn, mode, onEnterPrivate, 
       <RoomBg isDay={isDay} weatherKey={weatherKey} isDusk={isDusk} />
       <RoomDecor />
 
-      {/* 游戏模式：梦境背景图 */}
+      {/* 游戏模式：梦境背景图（客厅） */}
       <img
         src="/dream-room.jpg"
         alt=""
         style={{
           position:"absolute", top:0, left:0, width:"100%", height:"auto",
           zIndex:2, pointerEvents:"none",
-          opacity: gameMode ? 1 : 0,
+          opacity: gameMode && active !== "kitchendoor" ? 1 : 0,
+          transition: "opacity 1.5s ease",
+        }}
+      />
+      {/* 游戏模式：梦境背景图（卧室） */}
+      <img
+        src="/dream-bedroom.jpg"
+        alt=""
+        style={{
+          position:"absolute", top:0, left:0, width:"100%", height:"auto",
+          zIndex:2, pointerEvents:"none",
+          opacity: gameMode && active === "kitchendoor" ? 1 : 0,
           transition: "opacity 1.5s ease",
         }}
       />
