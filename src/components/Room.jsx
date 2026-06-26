@@ -340,9 +340,22 @@ function NuonuoResident({ theme: t, onEnter }) {
         filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
         transition: moveDur > 0 ? `left ${moveDur}ms linear, top ${moveDur}ms linear` : "none",
       }}>
-        <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.75, maxWidth:120, textAlign:"center", lineHeight:1.4 }}>
-          {reaction || bubble || (state?.sleepy ? YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length] : null)}
-        </div>
+        {(reaction || bubble) ? (
+          <div style={{
+            position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)",
+            background:"rgba(255,248,235,0.95)", border:"1.5px solid rgba(180,140,80,0.4)",
+            borderRadius:10, padding:"5px 10px", fontSize:11, color:"#3a2a10",
+            whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif",
+            boxShadow:"0 2px 8px rgba(0,0,0,0.15)", maxWidth:140, textAlign:"center", lineHeight:1.5,
+            whiteSpace:"normal",
+          }}>
+            {reaction || bubble}
+          </div>
+        ) : (state?.sleepy ? (
+          <div style={{ position:"absolute", bottom:"108%", left:"50%", transform:"translateX(-50%)", fontSize:10, color:t.textSub, whiteSpace:"nowrap", fontFamily:"'Noto Serif SC',serif", fontStyle:"italic", opacity:.6 }}>
+            {YAWN_WORDS[Math.floor(Date.now()/60000) % YAWN_WORDS.length]}
+          </div>
+        ) : null)}
         {hasToys && !menu && (
           <div style={{
             position:"absolute", top:-8, right:-8,
