@@ -765,6 +765,47 @@ const MUSIC_HOST = process.env.MUSIC_HOST || "129.226.158.222";
 const MUSIC_PORT = Number(process.env.MUSIC_PORT || "4326");
 app.use("/api/music", makeProxy(MUSIC_HOST, MUSIC_PORT, ""));
 
+// ── /api/chat → DeepSeek API 备用通道 ─────────────────────────────────────────
+const https = require("https");
+const DS_API_KEY = process.env.DEEPSEEK_API_KEY || "sk-1b26325408f74629bbb0a6824d4586ef";
+
+app.post("/api/chat", (req, res) => {
+  if (!DS_API_KEY) {
+    return res.status(503).json({ error: "DeepSeek API key not configured" });
+  }
+  const { messages = [], system = "", model = "deepseek-chat" } = req.body || {};
+  const fullMessages = system
+    ? [{ role: "system", content: system }, ...messages]
+    : messages;
+  const body = JSON.stringify({ model, messages: fullMessages, stream: true });
+
+  const options = {
+    hostname: "api.deepseek.com",
+    path: "/chat/completions",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${DS_API_KEY}`,
+      "Content-Length": Buffer.byteLength(body),
+    },
+  };
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const upstream = https.request(options, (upRes) => {
+    upRes.on("data", (chunk) => res.write(chunk));
+    upRes.on("end", () => res.end());
+  });
+  upstream.on("error", (err) => {
+    console.error("DeepSeek proxy error:", err);
+    res.end();
+  });
+  upstream.write(body);
+  upstream.end();
+});
+
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));
