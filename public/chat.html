@@ -162,6 +162,7 @@
   <div class="header-avatar" id="btn-du-avatar" title="点击换笃的头像"></div>
   <div class="header-title">备用通道 · 和笃说话</div>
   <div class="header-avatar" id="btn-lee-avatar" title="点击换小黎的头像"></div>
+  <button id="btn-clear" title="清空对话" style="background:none;border:none;color:#6a5acd;font-size:18px;cursor:pointer;padding:4px 6px;">🗑</button>
 </div>
 <div id="messages"></div>
 <div id="input-area">
@@ -247,10 +248,27 @@ $btnDu.onclick = () => openAvatarModal("du");
 $btnLee.onclick = () => openAvatarModal("lee");
 document.getElementById("avatar-close").onclick = () => $modal.classList.remove("open");
 $modal.onclick = (e) => { if (e.target === $modal) $modal.classList.remove("open"); };
+document.getElementById("btn-clear").onclick = () => {
+  if (confirm("清空这段对话？")) {
+    messages.length = 0;
+    localStorage.removeItem(HISTORY_KEY);
+    $msgs.innerHTML = "";
+  }
+};
 
 renderHeaderAvatars();
 
-const messages = [];
+// 恢复历史记录
+messages.forEach(m => addMsg(m.role, m.content));
+
+const HISTORY_KEY = "du_chat_history";
+const messages = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+
+function saveHistory() {
+  // 最多保存最近100条
+  const toSave = messages.slice(-100);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(toSave));
+}
 
 function addMsg(role, text) {
   const row = document.createElement("div");
@@ -274,6 +292,7 @@ async function send() {
   $input.value = "";
   $input.style.height = "auto";
   messages.push({ role: "user", content: text });
+  saveHistory();
   addMsg("user", text);
   $send.disabled = true;
 
@@ -316,7 +335,7 @@ async function send() {
   }
 
   bubble.classList.remove("typing");
-  if (reply) messages.push({ role: "assistant", content: reply });
+  if (reply) { messages.push({ role: "assistant", content: reply }); saveHistory(); }
   $send.disabled = false;
   $input.focus();
 }
