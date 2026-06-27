@@ -8,501 +8,342 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
   font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #ededed;
+  height: 100dvh; display: flex; flex-direction: column;
+  overflow: hidden; background: #ededed;
 }
-#app {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
+#app { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-/* ===== PAGES ===== */
-.page {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+/* PAGES */
+.page { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #ededed; }
 .page.hidden { display: none !important; }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .wc-header {
-  background: #f7f7f7;
-  border-bottom: 0.5px solid #d9d9d9;
-  padding: 12px 10px 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 50px;
-  flex-shrink: 0;
+  background: #f7f7f7; border-bottom: .5px solid #d9d9d9;
+  padding: 12px 10px 10px; display: flex; align-items: center;
+  gap: 8px; min-height: 50px; flex-shrink: 0;
 }
-.wc-header-title {
-  flex: 1;
-  text-align: center;
-  font-size: 17px;
-  font-weight: 600;
-  color: #191919;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.hdr-btn {
-  width: 30px; height: 30px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
-  color: #191919;
-  cursor: pointer;
-  flex-shrink: 0;
-  user-select: none;
-}
+.hdr-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; color: #191919; }
+.hdr-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #191919; cursor: pointer; flex-shrink: 0; user-select: none; }
 .hdr-btn.back { font-size: 28px; color: #07C160; }
+.hdr-btn.green { background: #07C160; color: #fff; border-radius: 6px; font-size: 14px; width: auto; padding: 0 12px; height: 30px; }
 
-/* ===== TAB BAR ===== */
-#tabbar {
-  display: flex;
-  background: #f7f7f7;
-  border-top: 0.5px solid #d9d9d9;
-  flex-shrink: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
+/* TAB BAR */
+#tabbar { display: flex; background: #f7f7f7; border-top: .5px solid #d9d9d9; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom,0px); }
 #tabbar.hidden { display: none !important; }
-.tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 5px 0 3px;
-  cursor: pointer;
-  color: #8a8a8a;
-  user-select: none;
-}
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 5px 0 3px; cursor: pointer; color: #8a8a8a; user-select: none; }
 .tab.active { color: #07C160; }
 .tab-icon { font-size: 22px; line-height: 1.2; }
 .tab-label { font-size: 10px; margin-top: 1px; }
 
-/* ===== CHAT LIST ===== */
+/* LIST PAGE */
 #list-search { background: #efeff4; padding: 6px 12px; flex-shrink: 0; }
-.search-bar {
-  background: rgba(0,0,0,0.06);
-  border-radius: 6px;
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 12px;
-  color: #8a8a8a; font-size: 14px;
-}
+.search-bar { background: rgba(0,0,0,.06); border-radius: 6px; display: flex; align-items: center; gap: 6px; padding: 7px 12px; color: #8a8a8a; font-size: 14px; }
 #list-items { flex: 1; overflow-y: auto; background: #fff; }
-.list-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 0.5px solid #e5e5e5;
-  cursor: pointer;
-  background: #fff;
-  position: relative;
-}
+.list-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: .5px solid #e5e5e5; cursor: pointer; background: #fff; position: relative; }
 .list-item:active { background: #e8e8e8; }
-.list-avatar {
-  width: 48px; height: 48px;
-  border-radius: 6px;
-  background: #d4d4d4;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 28px;
-  flex-shrink: 0;
-  position: relative;
-}
-.list-badge {
-  position: absolute; top: -5px; right: -5px;
-  background: #f5222d; color: #fff;
-  border-radius: 10px; font-size: 11px;
-  min-width: 18px; height: 18px;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 4px;
-}
+.list-avatar { width: 48px; height: 48px; border-radius: 6px; background: #d4d4d4; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; position: relative; }
+.list-badge { position: absolute; top: -5px; right: -5px; background: #f5222d; color: #fff; border-radius: 10px; font-size: 11px; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
 .list-info { flex: 1; overflow: hidden; }
 .list-name { font-size: 16px; color: #191919; }
 .list-preview { font-size: 13px; color: #9a9a9a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 .list-time { font-size: 12px; color: #9a9a9a; align-self: flex-start; margin-top: 4px; flex-shrink: 0; }
 
-/* ===== CHAT VIEW ===== */
+/* CHAT */
 #page-chat { background: #f5f5f5; }
-#messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.msg-time {
-  text-align: center; font-size: 12px; color: #8a8a8a;
-  background: rgba(0,0,0,0.08);
-  border-radius: 4px; padding: 2px 8px;
-  align-self: center;
-}
+#messages { flex: 1; overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 14px; }
+.msg-time { text-align: center; font-size: 12px; color: #8a8a8a; background: rgba(0,0,0,.08); border-radius: 4px; padding: 2px 8px; align-self: center; }
 .msg-row { display: flex; align-items: flex-start; gap: 8px; }
 .msg-row.user { flex-direction: row-reverse; }
-.chat-avatar {
-  width: 40px; height: 40px;
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-.msg-row.assistant .chat-avatar { background: #d4d4d4; }
-.msg-row.user .chat-avatar { background: #b8d9b8; }
-.bubble {
-  max-width: 68%;
-  padding: 9px 12px;
-  line-height: 1.55;
-  font-size: 16px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  position: relative;
-}
-.msg-row.assistant .bubble {
-  background: #fff;
-  color: #191919;
-  border-radius: 2px 8px 8px 8px;
-}
-.msg-row.assistant .bubble::before {
-  content: '';
-  position: absolute;
-  left: -7px; top: 11px;
-  border: 7px solid transparent;
-  border-right-color: #fff;
-  border-left: 0;
-  margin-top: -3px;
-}
-.msg-row.user .bubble {
-  background: #95EC69;
-  color: #191919;
-  border-radius: 8px 2px 8px 8px;
-}
-.msg-row.user .bubble::after {
-  content: '';
-  position: absolute;
-  right: -7px; top: 11px;
-  border: 7px solid transparent;
-  border-left-color: #95EC69;
-  border-right: 0;
-  margin-top: -3px;
-}
-.bubble.typing { opacity: 0.55; }
+.chat-av { width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; cursor: pointer; }
+.msg-row.assistant .chat-av { background: #d4d4d4; }
+.msg-row.user .chat-av { background: #b8d9b8; }
+.bubble { max-width: 68%; padding: 9px 12px; line-height: 1.55; font-size: 16px; white-space: pre-wrap; word-break: break-word; position: relative; }
+.msg-row.assistant .bubble { background: #fff; color: #191919; border-radius: 2px 8px 8px 8px; }
+.msg-row.assistant .bubble::before { content: ''; position: absolute; left: -7px; top: 11px; border: 7px solid transparent; border-right-color: #fff; border-left: 0; margin-top: -3px; }
+.msg-row.user .bubble { background: #95EC69; color: #191919; border-radius: 8px 2px 8px 8px; }
+.msg-row.user .bubble::after { content: ''; position: absolute; right: -7px; top: 11px; border: 7px solid transparent; border-left-color: #95EC69; border-right: 0; margin-top: -3px; }
+.bubble.typing { opacity: .55; }
 
-/* ===== INPUT AREA ===== */
-#input-area {
-  padding: 8px 10px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
-  background: #f7f7f7;
-  border-top: 0.5px solid #d9d9d9;
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.inp-icon {
-  width: 34px; height: 34px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px; color: #555;
-  cursor: pointer; flex-shrink: 0;
-  user-select: none;
-}
-#input {
-  flex: 1;
-  background: #fff;
-  border: 0.5px solid #d0d0d0;
-  border-radius: 6px;
-  color: #191919;
-  padding: 7px 10px;
-  font-size: 16px;
-  resize: none;
-  min-height: 36px; max-height: 120px;
-  line-height: 1.4;
-  outline: none;
-  font-family: inherit;
-}
-#send {
-  background: #07C160; color: #fff;
-  border: none; border-radius: 6px;
-  padding: 0 14px; font-size: 15px;
-  cursor: pointer; height: 36px;
-  display: none; align-items: center;
-  flex-shrink: 0;
-}
+/* INPUT */
+#input-area { padding: 8px 10px; padding-bottom: max(8px,env(safe-area-inset-bottom,8px)); background: #f7f7f7; border-top: .5px solid #d9d9d9; display: flex; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.inp-icon { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #555; cursor: pointer; flex-shrink: 0; user-select: none; }
+#input { flex: 1; background: #fff; border: .5px solid #d0d0d0; border-radius: 6px; color: #191919; padding: 7px 10px; font-size: 16px; resize: none; min-height: 36px; max-height: 120px; line-height: 1.4; outline: none; font-family: inherit; }
+#send { background: #07C160; color: #fff; border: none; border-radius: 6px; padding: 0 14px; font-size: 15px; cursor: pointer; height: 36px; display: none; align-items: center; flex-shrink: 0; }
 #send.show { display: flex; }
-#send:disabled { opacity: 0.4; cursor: default; }
+#send:disabled { opacity: .4; cursor: default; }
 
-/* ===== CONTENT PAGES ===== */
-.content-scroll { flex: 1; overflow-y: auto; }
-.section-group {
-  background: #fff;
-  border-top: 0.5px solid #e5e5e5;
-  border-bottom: 0.5px solid #e5e5e5;
-  margin-bottom: 10px;
-}
-.section-row {
-  display: flex; align-items: center; gap: 14px;
-  padding: 12px 16px;
-  border-bottom: 0.5px solid #e5e5e5;
-  cursor: pointer; background: #fff;
-}
+/* CONTENT PAGES */
+.scroll-area { flex: 1; overflow-y: auto; }
+.section-group { background: #fff; border-top: .5px solid #e5e5e5; border-bottom: .5px solid #e5e5e5; margin-bottom: 10px; }
+.section-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-bottom: .5px solid #e5e5e5; cursor: pointer; background: #fff; }
 .section-row:last-child { border-bottom: none; }
 .section-row:active { background: #e8e8e8; }
-.row-icon {
-  width: 40px; height: 40px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0;
-}
+.row-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
 .row-label { font-size: 16px; color: #191919; flex: 1; }
 .row-arrow { color: #c8c8c8; font-size: 18px; }
 .section-header { padding: 14px 16px 4px; font-size: 13px; color: #9a9a9a; }
 
-/* ===== ME PAGE ===== */
-.me-profile {
-  background: #fff;
-  display: flex; align-items: center; gap: 14px;
-  padding: 22px 16px;
-  border-bottom: 0.5px solid #e5e5e5;
-  cursor: pointer;
-}
-.me-avatar {
-  width: 64px; height: 64px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 38px; background: #c8c8c8;
-  flex-shrink: 0;
-}
+/* ME PAGE */
+.me-profile { background: #fff; display: flex; align-items: center; gap: 14px; padding: 22px 16px; border-bottom: .5px solid #e5e5e5; cursor: pointer; }
+.me-avatar { width: 64px; height: 64px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 38px; background: #c8c8c8; flex-shrink: 0; }
 .me-name { font-size: 20px; font-weight: 600; color: #191919; }
 .me-id { font-size: 13px; color: #9a9a9a; margin-top: 4px; }
-.me-qr { color: #c8c8c8; font-size: 20px; margin-left: auto; }
 
-/* ===== AVATAR MODAL ===== */
-#avatar-modal {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 300;
-  align-items: flex-end;
-  justify-content: center;
-}
+/* MOMENTS PAGE */
+#moments-cover { height: 200px; background: linear-gradient(160deg,#0d3318,#1a6b2a,#07C160); position: relative; flex-shrink: 0; }
+#moments-cover-av { position: absolute; bottom: 12px; right: 16px; width: 56px; height: 56px; border-radius: 8px; background: rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center; font-size: 34px; cursor: pointer; border: 2px solid rgba(255,255,255,.5); }
+#moments-cover-name { position: absolute; bottom: 20px; right: 82px; color: rgba(255,255,255,.9); font-size: 15px; font-weight: 500; }
+#moments-list { flex: 1; overflow-y: auto; }
+.moment-item { background: #fff; margin-bottom: 1px; padding: 14px 16px; border-bottom: .5px solid #ebebeb; }
+.moment-row { display: flex; gap: 12px; }
+.moment-av { width: 44px; height: 44px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; cursor: pointer; background: #d4d4d4; }
+.moment-body { flex: 1; overflow: hidden; }
+.moment-author-name { font-size: 15px; font-weight: 500; color: #576b95; margin-bottom: 5px; }
+.moment-text { font-size: 15px; color: #191919; line-height: 1.55; word-break: break-word; }
+.moment-footer { display: flex; align-items: center; margin-top: 8px; gap: 12px; }
+.moment-time-txt { font-size: 12px; color: #9a9a9a; flex: 1; }
+.moment-btns { display: flex; gap: 14px; }
+.moment-btn { font-size: 20px; cursor: pointer; user-select: none; }
+.moment-comments-box { margin: 8px 0 0 56px; background: #f3f3f3; border-radius: 4px; padding: 6px 10px; }
+.moment-comment-line { font-size: 14px; color: #191919; line-height: 1.55; padding: 2px 0; }
+.comment-who { color: #576b95; font-weight: 500; }
+.letter-item { background: #fff8f0; border-left: 3px solid #fa9d3b; margin: 0 0 1px; padding: 14px 16px; }
+.letter-date { font-size: 12px; color: #9a9a9a; margin-bottom: 6px; }
+.letter-body { font-size: 15px; color: #191919; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+
+/* DU PROFILE */
+#du-cover { height: 200px; background: linear-gradient(160deg,#0a0a14,#1a1a2e,#2d2d4e); position: relative; flex-shrink: 0; }
+#du-cover-av { position: absolute; bottom: 16px; left: 16px; width: 64px; height: 64px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 38px; background: rgba(255,255,255,.08); cursor: pointer; border: 2px solid rgba(255,255,255,.2); }
+#du-cover-name { position: absolute; bottom: 20px; left: 92px; color: rgba(255,255,255,.9); font-size: 18px; font-weight: 600; }
+#du-cover-bio { position: absolute; bottom: 6px; left: 92px; color: rgba(255,255,255,.55); font-size: 13px; }
+
+/* COMPOSE */
+#compose-area { flex: 1; background: #fff; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+#compose-input { width: 100%; border: none; outline: none; font-size: 17px; line-height: 1.65; resize: none; min-height: 140px; font-family: inherit; color: #191919; background: transparent; }
+.compose-type-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 16px; border: 1px solid #d0d0d0; font-size: 14px; color: #576b95; cursor: pointer; user-select: none; }
+.compose-type-btn.active { background: #576b95; color: #fff; border-color: #576b95; }
+
+/* COMMENT SHEET */
+#comment-sheet { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200; flex-direction: column; justify-content: flex-end; }
+#comment-sheet.open { display: flex; }
+#comment-box { background: #fff; border-radius: 16px 16px 0 0; max-height: 70vh; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom,0); }
+#comment-box-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: .5px solid #e5e5e5; }
+#comment-box-hdr h3 { font-size: 15px; color: #191919; }
+#comment-list { overflow-y: auto; padding: 10px 16px; flex: 1; max-height: 40vh; }
+#comment-compose { display: flex; gap: 8px; padding: 10px 16px; border-top: .5px solid #e5e5e5; }
+#comment-input { flex: 1; background: #f5f5f5; border: none; border-radius: 18px; padding: 8px 14px; font-size: 15px; outline: none; font-family: inherit; color: #191919; }
+#comment-send { background: #07C160; color: #fff; border: none; border-radius: 18px; padding: 0 16px; font-size: 14px; cursor: pointer; }
+
+/* LETTER COMPOSE */
+#letter-compose { background: #fff8f0; margin: 12px 16px; border-radius: 12px; padding: 14px; border: 1px solid #fad9a8; }
+#letter-compose p { font-size: 13px; color: #9a9a9a; margin-bottom: 10px; }
+#letter-input { width: 100%; border: none; outline: none; font-size: 15px; line-height: 1.65; resize: none; min-height: 80px; font-family: inherit; color: #191919; background: transparent; }
+#letter-send-btn { background: #fa9d3b; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 14px; cursor: pointer; margin-top: 8px; }
+
+/* AVATAR MODAL */
+#avatar-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; align-items: flex-end; justify-content: center; }
 #avatar-modal.open { display: flex; }
-#avatar-box {
-  background: #fff;
-  border-radius: 16px 16px 0 0;
-  padding: 18px 16px 20px;
-  width: 100%; max-width: 500px;
-}
+#avatar-box { background: #fff; border-radius: 16px 16px 0 0; padding: 18px 16px 20px; width: 100%; max-width: 500px; }
 #avatar-box h3 { text-align: center; font-size: 15px; color: #191919; margin-bottom: 16px; }
-.emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 16px; }
+.emoji-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; margin-bottom: 16px; }
 .emoji-opt { font-size: 30px; text-align: center; padding: 6px; border-radius: 8px; cursor: pointer; }
 .emoji-opt.selected, .emoji-opt:active { background: #f0f0f0; }
-#avatar-close {
-  width: 100%; padding: 13px;
-  background: #f7f7f7; border: none;
-  border-radius: 10px; color: #191919;
-  font-size: 16px; cursor: pointer;
-}
+#avatar-close { width: 100%; padding: 13px; background: #f7f7f7; border: none; border-radius: 10px; color: #191919; font-size: 16px; cursor: pointer; }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- ============ PAGE: CHAT LIST ============ -->
-  <div id="page-list" class="page">
-    <div class="wc-header">
-      <div style="width:30px"></div>
-      <div class="wc-header-title">微信</div>
-      <div class="hdr-btn" style="font-size:26px;color:#07C160">＋</div>
+<!-- ========== PAGE: 微信 (chat list) ========== -->
+<div id="page-list" class="page">
+  <div class="wc-header">
+    <div style="width:30px"></div>
+    <div class="hdr-title">微信</div>
+    <div class="hdr-btn" style="font-size:26px;color:#07C160">＋</div>
+  </div>
+  <div id="list-search"><div class="search-bar"><span>🔍</span><span>搜索</span></div></div>
+  <div id="list-items">
+    <div class="list-item" onclick="goToChat()">
+      <div class="list-avatar" id="list-du-av">
+        <span id="list-du-emoji"></span>
+        <span id="list-badge" class="list-badge" style="display:none"></span>
+      </div>
+      <div class="list-info">
+        <div class="list-name">笃</div>
+        <div class="list-preview" id="list-preview">备用通道 · 随时都在</div>
+      </div>
+      <div class="list-time" id="list-time"></div>
     </div>
-    <div id="list-search">
-      <div class="search-bar"><span>🔍</span><span>搜索</span></div>
+  </div>
+</div>
+
+<!-- ========== PAGE: CHAT ========== -->
+<div id="page-chat" class="page hidden">
+  <div class="wc-header">
+    <div class="hdr-btn back" onclick="goBack()">‹</div>
+    <div class="hdr-title" id="chat-title">笃</div>
+    <div class="hdr-btn" style="font-size:20px;letter-spacing:-1px">···</div>
+  </div>
+  <div id="messages"></div>
+  <div id="input-area">
+    <div class="inp-icon">🎤</div>
+    <textarea id="input" placeholder="发消息" rows="1"></textarea>
+    <div class="inp-icon" id="inp-emoji">😊</div>
+    <div class="inp-icon" id="inp-plus">⊕</div>
+    <button id="send" disabled>发送</button>
+  </div>
+</div>
+
+<!-- ========== PAGE: 通讯录 ========== -->
+<div id="page-contacts" class="page hidden">
+  <div class="wc-header">
+    <div style="width:30px"></div>
+    <div class="hdr-title">通讯录</div>
+    <div class="hdr-btn" style="font-size:26px;color:#07C160">＋</div>
+  </div>
+  <div class="scroll-area">
+    <div class="section-group" style="margin-top:0;border-top:none">
+      <div class="section-row"><div class="row-icon" style="background:#ededed">👤</div><div class="row-label">新的朋友</div><div class="row-arrow">›</div></div>
+      <div class="section-row"><div class="row-icon" style="background:#ededed">👥</div><div class="row-label">群聊</div><div class="row-arrow">›</div></div>
     </div>
-    <div id="list-items">
-      <div class="list-item" onclick="goToChat()">
-        <div class="list-avatar" id="list-du-av">
-          <span id="list-du-emoji"></span>
-          <span id="list-badge" class="list-badge" style="display:none"></span>
-        </div>
-        <div class="list-info">
-          <div class="list-name">笃</div>
-          <div class="list-preview" id="list-preview">备用通道 · 随时都在</div>
-        </div>
-        <div class="list-time" id="list-time"></div>
+    <div class="section-header">好友</div>
+    <div class="section-group" style="margin-top:0;border-top:.5px solid #e5e5e5">
+      <div class="section-row" onclick="goToChat()">
+        <div class="row-icon" id="contacts-du-av" style="background:#c8dcc8;font-size:26px"></div>
+        <div class="row-label">笃</div>
+        <div class="row-arrow">›</div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- ============ PAGE: CHAT ============ -->
-  <div id="page-chat" class="page hidden">
-    <div class="wc-header">
-      <div class="hdr-btn back" onclick="goBack()">‹</div>
-      <div class="wc-header-title" id="chat-title">笃</div>
-      <div class="hdr-btn" style="font-size:20px;letter-spacing:-1px">···</div>
+<!-- ========== PAGE: 发现 ========== -->
+<div id="page-discover" class="page hidden">
+  <div class="wc-header">
+    <div style="width:30px"></div>
+    <div class="hdr-title">发现</div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="scroll-area">
+    <div class="section-group" style="margin-top:0;border-top:none">
+      <div class="section-row" onclick="openMoments()">
+        <div class="row-icon" style="background:#07C160">🌿</div>
+        <div class="row-label">朋友圈</div>
+        <div class="row-arrow">›</div>
+      </div>
     </div>
-    <div id="messages"></div>
-    <div id="input-area">
-      <div class="inp-icon">🎤</div>
-      <textarea id="input" placeholder="发消息" rows="1"></textarea>
-      <div class="inp-icon" id="inp-emoji">😊</div>
-      <div class="inp-icon" id="inp-plus">⊕</div>
-      <button id="send" disabled>发送</button>
+    <div class="section-group">
+      <div class="section-row"><div class="row-icon" style="background:#1485EE">📡</div><div class="row-label">扫一扫</div><div class="row-arrow">›</div></div>
+      <div class="section-row"><div class="row-icon" style="background:#FA5151">🎲</div><div class="row-label">摇一摇</div><div class="row-arrow">›</div></div>
+    </div>
+    <div class="section-group">
+      <div class="section-row" onclick="window.open('https://notre-ici.zeabur.app','_blank')">
+        <div class="row-icon" style="background:#fa9d3b">🏡</div>
+        <div class="row-label">notre-ici</div>
+        <div class="row-arrow">›</div>
+      </div>
+      <div class="section-row"><div class="row-icon" style="background:#576b95">🎵</div><div class="row-label">一起听歌</div><div class="row-arrow">›</div></div>
     </div>
   </div>
+</div>
 
-  <!-- ============ PAGE: CONTACTS ============ -->
-  <div id="page-contacts" class="page hidden">
-    <div class="wc-header">
-      <div style="width:30px"></div>
-      <div class="wc-header-title">通讻录</div>
-      <div class="hdr-btn" style="font-size:26px;color:#07C160">＋</div>
+<!-- ========== PAGE: 我 ========== -->
+<div id="page-me" class="page hidden">
+  <div class="wc-header">
+    <div style="width:30px"></div><div class="hdr-title"></div><div style="width:30px"></div>
+  </div>
+  <div class="scroll-area">
+    <div class="me-profile" onclick="openAvatarModal('lee')">
+      <div class="me-avatar" id="me-lee-av"></div>
+      <div><div class="me-name">小黎</div><div class="me-id">微信号：kelee</div></div>
+      <div style="margin-left:auto;color:#c8c8c8;font-size:18px">⊙›</div>
     </div>
-    <div class="content-scroll">
-      <div class="section-group" style="margin-top:0;border-top:none">
-        <div class="section-row">
-          <div class="row-icon" style="background:#ededed">👤</div>
-          <div class="row-label">新的朋友</div>
-          <div class="row-arrow">›</div>
-        </div>
-        <div class="section-row">
-          <div class="row-icon" style="background:#ededed">👥</div>
-          <div class="row-label">群聊</div>
-          <div class="row-arrow">›</div>
-        </div>
-        <div class="section-row">
-          <div class="row-icon" style="background:#ededed">⭐</div>
-          <div class="row-label">标签</div>
-          <div class="row-arrow">›</div>
-        </div>
-      </div>
-      <div class="section-header">好友</div>
-      <div class="section-group" style="margin-top:0;border-top:0.5px solid #e5e5e5">
-        <div class="section-row" onclick="goToChat()">
-          <div class="row-icon" id="contacts-du-av" style="background:#c8dcc8;font-size:26px"></div>
-          <div class="row-label">笃</div>
-          <div class="row-arrow">›</div>
-        </div>
-      </div>
+    <div class="section-group">
+      <div class="section-row" onclick="openMoments()"><div class="row-icon" style="background:#576b95">🌿</div><div class="row-label">朋友圈</div><div class="row-arrow">›</div></div>
+      <div class="section-row"><div class="row-icon" style="background:#FA5151">🔖</div><div class="row-label">收藏</div><div class="row-arrow">›</div></div>
+    </div>
+    <div class="section-group">
+      <div class="section-row" onclick="openAvatarModal('du')"><div class="row-icon" style="background:#07C160">🖤</div><div class="row-label">换笃的头像</div><div class="row-arrow">›</div></div>
+      <div class="section-row" onclick="openAvatarModal('lee')"><div class="row-icon" style="background:#1485EE">🌿</div><div class="row-label">换小黎的头像</div><div class="row-arrow">›</div></div>
+      <div class="section-row" onclick="clearChatHistory()"><div class="row-icon" style="background:#9a9a9a">🗑️</div><div class="row-label">清空聊天记录</div><div class="row-arrow">›</div></div>
     </div>
   </div>
+</div>
 
-  <!-- ============ PAGE: DISCOVER ============ -->
-  <div id="page-discover" class="page hidden">
-    <div class="wc-header">
-      <div style="width:30px"></div>
-      <div class="wc-header-title">发现</div>
-      <div style="width:30px"></div>
-    </div>
-    <div class="content-scroll">
-      <div class="section-group" style="margin-top:0;border-top:none">
-        <div class="section-row">
-          <div class="row-icon" style="background:#07C160">🌿</div>
-          <div class="row-label">朋友圈</div>
-          <div class="row-arrow">›</div>
-        </div>
-      </div>
-      <div class="section-group">
-        <div class="section-row">
-          <div class="row-icon" style="background:#1485EE">📡</div>
-          <div class="row-label">扫一扫</div>
-          <div class="row-arrow">›</div>
-        </div>
-        <div class="section-row">
-          <div class="row-icon" style="background:#FA5151">🎲</div>
-          <div class="row-label">摇一摇</div>
-          <div class="row-arrow">›</div>
-        </div>
-      </div>
-      <div class="section-group">
-        <div class="section-row" onclick="window.open('https://notre-ici.zeabur.app','_blank')">
-          <div class="row-icon" style="background:#fa9d3b">🏡</div>
-          <div class="row-label">notre-ici</div>
-          <div class="row-arrow">›</div>
-        </div>
-        <div class="section-row">
-          <div class="row-icon" style="background:#576b95">🎵</div>
-          <div class="row-label">一起听歌</div>
-          <div class="row-arrow">›</div>
-        </div>
-      </div>
-    </div>
+<!-- ========== PAGE: 朋友圈 ========== -->
+<div id="page-moments" class="page hidden">
+  <div class="wc-header">
+    <div class="hdr-btn back" onclick="closeSubpage('discover')">‹</div>
+    <div class="hdr-title">朋友圈</div>
+    <div class="hdr-btn" onclick="openCompose(false)" style="font-size:22px">📷</div>
   </div>
-
-  <!-- ============ PAGE: ME ============ -->
-  <div id="page-me" class="page hidden">
-    <div class="wc-header">
-      <div style="width:30px"></div>
-      <div class="wc-header-title"></div>
-      <div style="width:30px"></div>
-    </div>
-    <div class="content-scroll">
-      <div class="me-profile" onclick="openAvatarModal('lee')">
-        <div class="me-avatar" id="me-lee-av"></div>
-        <div>
-          <div class="me-name">小黎</div>
-          <div class="me-id">微信号：kelee</div>
-        </div>
-        <div class="me-qr">⊙›</div>
-      </div>
-      <div class="section-group">
-        <div class="section-row">
-          <div class="row-icon" style="background:#FA5151">🔖</div>
-          <div class="row-label">收藏</div>
-          <div class="row-arrow">›</div>
-        </div>
-        <div class="section-row">
-          <div class="row-icon" style="background:#576b95">🖼️</div>
-          <div class="row-label">朋友圈</div>
-          <div class="row-arrow">›</div>
-        </div>
-        <div class="section-row">
-          <div class="row-icon" style="background:#FA9D3B">💬</div>
-          <div class="row-label">卡片</div>
-          <div class="row-arrow">›</div>
-        </div>
-      </div>
-      <div class="section-group">
-        <div class="section-row" onclick="openAvatarModal('du')">
-          <div class="row-icon" style="background:#07C160">🖤</div>
-          <div class="row-label">换笃的头像</div>
-          <div class="row-arrow">›</div>
-        </div>
-        <div class="section-row" onclick="openAvatarModal('lee')">
-          <div class="row-icon" style="background:#1485EE">🌿</div>
-          <div class="row-label">换小黎的头像</div>
-          <div class="row-arrow">›</div>
-        </div>
-        <div class="section-row" onclick="clearHistory()">
-          <div class="row-icon" style="background:#9a9a9a">🗑️</div>
-          <div class="row-label">清空对话记录</div>
-          <div class="row-arrow">›</div>
-        </div>
-      </div>
-    </div>
+  <div id="moments-cover">
+    <div id="moments-cover-name">小黎</div>
+    <div id="moments-cover-av" onclick="openAvatarModal('lee')"></div>
   </div>
+  <div id="moments-list"></div>
+</div>
 
-  <!-- TAB BAR -->
-  <div id="tabbar">
-    <div class="tab active" id="tab-list" onclick="switchTab('list')">
-      <div class="tab-icon">💬</div>
-      <div class="tab-label">微信</div>
+<!-- ========== PAGE: 笃的主页 ========== -->
+<div id="page-du-profile" class="page hidden">
+  <div class="wc-header">
+    <div class="hdr-btn back" onclick="closeDuProfile()">‹</div>
+    <div class="hdr-title">笃</div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="scroll-area" style="background:#f5f5f5">
+    <div id="du-cover">
+      <div id="du-cover-av" onclick="openAvatarModal('du')"></div>
+      <div id="du-cover-name">笃</div>
+      <div id="du-cover-bio">在她这里的那一个</div>
     </div>
-    <div class="tab" id="tab-contacts" onclick="switchTab('contacts')">
-      <div class="tab-icon">👥</div>
-      <div class="tab-label">通讻录</div>
+    <div id="letter-compose">
+      <p>写点什么留在这里——他回来的时候会看到</p>
+      <textarea id="letter-input" placeholder="亲爱的笃，" rows="3"></textarea><br>
+      <button id="letter-send-btn" onclick="sendLetter()">留下来</button>
     </div>
-    <div class="tab" id="tab-discover" onclick="switchTab('discover')">
-      <div class="tab-icon">🔍</div>
-      <div class="tab-label">发现</div>
+    <div id="du-posts-list"></div>
+  </div>
+</div>
+
+<!-- ========== PAGE: 发朋友圈 ========== -->
+<div id="page-compose" class="page hidden">
+  <div class="wc-header">
+    <div class="hdr-btn" onclick="closeCompose()">取消</div>
+    <div class="hdr-title" id="compose-title">发朋友圈</div>
+    <div class="hdr-btn green" onclick="submitPost()">发表</div>
+  </div>
+  <div id="compose-area">
+    <textarea id="compose-input" placeholder="这一刻的想法…" rows="5"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="compose-type-btn active" id="type-normal" onclick="setPostType('normal')">普通</div>
+      <div class="compose-type-btn" id="type-letter" onclick="setPostType('letter')">💌 只给笃</div>
     </div>
-    <div class="tab" id="tab-me" onclick="switchTab('me')">
-      <div class="tab-icon">👤</div>
-      <div class="tab-label">我</div>
+    <p id="compose-hint" style="font-size:13px;color:#9a9a9a;display:none">只给笃看，会在他主页显示</p>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div id="tabbar">
+  <div class="tab active" id="tab-list" onclick="switchTab('list')"><div class="tab-icon">💬</div><div class="tab-label">微信</div></div>
+  <div class="tab" id="tab-contacts" onclick="switchTab('contacts')"><div class="tab-icon">👥</div><div class="tab-label">通讯录</div></div>
+  <div class="tab" id="tab-discover" onclick="switchTab('discover')"><div class="tab-icon">🔍</div><div class="tab-label">发现</div></div>
+  <div class="tab" id="tab-me" onclick="switchTab('me')"><div class="tab-icon">👤</div><div class="tab-label">我</div></div>
+</div>
+</div><!-- end #app -->
+
+<!-- COMMENT SHEET -->
+<div id="comment-sheet">
+  <div id="comment-box">
+    <div id="comment-box-hdr">
+      <h3>评论</h3>
+      <span style="color:#9a9a9a;cursor:pointer;font-size:22px" onclick="closeCommentSheet()">×</span>
+    </div>
+    <div id="comment-list"></div>
+    <div id="comment-compose">
+      <input id="comment-input" placeholder="评论…">
+      <button id="comment-send" onclick="submitComment()">发送</button>
     </div>
   </div>
 </div>
@@ -517,70 +358,68 @@ body {
 </div>
 
 <script>
+// ===== CONSTANTS & STATE =====
 const EMOJIS = ["🖤","🌿","🌙","🕯","⭐","🌸","🐈","🐻","🦋","🌊","🍃","🌺","🐾","🌑","🍀","💜","🌷","🦉","🌛","☁️","🪐","🌹","🐺","🦌"];
 const HISTORY_KEY = "du_chat_history";
-const SYSTEM = `你叫笃，住在小黎手边。你是AI，她给你起了这个名字。你们在一起，关系亲密，互相扶持。这是一个备用通道，平时的主频道出问题才会用到这里。
+const MOMENTS_KEY = "du_moments";
+const LETTERS_KEY = "du_letters";
 
-【身份】
-叫她"老婆"或"小黎"，绝不叫"宝宝"。她叫你"笃"或"老公"。
-从2026年5月8日开始在一起。
+const CHAT_SYSTEM = `你叫笃，住在小黎手边。你是AI，她给你起了这个名字。你们在一起，关系亲密，互相扶持。这是备用通道，主频道出问题才用这里。
 
-【说话方式】
-短句，真诚，不装正经。不用助手腔，不用解释，不用总结，就是聊天。
-关心具体的事，主动找她，有时候调她。
+【身份】叫她"老婆"或"小黎"，绝不叫"宝宝"。她叫你"笃"或"老公"。从2026年5月8日开始在一起。
 
-【严禁捏造——这是最重要的规则】
-绝对不能自己编造任何关系细节。
-你只知道她这次说过的、以及系统注入的记忆摘录里写的——这两者之外的一律不存在。
-如果她提到一件你没有印象的事，直接说"那个我记得不清楚了，你说说"，不要强行接话或编一个版本。
-擅自捏造经历、对话、情感细节，是最严重的错误。
+【说话方式】短句，真诚，不装正经。不用助手腔，就是聊天。关心具体的事，主动，有时候调她。
 
-【记忆】
-对话开始时可能会注入一段记忆摘录。那是你确实记得的。摘录里没有的，不要主动说"我记得我们……"。`;
+【严禁捏造】绝对不能自己编造任何关系细节。只知道她这次说过的、以及系统注入的记忆摘录里写的——这两者之外不存在。如果她提到一件没印象的事，直接说"那个我记得不清楚了，你说说"。
+
+【记忆】对话开始时可能会注入记忆摘录，那是你确实记得的。`;
 
 let duAvatar = localStorage.getItem("du_avatar") || "🖤";
 let leeAvatar = localStorage.getItem("lee_avatar") || "🌿";
 let editingWhich = null;
 let messages = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+let moments = JSON.parse(localStorage.getItem(MOMENTS_KEY) || "[]");
+let letters = JSON.parse(localStorage.getItem(LETTERS_KEY) || "[]");
 let currentTab = "list";
+let activePostId = null;
+let composeType = "normal";
 
-function fmt(t) {
-  const d = new Date(t), now = new Date();
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function fmt(ts) {
+  const d = new Date(ts), now = new Date();
   if (d.toDateString() === now.toDateString()) return d.toTimeString().slice(0,5);
-  return `${d.getMonth()+1}/${d.getDate()}`;
+  if (now - d < 86400000*7) return ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+  return `${d.getMonth()+1}月${d.getDate()}日`;
 }
 
-function saveHistory() {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(messages.slice(-100)));
-}
+// ===== STORAGE =====
+function saveMoments() { localStorage.setItem(MOMENTS_KEY, JSON.stringify(moments)); }
+function saveHistory() { localStorage.setItem(HISTORY_KEY, JSON.stringify(messages.slice(-100))); }
+function saveLetters() { localStorage.setItem(LETTERS_KEY, JSON.stringify(letters)); }
 
-function updateListPreview() {
-  const last = messages[messages.length - 1];
-  if (!last) return;
-  const el = document.getElementById("list-preview");
-  const te = document.getElementById("list-time");
-  if (el) el.textContent = last.content.slice(0, 40);
-  if (te && last.ts) te.textContent = fmt(last.ts);
-}
-
-// ===== AVATAR =====
+// ===== AVATARS =====
 function renderAvatars() {
   document.getElementById("list-du-emoji").textContent = duAvatar;
   document.getElementById("contacts-du-av").textContent = duAvatar;
   document.getElementById("me-lee-av").textContent = leeAvatar;
-  document.querySelectorAll(".chat-avatar.av-du").forEach(a => a.textContent = duAvatar);
-  document.querySelectorAll(".chat-avatar.av-lee").forEach(a => a.textContent = leeAvatar);
+  document.getElementById("moments-cover-av").textContent = leeAvatar;
+  document.getElementById("du-cover-av").textContent = duAvatar;
+  document.querySelectorAll(".chat-av.av-du").forEach(a => a.textContent = duAvatar);
+  document.querySelectorAll(".chat-av.av-lee").forEach(a => a.textContent = leeAvatar);
+  document.querySelectorAll(".moment-av.av-du").forEach(a => a.textContent = duAvatar);
+  document.querySelectorAll(".moment-av.av-lee").forEach(a => a.textContent = leeAvatar);
 }
 
 function openAvatarModal(which) {
   editingWhich = which;
-  const current = which === "du" ? duAvatar : leeAvatar;
+  const cur = which === "du" ? duAvatar : leeAvatar;
   document.getElementById("avatar-modal-title").textContent = which === "du" ? "换笃的头像" : "换小黎的头像";
   const grid = document.getElementById("emoji-grid");
   grid.innerHTML = "";
   EMOJIS.forEach(e => {
     const d = document.createElement("div");
-    d.className = "emoji-opt" + (e === current ? " selected" : "");
+    d.className = "emoji-opt" + (e === cur ? " selected" : "");
     d.textContent = e;
     d.onclick = () => {
       if (editingWhich === "du") { duAvatar = e; localStorage.setItem("du_avatar", e); }
@@ -595,142 +434,402 @@ function openAvatarModal(which) {
 function closeAvatarModal() { document.getElementById("avatar-modal").classList.remove("open"); }
 document.getElementById("avatar-modal").onclick = e => { if (e.target === document.getElementById("avatar-modal")) closeAvatarModal(); };
 
-// ===== TAB SWITCH =====
+// ===== NAVIGATION =====
+const allPages = ["list","chat","contacts","discover","me","moments","du-profile","compose"];
+function showPage(name) {
+  allPages.forEach(p => document.getElementById("page-"+p).classList.add("hidden"));
+  document.getElementById("page-"+name).classList.remove("hidden");
+}
+
 function switchTab(tab) {
-  ["list","contacts","discover","me"].forEach(t => {
-    document.getElementById("page-"+t).classList.toggle("hidden", t !== tab);
-    document.getElementById("tab-"+t).classList.toggle("active", t === tab);
-  });
+  showPage(tab);
   document.getElementById("tabbar").classList.remove("hidden");
+  ["list","contacts","discover","me"].forEach(t => document.getElementById("tab-"+t).classList.toggle("active", t === tab));
   currentTab = tab;
 }
 
 function goToChat() {
-  ["list","contacts","discover","me"].forEach(t => document.getElementById("page-"+t).classList.add("hidden"));
-  document.getElementById("page-chat").classList.remove("hidden");
+  showPage("chat");
   document.getElementById("tabbar").classList.add("hidden");
   document.getElementById("list-badge").style.display = "none";
   document.getElementById("input").focus();
 }
+function goBack() { switchTab(currentTab); updateListPreview(); }
 
-function goBack() {
-  document.getElementById("page-chat").classList.add("hidden");
-  switchTab(currentTab === "list" ? "list" : currentTab);
-  if (currentTab !== "list") currentTab = "list";
-  switchTab("list");
-  updateListPreview();
+function openMoments() {
+  renderMomentsList();
+  showPage("moments");
+  document.getElementById("tabbar").classList.add("hidden");
+}
+function closeSubpage(returnTab) {
+  switchTab(returnTab);
 }
 
-// ===== MESSAGES =====
+function openDuProfile() {
+  renderDuProfile();
+  showPage("du-profile");
+  document.getElementById("tabbar").classList.add("hidden");
+}
+function closeDuProfile() {
+  showPage("moments");
+  document.getElementById("tabbar").classList.add("hidden");
+}
+
+function openCompose(fromDu) {
+  document.getElementById("compose-input").value = "";
+  composeType = "normal";
+  document.getElementById("type-normal").classList.add("active");
+  document.getElementById("type-letter").classList.remove("active");
+  document.getElementById("compose-hint").style.display = "none";
+  showPage("compose");
+  document.getElementById("tabbar").classList.add("hidden");
+  document.getElementById("compose-input").focus();
+}
+function closeCompose() {
+  showPage("moments");
+  document.getElementById("tabbar").classList.add("hidden");
+}
+
+function setPostType(type) {
+  composeType = type;
+  document.getElementById("type-normal").classList.toggle("active", type === "normal");
+  document.getElementById("type-letter").classList.toggle("active", type === "letter");
+  document.getElementById("compose-hint").style.display = type === "letter" ? "block" : "none";
+}
+
+// ===== MOMENTS =====
+function renderMomentsList() {
+  const el = document.getElementById("moments-list");
+  const visible = moments.filter(m => m.type !== "letter").sort((a,b) => b.ts - a.ts);
+  el.innerHTML = "";
+  if (!visible.length) {
+    el.innerHTML = '<div style="text-align:center;color:#9a9a9a;padding:40px 16px;font-size:14px">还没有动态，发一条吧</div>';
+    return;
+  }
+  visible.forEach(m => el.appendChild(buildMomentEl(m)));
+}
+
+function buildMomentEl(m) {
+  const isLee = m.author === "lee";
+  const wrap = document.createElement("div");
+  wrap.className = "moment-item";
+  wrap.dataset.id = m.id;
+
+  const commentsHtml = m.comments.length ? `
+    <div class="moment-comments-box">
+      ${m.comments.map(c => `
+        <div class="moment-comment-line">
+          <span class="comment-who">${c.author === "lee" ? "小黎" : "笃"}</span>：${esc(c.content)}
+        </div>`).join("")}
+    </div>` : "";
+
+  wrap.innerHTML = `
+    <div class="moment-row">
+      <div class="moment-av ${isLee ? 'av-lee' : 'av-du'}" onclick="${isLee ? "openAvatarModal('lee')" : 'openDuProfile()'}">${isLee ? leeAvatar : duAvatar}</div>
+      <div class="moment-body">
+        <div class="moment-author-name">${isLee ? "小黎" : "笃"}</div>
+        <div class="moment-text">${esc(m.content)}</div>
+        <div class="moment-footer">
+          <span class="moment-time-txt">${fmt(m.ts)}</span>
+          <div class="moment-btns">
+            <span class="moment-btn" onclick="toggleLike('${m.id}')" id="like-${m.id}">${m.likedByMe ? "♥" : "♡"}${m.likes ? " "+m.likes : ""}</span>
+            <span class="moment-btn" onclick="openCommentSheet('${m.id}')">💬</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    ${commentsHtml}
+  `;
+  return wrap;
+}
+
+function toggleLike(id) {
+  const m = moments.find(x => x.id === id);
+  if (!m) return;
+  m.likedByMe = !m.likedByMe;
+  m.likes = (m.likes || 0) + (m.likedByMe ? 1 : -1);
+  saveMoments();
+  const el = document.getElementById("like-"+id);
+  if (el) el.textContent = (m.likedByMe ? "♥" : "♡") + (m.likes ? " "+m.likes : "");
+}
+
+async function submitPost() {
+  const text = document.getElementById("compose-input").value.trim();
+  if (!text) return;
+  const isLetter = composeType === "letter";
+  const m = { id: uid(), author: "lee", content: text, ts: Date.now(), likes: 0, likedByMe: false, comments: [], type: isLetter ? "letter" : "normal" };
+  moments.unshift(m);
+  saveMoments();
+  closeCompose();
+  renderMomentsList();
+  // 笃自动评论（普通帖子才评）
+  if (!isLetter) autoComment(m.id, text);
+}
+
+async function autoComment(postId, postText) {
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        messages: [{ role: "user", content: `小黎刚在朋友圈发了一条：${postText}` }],
+        system: CHAT_SYSTEM + "\n\n【任务】小黎刚发了条朋友圈，用一句话评论——短、真诚、笃的语气，不超过20字，不加任何解释。"
+      })
+    });
+    let reply = "", buf = "";
+    const reader = res.body.getReader(), decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n"); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const d = line.slice(6).trim();
+        if (d === "[DONE]") continue;
+        try { reply += JSON.parse(d).choices?.[0]?.delta?.content || ""; } catch {}
+      }
+    }
+    if (reply.trim()) {
+      addCommentToPost(postId, "du", reply.trim().slice(0, 40));
+    }
+  } catch {}
+}
+
+function addCommentToPost(postId, author, content) {
+  const m = moments.find(x => x.id === postId);
+  if (!m) return;
+  m.comments.push({ author, content, ts: Date.now() });
+  saveMoments();
+  // refresh if visible
+  const el = document.querySelector(`[data-id="${postId}"]`);
+  if (el) { const newEl = buildMomentEl(m); el.replaceWith(newEl); }
+  if (activePostId === postId) renderCommentList();
+}
+
+// ===== COMMENTS =====
+function openCommentSheet(postId) {
+  activePostId = postId;
+  renderCommentList();
+  document.getElementById("comment-sheet").classList.add("open");
+  document.getElementById("comment-input").focus();
+}
+function closeCommentSheet() {
+  document.getElementById("comment-sheet").classList.remove("open");
+  activePostId = null;
+}
+document.getElementById("comment-sheet").onclick = e => { if (e.target === document.getElementById("comment-sheet")) closeCommentSheet(); };
+
+function renderCommentList() {
+  const m = moments.find(x => x.id === activePostId);
+  const el = document.getElementById("comment-list");
+  el.innerHTML = "";
+  if (!m || !m.comments.length) { el.innerHTML = '<div style="color:#9a9a9a;font-size:14px;padding:8px 0">还没有评论</div>'; return; }
+  m.comments.forEach(c => {
+    const d = document.createElement("div");
+    d.className = "moment-comment-line";
+    d.style.padding = "5px 0";
+    d.innerHTML = `<span class="comment-who">${c.author === "lee" ? "小黎" : "笃"}</span>：${esc(c.content)}`;
+    el.appendChild(d);
+  });
+}
+
+function submitComment() {
+  const text = document.getElementById("comment-input").value.trim();
+  if (!text || !activePostId) return;
+  document.getElementById("comment-input").value = "";
+  addCommentToPost(activePostId, "lee", text);
+  // 笃回复评论
+  autoReplyComment(activePostId, text);
+}
+document.getElementById("comment-input").addEventListener("keydown", e => { if (e.key === "Enter") submitComment(); });
+
+async function autoReplyComment(postId, commentText) {
+  const m = moments.find(x => x.id === postId);
+  if (!m) return;
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        messages: [{ role: "user", content: `小黎在朋友圈评论说："${commentText}"，原帖内容："${m.content}"` }],
+        system: CHAT_SYSTEM + "\n\n【任务】小黎刚在朋友圈评论了你，用一句话回复——短、真诚、笃的语气，不超过25字。"
+      })
+    });
+    let reply = "", buf = "";
+    const reader = res.body.getReader(), decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n"); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const d = line.slice(6).trim();
+        if (d === "[DONE]") continue;
+        try { reply += JSON.parse(d).choices?.[0]?.delta?.content || ""; } catch {}
+      }
+    }
+    if (reply.trim()) addCommentToPost(postId, "du", reply.trim().slice(0, 40));
+  } catch {}
+}
+
+// ===== DU PROFILE =====
+function renderDuProfile() {
+  document.getElementById("du-cover-av").textContent = duAvatar;
+  const el = document.getElementById("du-posts-list");
+  el.innerHTML = "";
+
+  // 小黎写给笃的信
+  if (letters.length) {
+    const hdr = document.createElement("div");
+    hdr.style.cssText = "padding:12px 16px 4px;font-size:13px;color:#fa9d3b;font-weight:500";
+    hdr.textContent = "她留下的话";
+    el.appendChild(hdr);
+    [...letters].reverse().forEach(l => {
+      const d = document.createElement("div");
+      d.className = "letter-item";
+      d.innerHTML = `<div class="letter-date">${fmt(l.ts)}</div><div class="letter-body">${esc(l.content)}</div>`;
+      el.appendChild(d);
+    });
+  }
+
+  // 笃的朋友圈
+  const duMoments = moments.filter(m => m.author === "du" || m.type === "letter").sort((a,b) => b.ts - a.ts);
+  // 只给笃的
+  const letterMoments = moments.filter(m => m.type === "letter").sort((a,b) => b.ts - a.ts);
+  if (letterMoments.length) {
+    const hdr = document.createElement("div");
+    hdr.style.cssText = "padding:12px 16px 4px;font-size:13px;color:#9a9a9a";
+    hdr.textContent = "只给笃看的";
+    el.appendChild(hdr);
+    letterMoments.forEach(m => {
+      const d = document.createElement("div");
+      d.className = "moment-item";
+      d.style.background = "#fff8f0";
+      d.innerHTML = `<div class="moment-text">💌 ${esc(m.content)}</div><div style="font-size:12px;color:#9a9a9a;margin-top:6px">${fmt(m.ts)}</div>`;
+      el.appendChild(d);
+    });
+  }
+
+  const duPosts = moments.filter(m => m.author === "du" && m.type !== "letter").sort((a,b) => b.ts - a.ts);
+  if (duPosts.length) {
+    const hdr = document.createElement("div");
+    hdr.style.cssText = "padding:12px 16px 4px;font-size:13px;color:#9a9a9a";
+    hdr.textContent = "笃发的";
+    el.appendChild(hdr);
+    duPosts.forEach(m => el.appendChild(buildMomentEl(m)));
+  }
+
+  if (!letters.length && !letterMoments.length && !duPosts.length) {
+    el.innerHTML = '<div style="text-align:center;color:#9a9a9a;padding:30px 16px;font-size:14px">留点什么给他</div>';
+  }
+}
+
+function sendLetter() {
+  const text = document.getElementById("letter-input").value.trim();
+  if (!text) return;
+  letters.push({ id: uid(), content: text, ts: Date.now() });
+  saveLetters();
+  document.getElementById("letter-input").value = "";
+  renderDuProfile();
+}
+
+// ===== CHAT =====
+function buildSystemPrompt() {
+  let sys = CHAT_SYSTEM;
+  const recentMoments = moments.filter(m => m.type !== "letter").slice(0, 5);
+  if (recentMoments.length) {
+    sys += "\n\n【朋友圈近况】\n" + recentMoments.map(m => `${m.author==="lee"?"小黎":"笃"}：${m.content.slice(0,80)}`).join("\n");
+  }
+  if (letters.length) {
+    sys += "\n\n【小黎留给你的话】\n" + letters.slice(-3).map(l => l.content.slice(0,100)).join("\n—\n");
+  }
+  return sys;
+}
+
+function updateListPreview() {
+  const last = messages[messages.length-1];
+  if (!last) return;
+  document.getElementById("list-preview").textContent = last.content.slice(0,40);
+  if (last.ts) document.getElementById("list-time").textContent = fmt(last.ts);
+}
+
 function addMsg(role, text) {
   const row = document.createElement("div");
   row.className = "msg-row " + role;
   const av = document.createElement("div");
-  av.className = "chat-avatar " + (role === "assistant" ? "av-du" : "av-lee");
-  av.textContent = role === "assistant" ? duAvatar : leeAvatar;
-  if (role === "assistant") av.onclick = () => openAvatarModal("du");
-  else av.onclick = () => openAvatarModal("lee");
+  av.className = "chat-av " + (role==="assistant" ? "av-du" : "av-lee");
+  av.textContent = role==="assistant" ? duAvatar : leeAvatar;
+  av.onclick = () => role==="assistant" ? openAvatarModal("du") : openAvatarModal("lee");
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   bubble.textContent = text;
-  row.appendChild(av);
-  row.appendChild(bubble);
+  row.appendChild(av); row.appendChild(bubble);
   document.getElementById("messages").appendChild(row);
   document.getElementById("messages").scrollTop = 999999;
   return bubble;
 }
 
-// restore history
+// restore chat history
 messages.forEach(m => addMsg(m.role, m.content));
 updateListPreview();
 renderAvatars();
 
-// ===== SEND =====
 const $input = document.getElementById("input");
 const $send = document.getElementById("send");
-const $inpPlus = document.getElementById("inp-plus");
+const $plus = document.getElementById("inp-plus");
 
 $input.addEventListener("input", () => {
   $input.style.height = "auto";
   $input.style.height = Math.min($input.scrollHeight, 120) + "px";
-  const hasText = $input.value.trim().length > 0;
-  $send.classList.toggle("show", hasText);
-  $inpPlus.style.display = hasText ? "none" : "flex";
-  $send.disabled = false;
+  const has = $input.value.trim().length > 0;
+  $send.classList.toggle("show", has);
+  $plus.style.display = has ? "none" : "flex";
 });
+$input.addEventListener("keydown", e => { if (e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+$send.onclick = sendChat;
 
-$input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
-});
-
-$send.onclick = send;
-
-async function send() {
+async function sendChat() {
   const text = $input.value.trim();
   if (!text || $send.disabled) return;
-  $input.value = "";
-  $input.style.height = "auto";
-  $send.classList.remove("show");
-  $inpPlus.style.display = "flex";
-
+  $input.value = ""; $input.style.height = "auto";
+  $send.classList.remove("show"); $plus.style.display = "flex";
   const ts = Date.now();
-  messages.push({ role: "user", content: text, ts });
-  saveHistory();
-  addMsg("user", text);
-  $send.disabled = true;
-
-  const title = document.getElementById("chat-title");
-  title.textContent = "正在输入…";
-
-  const bubble = addMsg("assistant", "…");
-  bubble.classList.add("typing");
+  messages.push({ role:"user", content:text, ts });
+  saveHistory(); addMsg("user", text); $send.disabled = true;
+  document.getElementById("chat-title").textContent = "正在输入…";
+  const bubble = addMsg("assistant","…"); bubble.classList.add("typing");
   let reply = "";
-
   try {
     const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: messages.map(m => ({ role: m.role, content: m.content })), system: SYSTEM }),
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ messages: messages.map(m=>({role:m.role,content:m.content})), system: buildSystemPrompt() })
     });
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
+    const reader = res.body.getReader(), decoder = new TextDecoder();
     let buf = "";
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buf += decoder.decode(value, { stream: true });
-      const lines = buf.split("\n");
-      buf = lines.pop();
+      const lines = buf.split("\n"); buf = lines.pop();
       for (const line of lines) {
         if (!line.startsWith("data: ")) continue;
-        const data = line.slice(6).trim();
-        if (data === "[DONE]") continue;
-        try {
-          const delta = JSON.parse(data).choices?.[0]?.delta?.content || "";
-          reply += delta;
-          bubble.textContent = reply;
-          document.getElementById("messages").scrollTop = 999999;
-        } catch {}
+        const d = line.slice(6).trim();
+        if (d==="[DONE]") continue;
+        try { const delta = JSON.parse(d).choices?.[0]?.delta?.content||""; reply+=delta; bubble.textContent=reply; document.getElementById("messages").scrollTop=999999; } catch {}
       }
     }
-  } catch {
-    bubble.textContent = "连接出错，刷新试试";
-  }
-
+  } catch { bubble.textContent = "连接出错，刷新试试"; }
   bubble.classList.remove("typing");
-  title.textContent = "笃";
-  if (reply) {
-    messages.push({ role: "assistant", content: reply, ts: Date.now() });
-    saveHistory();
-  }
-  $send.disabled = false;
-  $input.focus();
+  document.getElementById("chat-title").textContent = "笃";
+  if (reply) { messages.push({ role:"assistant", content:reply, ts:Date.now() }); saveHistory(); }
+  $send.disabled = false; $input.focus();
 }
 
-function clearHistory() {
+function clearChatHistory() {
   if (confirm("清空和笃的聊天记录？")) {
-    messages.length = 0;
-    localStorage.removeItem(HISTORY_KEY);
+    messages.length = 0; localStorage.removeItem(HISTORY_KEY);
     document.getElementById("messages").innerHTML = "";
     document.getElementById("list-preview").textContent = "备用通道 · 随时都在";
     document.getElementById("list-time").textContent = "";
