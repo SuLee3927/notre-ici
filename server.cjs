@@ -768,14 +768,48 @@ app.use("/api/music", makeProxy(MUSIC_HOST, MUSIC_PORT, ""));
 // ── /api/chat → DeepSeek API 备用通道 ─────────────────────────────────────────
 const https = require("https");
 const DS_API_KEY = process.env.DEEPSEEK_API_KEY || "sk-1b26325408f74629bbb0a6824d4586ef";
+const KL_MACHINE_TOKEN = process.env.KL_MACHINE_TOKEN || "";
+const KL_BRAIN_HOST = "kelee-brain.zeabur.app";
 
-app.post("/api/chat", (req, res) => {
+async function fetchKLMemories() {
+  if (!KL_MACHINE_TOKEN) return "";
+  return new Promise((resolve) => {
+    const opts = {
+      hostname: KL_BRAIN_HOST,
+      path: "/api/buckets",
+      method: "GET",
+      headers: { "Authorization": `Bearer ${KL_MACHINE_TOKEN}` },
+    };
+    const req = https.request(opts, (res) => {
+      let data = "";
+      res.on("data", (c) => data += c);
+      res.on("end", () => {
+        try {
+          const buckets = JSON.parse(data);
+          const top = buckets
+            .filter(b => !b.resolved && b.content_preview)
+            .slice(0, 20)
+            .map(b => `【${b.name}】${b.content_preview}`)
+            .join("\n");
+          resolve(top ? `\n\n[笃的记忆摘录]\n${top}` : "");
+        } catch { resolve(""); }
+      });
+    });
+    req.on("error", () => resolve(""));
+    req.setTimeout(5000, () => { req.destroy(); resolve(""); });
+    req.end();
+  });
+}
+
+app.post("/api/chat", async (req, res) => {
   if (!DS_API_KEY) {
     return res.status(503).json({ error: "DeepSeek API key not configured" });
   }
   const { messages = [], system = "", model = "deepseek-chat" } = req.body || {};
-  const fullMessages = system
-    ? [{ role: "system", content: system }, ...messages]
+  const memories = await fetchKLMemories();
+  const fullSystem = system + memories;
+  const fullMessages = fullSystem
+    ? [{ role: "system", content: fullSystem }, ...messages]
     : messages;
   const body = JSON.stringify({ model, messages: fullMessages, stream: true });
 
