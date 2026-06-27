@@ -806,6 +806,13 @@ app.post("/api/chat", (req, res) => {
   upstream.end();
 });
 
+// ── /chat → 备用聊天页面 ──────────────────────────────────────────────────────
+app.get("/chat", (_req, res) => {
+  const chatFile = path.join(__dirname, "public", "chat.html");
+  if (fs.existsSync(chatFile)) return res.sendFile(chatFile);
+  res.sendFile(path.join(__dirname, "dist", "chat.html"));
+});
+
 // serve built frontend
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));
