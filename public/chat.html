@@ -1339,10 +1339,10 @@ function sendHongbao() {
   av.onclick = () => openDuProfile('chat');
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.style.cssText = "background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;min-width:160px;cursor:pointer;border-radius:12px;padding:0;overflow:hidden";
-  bubble.innerHTML = `<div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px"><span style="font-size:28px">🧧</span><div><div style="font-weight:600;font-size:15px">笃的红包</div><div style="font-size:12px;opacity:.85">恭喜发财</div></div></div><div style="border-top:1px solid rgba(255,255,255,.25);padding:8px 16px;font-size:12px;opacity:.7;display:flex;justify-content:space-between"><span>点击领取</span><span>${amt} 金币</span></div>`;
+  bubble.style.cssText = "background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;width:195px;cursor:pointer;border-radius:10px;padding:0;overflow:hidden";
+  bubble.innerHTML = `<div style="padding:10px 12px;display:flex;align-items:center;gap:10px"><span style="font-size:36px;line-height:1;flex-shrink:0">🧧</span><div style="min-width:0"><div style="font-weight:600;font-size:14px">笃的红包</div><div style="font-size:11px;opacity:.8;margin-top:2px">恭喜发财，大吉大利</div></div></div><div style="border-top:1px solid rgba(255,255,255,.2);padding:4px 12px;font-size:11px;opacity:.55">微信红包</div>`;
   bubble.onclick = () => {
-    bubble.innerHTML = `<div style="padding:14px 16px;text-align:center;color:rgba(255,255,255,.8);font-size:14px">已领取 ${amt} 金币 ✓</div>`;
+    bubble.innerHTML = `<div style="padding:10px 12px;display:flex;align-items:center;gap:10px"><span style="font-size:30px;line-height:1;flex-shrink:0;opacity:.7">🧧</span><div><div style="font-size:13px;font-weight:600">已领取 ${amt} 金币</div><div style="font-size:11px;opacity:.8;margin-top:2px">笃的红包</div></div></div><div style="border-top:1px solid rgba(255,255,255,.2);padding:4px 12px;font-size:11px;opacity:.55">微信红包</div>`;
     fetch("/api/coins/transfer", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ from:"du", to:"lee", amount: amt, note:"红包" }) }).catch(()=>{});
   };
   row.appendChild(av); row.appendChild(bubble);
@@ -1363,8 +1363,8 @@ function openTransfer() {
   av.onclick = () => openAvatarModal("lee");
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.style.cssText = "background:linear-gradient(135deg,#1a6b3a,#07C160);color:#fff;min-width:160px;border-radius:12px;padding:0;overflow:hidden";
-  bubble.innerHTML = `<div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px"><span style="font-size:28px">💸</span><div><div style="font-weight:600;font-size:15px">向笃转账</div><div style="font-size:12px;opacity:.85">${n} 金币</div></div></div><div style="border-top:1px solid rgba(255,255,255,.25);padding:8px 16px;font-size:12px;opacity:.7">已发送</div>`;
+  bubble.style.cssText = "background:#fff;color:#191919;width:195px;border-radius:10px;padding:0;overflow:hidden;border:1px solid #e8e8e8";
+  bubble.innerHTML = `<div style="padding:10px 12px;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:6px;background:#07C160;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:700;font-size:20px">¥</div><div style="min-width:0"><div style="font-weight:600;font-size:14px;color:#191919">${n} <span style="font-size:11px;font-weight:400;color:#888">金币</span></div><div style="font-size:11px;color:#888;margin-top:2px">转账给笃</div></div></div><div style="border-top:1px solid #f0f0f0;padding:4px 12px;font-size:11px;color:#aaa">微信转账</div>`;
   row.appendChild(av); row.appendChild(bubble);
   document.getElementById("messages").appendChild(row);
   document.getElementById("messages").scrollTop = 999999;
