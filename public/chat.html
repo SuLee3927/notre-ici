@@ -218,7 +218,6 @@ body {
   <div id="chat-plus-panel" style="display:none;position:absolute;bottom:56px;left:0;right:0;background:#f5f5f5;border-top:1px solid #e5e5e5;padding:16px 8px 24px;z-index:20">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px 8px">
       <div class="plus-item" onclick="document.getElementById('pick-album').click()"><div class="plus-icon">🖼️</div><div class="plus-label">相册</div></div>
-      <div class="plus-item" onclick="document.getElementById('pick-camera').click()"><div class="plus-icon">📷</div><div class="plus-label">拍摄</div></div>
       <div class="plus-item" onclick="document.getElementById('pick-file').click()"><div class="plus-icon">📄</div><div class="plus-label">文件</div></div>
       <div class="plus-item" onclick="sendHongbao()"><div class="plus-icon">🧧</div><div class="plus-label">红包</div></div>
       <div class="plus-item" onclick="openTransfer()"><div class="plus-icon">💸</div><div class="plus-label">转账</div></div>
@@ -237,8 +236,7 @@ body {
     </div>
   </div>
   <input type="file" id="pick-album" accept="image/*" style="display:none">
-  <input type="file" id="pick-camera" accept="image/*" capture="environment" style="display:none">
-  <input type="file" id="pick-file" style="display:none">
+  <input type="file" id="pick-file" accept=".txt,.md,.js,.ts,.py,.json,.css,.html,.csv,.log" style="display:none">
   <div id="input-area">
     <div class="inp-icon">🎤</div>
     <textarea id="input" placeholder="发消息" rows="1"></textarea>
@@ -1241,7 +1239,7 @@ async function replyToImage() {
   if (reply) { messages.push({ role:"assistant", content:reply, ts:Date.now() }); saveHistory(); }
 }
 
-function addFileBubble(name, url) {
+function addFileBubble(name, url, preview) {
   const row = document.createElement("div");
   row.className = "msg-row user";
   const av = document.createElement("div");
@@ -1249,12 +1247,12 @@ function addFileBubble(name, url) {
   setAv(av, leeAvatar);
   av.onclick = () => openAvatarModal("lee");
   const bubble = document.createElement("div");
-  bubble.className = "bubble";
+  bubble.className = "bubble no-arrow";
   bubble.style.padding = "0";
   bubble.style.background = "transparent";
-  const card = document.createElement("a");
-  card.href = url || "#"; card.target = "_blank"; card.className = "msg-file"; card.style.textDecoration = "none";
-  card.innerHTML = `<div class="msg-file-icon">📄</div><div class="msg-file-name">${esc(name)}</div>`;
+  const card = document.createElement("div");
+  card.className = "msg-file"; card.style.cursor = "default";
+  card.innerHTML = `<div class="msg-file-icon">📄</div><div><div class="msg-file-name">${esc(name)}</div>${preview ? `<div style="font-size:11px;color:#9a9a9a;margin-top:2px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(preview.slice(0,60))}</div>` : ""}</div>`;
   bubble.appendChild(card);
   row.appendChild(av); row.appendChild(bubble);
   document.getElementById("messages").appendChild(row);
@@ -1286,17 +1284,50 @@ function handleFileRead(file, asImage) {
     compressImg(file, src => addImgBubble(src, true));
   } else {
     reader.onload = e => {
-      const blob = new Blob([e.target.result]);
-      const url = URL.createObjectURL(blob);
-      addFileBubble(file.name, url);
+      const content = e.target.result;
+      const preview = content.length > 200 ? content.slice(0,200) + "…" : content;
+      addFileBubble(file.name, null, preview);
+      const ts = Date.now();
+      const msgText = `【文件：${file.name}】\n\`\`\`\n${content}\n\`\`\``;
+      messages.push({ role:"user", content: msgText, ts });
+      saveHistory();
+      sendFileToAI(msgText);
     };
-    reader.readAsArrayBuffer(file);
+    reader.readAsText(file, "utf-8");
   }
 }
 
 document.getElementById("pick-album").onchange = e => { if (e.target.files[0]) handleFileRead(e.target.files[0], true); e.target.value=""; };
-document.getElementById("pick-camera").onchange = e => { if (e.target.files[0]) handleFileRead(e.target.files[0], true); e.target.value=""; };
 document.getElementById("pick-file").onchange = e => { if (e.target.files[0]) handleFileRead(e.target.files[0], false); e.target.value=""; };
+
+async function sendFileToAI(msgText) {
+  document.getElementById("chat-title").textContent = "正在输入…";
+  const b = addMsg("assistant","…"); b.classList.add("typing");
+  let reply = "";
+  try {
+    const res = await fetch("/api/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ messages: messages.slice(-10).map(m=>({role:m.role,content:m.content})), system: buildSystemPrompt() })
+    });
+    const reader = res.body.getReader(), decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n"); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const d = line.slice(6).trim();
+        if (d==="[DONE]") continue;
+        try { const delta = JSON.parse(d).choices?.[0]?.delta?.content||""; reply+=delta; b.textContent=reply; document.getElementById("messages").scrollTop=999999; } catch {}
+      }
+    }
+  } catch { b.textContent = "读完了，你想怎么用？"; }
+  b.classList.remove("typing");
+  document.getElementById("chat-title").textContent = "笃";
+  if (reply) { messages.push({ role:"assistant", content:reply, ts:Date.now() }); saveHistory(); }
+}
 
 function sendHongbao() {
   const amt = Math.floor(Math.random() * 50) + 10;
