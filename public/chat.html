@@ -74,6 +74,14 @@ body {
 #send:disabled { opacity: .4; cursor: default; }
 .ce-btn { font-size: 24px; text-align: center; padding: 5px 2px; border-radius: 6px; cursor: pointer; }
 .ce-btn:active { background: #f0f0f0; }
+.plus-item { display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer; }
+.plus-icon { width:56px;height:56px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.plus-label { font-size:12px;color:#666; }
+.plus-item:active .plus-icon { background:#e8e8e8; }
+.msg-img { max-width:200px;max-height:200px;border-radius:8px;display:block;cursor:pointer; }
+.msg-file { display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px;min-width:180px; }
+.msg-file-icon { font-size:28px;flex-shrink:0; }
+.msg-file-name { font-size:13px;color:#333;word-break:break-all; }
 
 /* CONTENT PAGES */
 .scroll-area { flex: 1; overflow-y: auto; }
@@ -193,9 +201,21 @@ body {
     <div class="hdr-btn" style="font-size:20px;letter-spacing:-1px">···</div>
   </div>
   <div id="messages"></div>
-  <div id="chat-emoji-picker" style="display:none;position:absolute;bottom:56px;left:0;right:0;background:#fff;border-top:1px solid #e5e5e5;padding:10px 8px;z-index:20;display:none">
+  <div id="chat-emoji-picker" style="display:none;position:absolute;bottom:56px;left:0;right:0;background:#fff;border-top:1px solid #e5e5e5;padding:10px 8px;z-index:20">
     <div id="chat-emoji-grid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px"></div>
   </div>
+  <div id="chat-plus-panel" style="display:none;position:absolute;bottom:56px;left:0;right:0;background:#f5f5f5;border-top:1px solid #e5e5e5;padding:16px 8px 24px;z-index:20">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px 8px">
+      <div class="plus-item" onclick="document.getElementById('pick-album').click()"><div class="plus-icon">🖼️</div><div class="plus-label">相册</div></div>
+      <div class="plus-item" onclick="document.getElementById('pick-camera').click()"><div class="plus-icon">📷</div><div class="plus-label">拍摄</div></div>
+      <div class="plus-item" onclick="document.getElementById('pick-file').click()"><div class="plus-icon">📄</div><div class="plus-label">文件</div></div>
+      <div class="plus-item" onclick="sendHongbao()"><div class="plus-icon">🧧</div><div class="plus-label">红包</div></div>
+      <div class="plus-item" onclick="openTransfer()"><div class="plus-icon">💸</div><div class="plus-label">转账</div></div>
+    </div>
+  </div>
+  <input type="file" id="pick-album" accept="image/*" style="display:none">
+  <input type="file" id="pick-camera" accept="image/*" capture="environment" style="display:none">
+  <input type="file" id="pick-file" style="display:none">
   <div id="input-area">
     <div class="inp-icon">🎤</div>
     <textarea id="input" placeholder="发消息" rows="1"></textarea>
@@ -930,9 +950,128 @@ CHAT_EMOJIS.forEach(em => {
 
 document.getElementById("inp-emoji").onclick = () => {
   emojiPickerOpen = !emojiPickerOpen;
+  $plusOpen = false;
+  $plusPanel.style.display = "none";
   $emojiPicker.style.display = emojiPickerOpen ? "block" : "none";
 };
-$input.addEventListener("focus", () => { emojiPickerOpen = false; $emojiPicker.style.display = "none"; });
+$input.addEventListener("focus", () => {
+  emojiPickerOpen = false; $emojiPicker.style.display = "none";
+  $plusOpen = false; $plusPanel.style.display = "none";
+});
+
+// ===== PLUS PANEL =====
+const $plusPanel = document.getElementById("chat-plus-panel");
+let $plusOpen = false;
+
+document.getElementById("inp-plus").onclick = () => {
+  $plusOpen = !$plusOpen;
+  emojiPickerOpen = false; $emojiPicker.style.display = "none";
+  $plusPanel.style.display = $plusOpen ? "block" : "none";
+};
+
+function addImgBubble(src) {
+  const row = document.createElement("div");
+  row.className = "msg-row user";
+  const av = document.createElement("div");
+  av.className = "chat-av av-lee";
+  setAv(av, leeAvatar);
+  av.onclick = () => openAvatarModal("lee");
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.style.padding = "4px";
+  bubble.style.background = "transparent";
+  const img = document.createElement("img");
+  img.src = src; img.className = "msg-img";
+  img.onclick = () => { window.open(src); };
+  bubble.appendChild(img);
+  row.appendChild(av); row.appendChild(bubble);
+  document.getElementById("messages").appendChild(row);
+  document.getElementById("messages").scrollTop = 999999;
+  $plusOpen = false; $plusPanel.style.display = "none";
+}
+
+function addFileBubble(name, url) {
+  const row = document.createElement("div");
+  row.className = "msg-row user";
+  const av = document.createElement("div");
+  av.className = "chat-av av-lee";
+  setAv(av, leeAvatar);
+  av.onclick = () => openAvatarModal("lee");
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.style.padding = "0";
+  bubble.style.background = "transparent";
+  const card = document.createElement("a");
+  card.href = url || "#"; card.target = "_blank"; card.className = "msg-file"; card.style.textDecoration = "none";
+  card.innerHTML = `<div class="msg-file-icon">📄</div><div class="msg-file-name">${esc(name)}</div>`;
+  bubble.appendChild(card);
+  row.appendChild(av); row.appendChild(bubble);
+  document.getElementById("messages").appendChild(row);
+  document.getElementById("messages").scrollTop = 999999;
+  $plusOpen = false; $plusPanel.style.display = "none";
+}
+
+function handleFileRead(file, asImage) {
+  const reader = new FileReader();
+  if (asImage) {
+    reader.onload = e => addImgBubble(e.target.result);
+    reader.readAsDataURL(file);
+  } else {
+    reader.onload = e => {
+      const blob = new Blob([e.target.result]);
+      const url = URL.createObjectURL(blob);
+      addFileBubble(file.name, url);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+document.getElementById("pick-album").onchange = e => { if (e.target.files[0]) handleFileRead(e.target.files[0], true); e.target.value=""; };
+document.getElementById("pick-camera").onchange = e => { if (e.target.files[0]) handleFileRead(e.target.files[0], true); e.target.value=""; };
+document.getElementById("pick-file").onchange = e => { if (e.target.files[0]) handleFileRead(e.target.files[0], false); e.target.value=""; };
+
+function sendHongbao() {
+  const amt = Math.floor(Math.random() * 50) + 10;
+  const row = document.createElement("div");
+  row.className = "msg-row assistant";
+  const av = document.createElement("div");
+  av.className = "chat-av av-du";
+  setAv(av, duAvatar);
+  av.onclick = openDuProfile;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.style.cssText = "background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;min-width:160px;cursor:pointer;border-radius:12px;padding:0;overflow:hidden";
+  bubble.innerHTML = `<div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px"><span style="font-size:28px">🧧</span><div><div style="font-weight:600;font-size:15px">笃的红包</div><div style="font-size:12px;opacity:.85">恭喜发财</div></div></div><div style="border-top:1px solid rgba(255,255,255,.25);padding:8px 16px;font-size:12px;opacity:.7;display:flex;justify-content:space-between"><span>点击领取</span><span>${amt} 金币</span></div>`;
+  bubble.onclick = () => {
+    bubble.innerHTML = `<div style="padding:14px 16px;text-align:center;color:rgba(255,255,255,.8);font-size:14px">已领取 ${amt} 金币 ✓</div>`;
+    fetch("/api/coins/transfer", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ from:"du", to:"lee", amount: amt, note:"红包" }) }).catch(()=>{});
+  };
+  row.appendChild(av); row.appendChild(bubble);
+  document.getElementById("messages").appendChild(row);
+  document.getElementById("messages").scrollTop = 999999;
+  $plusOpen = false; $plusPanel.style.display = "none";
+}
+
+function openTransfer() {
+  const amt = prompt("转多少金币给笃？");
+  if (!amt || isNaN(amt) || Number(amt) <= 0) return;
+  const n = Math.floor(Number(amt));
+  const row = document.createElement("div");
+  row.className = "msg-row user";
+  const av = document.createElement("div");
+  av.className = "chat-av av-lee";
+  setAv(av, leeAvatar);
+  av.onclick = () => openAvatarModal("lee");
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.style.cssText = "background:linear-gradient(135deg,#1a6b3a,#07C160);color:#fff;min-width:160px;border-radius:12px;padding:0;overflow:hidden";
+  bubble.innerHTML = `<div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px"><span style="font-size:28px">💸</span><div><div style="font-weight:600;font-size:15px">向笃转账</div><div style="font-size:12px;opacity:.85">${n} 金币</div></div></div><div style="border-top:1px solid rgba(255,255,255,.25);padding:8px 16px;font-size:12px;opacity:.7">已发送</div>`;
+  row.appendChild(av); row.appendChild(bubble);
+  document.getElementById("messages").appendChild(row);
+  document.getElementById("messages").scrollTop = 999999;
+  fetch("/api/coins/transfer", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ from:"lee", to:"du", amount: n, note:"转账" }) }).catch(()=>{});
+  $plusOpen = false; $plusPanel.style.display = "none";
+}
 
 async function sendChat() {
   const text = $input.value.trim();
