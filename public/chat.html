@@ -1045,23 +1045,29 @@ const CHAT_EMOJIS = ["😊","😂","🥹","😭","😍","🥰","😘","😏","�
 const $emojiPicker = document.getElementById("chat-emoji-picker");
 const $emojiGrid = document.getElementById("chat-emoji-grid");
 let emojiPickerOpen = false;
+let emojiGridInited = false;
 
-CHAT_EMOJIS.forEach(em => {
-  const d = document.createElement("div");
-  d.className = "ce-btn";
-  d.textContent = em;
-  d.onclick = () => {
-    const pos = $input.selectionStart;
-    const val = $input.value;
-    $input.value = val.slice(0, pos) + em + val.slice(pos);
-    $input.setSelectionRange(pos + em.length, pos + em.length);
-    $input.dispatchEvent(new Event("input"));
-    $input.focus();
-  };
-  $emojiGrid.appendChild(d);
-});
+function initEmojiGrid() {
+  if (emojiGridInited) return;
+  emojiGridInited = true;
+  CHAT_EMOJIS.forEach(em => {
+    const d = document.createElement("div");
+    d.className = "ce-btn";
+    d.textContent = em;
+    d.onclick = () => {
+      const pos = $input.selectionStart;
+      const val = $input.value;
+      $input.value = val.slice(0, pos) + em + val.slice(pos);
+      $input.setSelectionRange(pos + em.length, pos + em.length);
+      $input.dispatchEvent(new Event("input"));
+      $input.focus();
+    };
+    $emojiGrid.appendChild(d);
+  });
+}
 
 document.getElementById("inp-emoji").onclick = () => {
+  initEmojiGrid();
   emojiPickerOpen = !emojiPickerOpen;
   $plusOpen = false;
   $plusPanel.style.display = "none";
@@ -1237,6 +1243,7 @@ let musicState = { id: null, title: "", artist: "", artUrl: "", playing: false, 
 const $mAudio = document.getElementById("music-audio");
 
 function openMusicPlayer() {
+  initVinylStyle();
   showPage("music");
   document.getElementById("tabbar").classList.add("hidden");
   setAv(document.getElementById("music-av-du"), duAvatar);
@@ -1415,10 +1422,14 @@ $mAudio.addEventListener("timeupdate", () => {
 });
 $mAudio.addEventListener("ended", () => { musicState.playing = false; document.getElementById("music-play-btn").textContent = "▶"; });
 
-// vinyl spin animation
-const vinylStyle = document.createElement("style");
-vinylStyle.textContent = `@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}} #music-vinyl.spinning{animation:spin 4s linear infinite}`;
-document.head.appendChild(vinylStyle);
+// vinyl spin animation (injected lazily)
+let vinylStyleInited = false;
+function initVinylStyle() {
+  if (vinylStyleInited) return; vinylStyleInited = true;
+  const s = document.createElement("style");
+  s.textContent = `@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}} #music-vinyl.spinning{animation:spin 4s linear infinite}`;
+  document.head.appendChild(s);
+}
 $mAudio.addEventListener("play", () => document.getElementById("music-vinyl").classList.add("spinning"));
 $mAudio.addEventListener("pause", () => document.getElementById("music-vinyl").classList.remove("spinning"));
 
@@ -1513,7 +1524,8 @@ function showRecommendBanner(rec) {
   setTimeout(hideBanner, 15000);
 }
 function hideBanner() { document.getElementById("music-recommend-banner").style.display = "none"; }
-setInterval(pollMusicRecommend, 5000);
+// start polling after 3s delay so page loads first
+setTimeout(() => setInterval(pollMusicRecommend, 8000), 3000);
 
 // ===== NETEASE QR LOGIN =====
 let qrPollTimer = null;
