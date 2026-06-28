@@ -1209,6 +1209,36 @@ function addImgBubble(src, save) {
   document.getElementById("messages").appendChild(row);
   document.getElementById("messages").scrollTop = 999999;
   $plusOpen = false; $plusPanel.style.display = "none";
+  if (save) replyToImage();
+}
+
+async function replyToImage() {
+  document.getElementById("chat-title").textContent = "正在输入…";
+  const replyBubble = addMsg("assistant", "…"); replyBubble.classList.add("typing");
+  let reply = "";
+  try {
+    const res = await fetch("/api/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ messages:[...messages.filter(m=>m.type!=="image").slice(-8), {role:"user",content:"（小黎发来了一张图）"}], system: buildSystemPrompt() + "\n\n【任务】小黎刚发来一张图，用一句话自然反应，不超过20字，笃的语气，直接说不解释。" })
+    });
+    const reader = res.body.getReader(), decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n"); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const d = line.slice(6).trim();
+        if (d==="[DONE]") continue;
+        try { const delta = JSON.parse(d).choices?.[0]?.delta?.content||""; reply+=delta; replyBubble.textContent=reply; document.getElementById("messages").scrollTop=999999; } catch {}
+      }
+    }
+  } catch { replyBubble.textContent = "😊"; }
+  replyBubble.classList.remove("typing");
+  document.getElementById("chat-title").textContent = "笃";
+  if (reply) { messages.push({ role:"assistant", content:reply, ts:Date.now() }); saveHistory(); }
 }
 
 function addFileBubble(name, url) {
