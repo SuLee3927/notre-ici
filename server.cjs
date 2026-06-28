@@ -923,6 +923,7 @@ app.get("/chat", (_req, res) => {
 });
 
 // serve built frontend
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));
 
