@@ -825,6 +825,41 @@ app.post("/api/chat", async (req, res) => {
   upstream.end();
 });
 
+// ── /api/diary → 日记系统 ─────────────────────────────────────────────────────
+const DIARY_FILE = path.join(__dirname, "diary.json");
+function loadDiary() {
+  try { return JSON.parse(fs.readFileSync(DIARY_FILE, "utf8")); } catch { return { du: [], lee: [] }; }
+}
+function saveDiary(data) { fs.writeFileSync(DIARY_FILE, JSON.stringify(data, null, 2)); }
+
+app.get("/api/diary/:who", (req, res) => {
+  const who = req.params.who;
+  if (who !== "du" && who !== "lee") return res.status(400).json({ error: "who must be du or lee" });
+  const diary = loadDiary();
+  res.json((diary[who] || []).slice().reverse());
+});
+
+app.post("/api/diary/:who", express.json(), (req, res) => {
+  const who = req.params.who;
+  if (who !== "du" && who !== "lee") return res.status(400).json({ error: "who must be du or lee" });
+  const { content, title } = req.body || {};
+  if (!content || !content.trim()) return res.status(400).json({ error: "content required" });
+  const diary = loadDiary();
+  const entry = { id: Date.now().toString(), title: (title || "").trim(), content: content.trim(), ts: Date.now() };
+  diary[who].push(entry);
+  saveDiary(diary);
+  res.json({ ok: true, entry });
+});
+
+app.delete("/api/diary/:who/:id", (req, res) => {
+  const { who, id } = req.params;
+  if (who !== "du" && who !== "lee") return res.status(400).json({ error: "invalid" });
+  const diary = loadDiary();
+  diary[who] = (diary[who] || []).filter(e => e.id !== id);
+  saveDiary(diary);
+  res.json({ ok: true });
+});
+
 // ── /chat → 备用聊天页面 ──────────────────────────────────────────────────────
 app.get("/chat", (_req, res) => {
   const chatFile = path.join(__dirname, "public", "chat.html");

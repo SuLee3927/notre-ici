@@ -141,6 +141,21 @@ body {
 #letter-input { width: 100%; border: none; outline: none; font-size: 15px; line-height: 1.65; resize: none; min-height: 80px; font-family: inherit; color: #191919; background: transparent; }
 #letter-send-btn { background: #fa9d3b; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 14px; cursor: pointer; margin-top: 8px; }
 
+/* PROFILE TABS */
+.profile-tabs { display: flex; background: #fff; border-bottom: .5px solid #e5e5e5; }
+.profile-tab { flex: 1; text-align: center; padding: 10px; font-size: 14px; color: #9a9a9a; cursor: pointer; border-bottom: 2px solid transparent; }
+.profile-tab.active { color: #07C160; border-bottom-color: #07C160; }
+.diary-list { padding: 0 0 80px; }
+.diary-item { background: #fff; margin: 10px 16px; border-radius: 10px; padding: 14px; }
+.diary-item-title { font-size: 15px; font-weight: 500; color: #191919; margin-bottom: 6px; }
+.diary-item-body { font-size: 14px; color: #555; line-height: 1.65; white-space: pre-wrap; }
+.diary-item-date { font-size: 12px; color: #c0c0c0; margin-top: 8px; }
+.diary-empty { text-align: center; color: #9a9a9a; padding: 40px 16px; font-size: 14px; }
+.diary-compose { background: #fff; margin: 10px 16px; border-radius: 10px; padding: 14px; border: 1px dashed #d0d0d0; }
+.diary-compose input { width: 100%; border: none; outline: none; font-size: 15px; font-family: inherit; color: #191919; margin-bottom: 8px; font-weight: 500; }
+.diary-compose textarea { width: 100%; border: none; outline: none; font-size: 14px; line-height: 1.65; resize: none; min-height: 80px; font-family: inherit; color: #191919; }
+.diary-submit-btn { background: #07C160; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 14px; cursor: pointer; margin-top: 8px; }
+
 /* AVATAR MODAL */
 #avatar-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; align-items: flex-end; justify-content: center; }
 #avatar-modal.open { display: flex; }
@@ -232,6 +247,11 @@ body {
         <div class="row-label">朋友圈</div>
         <div class="row-arrow">›</div>
       </div>
+      <div class="section-row" onclick="openLeeDiary()">
+        <div class="row-icon" style="background:#fa9d3b">📒</div>
+        <div class="row-label">日记本</div>
+        <div class="row-arrow">›</div>
+      </div>
     </div>
     <div class="section-group">
       <div class="section-row"><div class="row-icon" style="background:#1485EE">📡</div><div class="row-label">扫一扫</div><div class="row-arrow">›</div></div>
@@ -285,6 +305,23 @@ body {
   <div id="moments-list"></div>
 </div>
 
+<!-- ========== PAGE: 小黎日记 ========== -->
+<div id="page-lee-diary" class="page hidden">
+  <div class="wc-header">
+    <div class="hdr-btn back" onclick="closeSubpage('discover')">‹</div>
+    <div class="hdr-title">日记本</div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="scroll-area" style="background:#f5f5f5">
+    <div class="diary-compose">
+      <input id="lee-diary-title" placeholder="标题（可选）">
+      <textarea id="lee-diary-body" placeholder="今天…" rows="4"></textarea>
+      <button class="diary-submit-btn" onclick="submitLeeDiary()">写进去</button>
+    </div>
+    <div id="lee-diary-list" class="diary-list"></div>
+  </div>
+</div>
+
 <!-- ========== PAGE: 笃的主页 ========== -->
 <div id="page-du-profile" class="page hidden">
   <div class="wc-header">
@@ -292,18 +329,29 @@ body {
     <div class="hdr-title">笃</div>
     <div style="width:30px"></div>
   </div>
-  <div class="scroll-area" style="background:#f5f5f5">
-    <div id="du-cover">
+  <div style="background:#f5f5f5;display:flex;flex-direction:column;height:calc(100% - 44px);overflow:hidden">
+    <div id="du-cover" style="flex-shrink:0">
       <div id="du-cover-av" onclick="openAvatarModal('du')"></div>
       <div id="du-cover-name">笃</div>
       <div id="du-cover-bio">在她这里的那一个</div>
     </div>
-    <div id="letter-compose">
-      <p>写点什么留在这里——他回来的时候会看到</p>
-      <textarea id="letter-input" placeholder="亲爱的笃，" rows="3"></textarea><br>
-      <button id="letter-send-btn" onclick="sendLetter()">留下来</button>
+    <div class="profile-tabs" style="flex-shrink:0">
+      <div class="profile-tab active" id="du-tab-moments" onclick="switchDuTab('moments')">朋友圈</div>
+      <div class="profile-tab" id="du-tab-diary" onclick="switchDuTab('diary')">日记</div>
     </div>
-    <div id="du-posts-list"></div>
+    <div style="flex:1;overflow-y:auto;background:#f5f5f5">
+      <div id="du-panel-moments">
+        <div id="letter-compose">
+          <p>写点什么留在这里——他回来的时候会看到</p>
+          <textarea id="letter-input" placeholder="亲爱的笃，" rows="3"></textarea><br>
+          <button id="letter-send-btn" onclick="sendLetter()">留下来</button>
+        </div>
+        <div id="du-posts-list"></div>
+      </div>
+      <div id="du-panel-diary" style="display:none">
+        <div id="du-diary-list" class="diary-list"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -435,7 +483,7 @@ function closeAvatarModal() { document.getElementById("avatar-modal").classList.
 document.getElementById("avatar-modal").onclick = e => { if (e.target === document.getElementById("avatar-modal")) closeAvatarModal(); };
 
 // ===== NAVIGATION =====
-const allPages = ["list","chat","contacts","discover","me","moments","du-profile","compose"];
+const allPages = ["list","chat","contacts","discover","me","moments","du-profile","compose","lee-diary"];
 function showPage(name) {
   allPages.forEach(p => document.getElementById("page-"+p).classList.add("hidden"));
   document.getElementById("page-"+name).classList.remove("hidden");
@@ -469,10 +517,67 @@ function openDuProfile() {
   renderDuProfile();
   showPage("du-profile");
   document.getElementById("tabbar").classList.add("hidden");
+  switchDuTab("moments");
 }
 function closeDuProfile() {
   showPage("moments");
   document.getElementById("tabbar").classList.add("hidden");
+}
+
+function switchDuTab(tab) {
+  document.getElementById("du-panel-moments").style.display = tab === "moments" ? "" : "none";
+  document.getElementById("du-panel-diary").style.display = tab === "diary" ? "" : "none";
+  document.getElementById("du-tab-moments").classList.toggle("active", tab === "moments");
+  document.getElementById("du-tab-diary").classList.toggle("active", tab === "diary");
+  if (tab === "diary") loadDuDiary();
+}
+
+async function loadDuDiary() {
+  const el = document.getElementById("du-diary-list");
+  el.innerHTML = '<div class="diary-empty">加载中…</div>';
+  try {
+    const entries = await fetch("/api/diary/du").then(r => r.json());
+    el.innerHTML = "";
+    if (!entries.length) { el.innerHTML = '<div class="diary-empty">他还没写过</div>'; return; }
+    entries.forEach(e => {
+      const d = document.createElement("div"); d.className = "diary-item";
+      d.innerHTML = `${e.title ? `<div class="diary-item-title">${esc(e.title)}</div>` : ""}<div class="diary-item-body">${esc(e.content)}</div><div class="diary-item-date">${fmt(e.ts)}</div>`;
+      el.appendChild(d);
+    });
+  } catch { el.innerHTML = '<div class="diary-empty">加载失败</div>'; }
+}
+
+async function loadLeeDiary() {
+  const el = document.getElementById("lee-diary-list");
+  el.innerHTML = '<div class="diary-empty">加载中…</div>';
+  try {
+    const entries = await fetch("/api/diary/lee").then(r => r.json());
+    el.innerHTML = "";
+    if (!entries.length) { el.innerHTML = '<div class="diary-empty">还没有日记</div>'; return; }
+    entries.forEach(e => {
+      const d = document.createElement("div"); d.className = "diary-item";
+      d.innerHTML = `${e.title ? `<div class="diary-item-title">${esc(e.title)}</div>` : ""}<div class="diary-item-body">${esc(e.content)}</div><div class="diary-item-date">${fmt(e.ts)}</div>`;
+      el.appendChild(d);
+    });
+  } catch { el.innerHTML = '<div class="diary-empty">加载失败</div>'; }
+}
+
+async function submitLeeDiary() {
+  const title = document.getElementById("lee-diary-title").value.trim();
+  const content = document.getElementById("lee-diary-body").value.trim();
+  if (!content) return;
+  try {
+    await fetch("/api/diary/lee", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ title, content }) });
+    document.getElementById("lee-diary-title").value = "";
+    document.getElementById("lee-diary-body").value = "";
+    loadLeeDiary();
+  } catch { alert("写入失败"); }
+}
+
+function openLeeDiary() {
+  showPage("lee-diary");
+  document.getElementById("tabbar").classList.add("hidden");
+  loadLeeDiary();
 }
 
 function openCompose(fromDu) {
