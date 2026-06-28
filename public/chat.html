@@ -742,14 +742,17 @@ function closeSubpage(returnTab) {
   switchTab(returnTab);
 }
 
-function openDuProfile() {
+let duProfileFrom = 'chat';
+function openDuProfile(from) {
+  duProfileFrom = from || 'chat';
   renderDuProfile();
   showPage("du-profile");
   document.getElementById("tabbar").classList.add("hidden");
 }
 function closeDuProfile() {
-  showPage("moments");
-  document.getElementById("tabbar").classList.add("hidden");
+  if (duProfileFrom === 'moments') { showPage("moments"); document.getElementById("tabbar").classList.add("hidden"); }
+  else if (duProfileFrom === 'chat') { showPage("chat"); document.getElementById("tabbar").classList.add("hidden"); }
+  else switchTab(duProfileFrom);
 }
 
 function openLeeProfile() {
@@ -894,7 +897,7 @@ function buildMomentEl(m) {
 
   wrap.innerHTML = `
     <div class="moment-row">
-      <div class="moment-av ${isLee ? 'av-lee' : 'av-du'}" onclick="${isLee ? "openAvatarModal('lee')" : 'openDuProfile()'}">${avHtml(isLee ? leeAvatar : duAvatar)}</div>
+      <div class="moment-av ${isLee ? 'av-lee' : 'av-du'}" onclick="${isLee ? "openLeeProfile()" : "openDuProfile('moments')"}">${avHtml(isLee ? leeAvatar : duAvatar)}</div>
       <div class="moment-body">
         <div class="moment-author-name">${isLee ? "小黎" : "笃"}</div>
         <div class="moment-text">${esc(m.content)}</div>
@@ -1094,7 +1097,7 @@ function addMsg(role, text) {
   const av = document.createElement("div");
   av.className = "chat-av " + (role==="assistant" ? "av-du" : "av-lee");
   setAv(av, role==="assistant" ? duAvatar : leeAvatar);
-  av.onclick = () => role==="assistant" ? openDuProfile() : openAvatarModal("lee");
+  av.onclick = () => role==="assistant" ? openDuProfile('chat') : openAvatarModal("lee");
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   bubble.textContent = text;
@@ -1248,7 +1251,7 @@ function sendHongbao() {
   const av = document.createElement("div");
   av.className = "chat-av av-du";
   setAv(av, duAvatar);
-  av.onclick = openDuProfile;
+  av.onclick = () => openDuProfile('chat');
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   bubble.style.cssText = "background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;min-width:160px;cursor:pointer;border-radius:12px;padding:0;overflow:hidden";
@@ -1567,7 +1570,7 @@ function addSongBubble(role, id, title, artist, artUrl, save = true) {
   const av = document.createElement("div");
   av.className = "chat-av " + (role==="assistant" ? "av-du" : "av-lee");
   setAv(av, role==="assistant" ? duAvatar : leeAvatar);
-  av.onclick = () => role==="assistant" ? openDuProfile() : openAvatarModal("lee");
+  av.onclick = () => role==="assistant" ? openDuProfile('chat') : openAvatarModal("lee");
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   bubble.style.cssText = "padding:0;background:transparent;max-width:none";
