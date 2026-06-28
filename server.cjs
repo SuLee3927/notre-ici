@@ -763,7 +763,8 @@ app.use("/api/fishing", makeProxy(FISHING_HOST, FISHING_PORT, "/fishing"));
 // ── /api/music → proxy to netease-api VPS server (with cookie injection) ──────
 const MUSIC_HOST = process.env.MUSIC_HOST || "129.226.158.222";
 const MUSIC_PORT = Number(process.env.MUSIC_PORT || "4326");
-let neteaseLoginCookie = "";
+const NETEASE_COOKIE_FILE = path.join("/tmp", "netease-cookie.txt");
+let neteaseLoginCookie = (() => { try { return fs.readFileSync(NETEASE_COOKIE_FILE, "utf8").trim(); } catch { return ""; } })();
 
 app.use("/api/music", (req, res) => {
   const targetPath = req.path + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "");
@@ -781,7 +782,10 @@ app.use("/api/music", (req, res) => {
       const setCookie = proxyRes.headers["set-cookie"];
       if (setCookie) {
         const merged = setCookie.map(c => c.split(";")[0]).join("; ");
-        if (merged && !merged.includes("undefined")) { neteaseLoginCookie = merged; }
+        if (merged && !merged.includes("undefined")) {
+          neteaseLoginCookie = merged;
+          try { fs.writeFileSync(NETEASE_COOKIE_FILE, merged); } catch {}
+        }
       }
     }
     res.status(proxyRes.statusCode);
