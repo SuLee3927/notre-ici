@@ -68,6 +68,8 @@ body {
 .msg-row.user .bubble { background: #95EC69; color: #191919; border-radius: 8px 2px 8px 8px; }
 .msg-row.user .bubble::after { content: ''; position: absolute; right: -7px; top: 11px; border: 7px solid transparent; border-left-color: #95EC69; border-right: 0; margin-top: -3px; }
 .bubble.typing { opacity: .55; }
+.bubble.no-arrow::after { display: none !important; }
+.bubble.no-arrow::before { display: none !important; }
 
 /* INPUT */
 #input-area { padding: 8px 10px; padding-bottom: max(8px,env(safe-area-inset-bottom,8px)); background: #f7f7f7; border-top: .5px solid #d9d9d9; display: flex; align-items: flex-end; gap: 6px; flex-shrink: 0; }
@@ -1109,7 +1111,8 @@ function addMsg(role, text) {
 
 // restore chat history
 messages.forEach(m => {
-  if (m.type === "song") addSongBubble(m.role, m.songId, m.songTitle, m.songArtist, m.songArt);
+  if (m.type === "song") addSongBubble(m.role, m.songId, m.songTitle, m.songArtist, m.songArt, false);
+  else if (m.type === "image") addImgBubble(m.src, false);
   else addMsg(m.role, m.content);
 });
 updateListPreview();
@@ -1183,7 +1186,11 @@ document.getElementById("inp-plus").onclick = () => {
   $plusPanel.style.display = $plusOpen ? "block" : "none";
 };
 
-function addImgBubble(src) {
+function addImgBubble(src, save) {
+  if (save) {
+    messages.push({ role: "user", type: "image", src, ts: Date.now() });
+    saveHistory();
+  }
   const row = document.createElement("div");
   row.className = "msg-row user";
   const av = document.createElement("div");
@@ -1191,7 +1198,7 @@ function addImgBubble(src) {
   setAv(av, leeAvatar);
   av.onclick = () => openAvatarModal("lee");
   const bubble = document.createElement("div");
-  bubble.className = "bubble";
+  bubble.className = "bubble no-arrow";
   bubble.style.padding = "4px";
   bubble.style.background = "transparent";
   const img = document.createElement("img");
@@ -1225,11 +1232,28 @@ function addFileBubble(name, url) {
   $plusOpen = false; $plusPanel.style.display = "none";
 }
 
+function compressImg(file, cb) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const image = new Image();
+    image.onload = () => {
+      const MAX = 800;
+      let w = image.width, h = image.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(image, 0, 0, w, h);
+      cb(c.toDataURL("image/jpeg", 0.75));
+    };
+    image.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function handleFileRead(file, asImage) {
   const reader = new FileReader();
   if (asImage) {
-    reader.onload = e => addImgBubble(e.target.result);
-    reader.readAsDataURL(file);
+    compressImg(file, src => addImgBubble(src, true));
   } else {
     reader.onload = e => {
       const blob = new Blob([e.target.result]);
@@ -1572,7 +1596,7 @@ function addSongBubble(role, id, title, artist, artUrl, save = true) {
   setAv(av, role==="assistant" ? duAvatar : leeAvatar);
   av.onclick = () => role==="assistant" ? openDuProfile('chat') : openAvatarModal("lee");
   const bubble = document.createElement("div");
-  bubble.className = "bubble";
+  bubble.className = "bubble no-arrow";
   bubble.style.cssText = "padding:0;background:transparent;max-width:none";
   const card = document.createElement("div");
   card.className = "msg-song";
