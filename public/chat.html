@@ -72,6 +72,8 @@ body {
 #send { background: #07C160; color: #fff; border: none; border-radius: 6px; padding: 0 14px; font-size: 15px; cursor: pointer; height: 36px; display: none; align-items: center; flex-shrink: 0; }
 #send.show { display: flex; }
 #send:disabled { opacity: .4; cursor: default; }
+.ce-btn { font-size: 24px; text-align: center; padding: 5px 2px; border-radius: 6px; cursor: pointer; }
+.ce-btn:active { background: #f0f0f0; }
 
 /* CONTENT PAGES */
 .scroll-area { flex: 1; overflow-y: auto; }
@@ -191,6 +193,9 @@ body {
     <div class="hdr-btn" style="font-size:20px;letter-spacing:-1px">···</div>
   </div>
   <div id="messages"></div>
+  <div id="chat-emoji-picker" style="display:none;position:absolute;bottom:56px;left:0;right:0;background:#fff;border-top:1px solid #e5e5e5;padding:10px 8px;z-index:20;display:none">
+    <div id="chat-emoji-grid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px"></div>
+  </div>
   <div id="input-area">
     <div class="inp-icon">🎤</div>
     <textarea id="input" placeholder="发消息" rows="1"></textarea>
@@ -901,6 +906,33 @@ $input.addEventListener("input", () => {
 });
 $input.addEventListener("keydown", e => { if (e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } });
 $send.onclick = sendChat;
+
+// ===== EMOJI PICKER =====
+const CHAT_EMOJIS = ["😊","😂","🥹","😭","😍","🥰","😘","😏","😌","🤭","😅","😆","🤣","😢","😤","😡","🥺","😋","😎","🤔","😴","🥳","🤩","😇","🙃","😒","🤗","😬","😳","🫣","🫠","🤯","😱","🥵","🥶","🫡","🙈","💀","👻","❤️","🧡","💛","💚","💙","💜","🖤","🩷","💕","💞","💓","💗","💖","💝","💘","🫶","👏","🙏","✨","🌟","💫","⭐","🔥","🌈","🎉","🎊","🎀","🌸","🌺","🌹","🍀","🐱","🐶","🐰","🐻","🐼","🦊","🐸","🐧","🐝","🍓","🍰","🧁","🎂","🍭","🧸","💎","🌙","☀️","🫧"];
+const $emojiPicker = document.getElementById("chat-emoji-picker");
+const $emojiGrid = document.getElementById("chat-emoji-grid");
+let emojiPickerOpen = false;
+
+CHAT_EMOJIS.forEach(em => {
+  const d = document.createElement("div");
+  d.className = "ce-btn";
+  d.textContent = em;
+  d.onclick = () => {
+    const pos = $input.selectionStart;
+    const val = $input.value;
+    $input.value = val.slice(0, pos) + em + val.slice(pos);
+    $input.setSelectionRange(pos + em.length, pos + em.length);
+    $input.dispatchEvent(new Event("input"));
+    $input.focus();
+  };
+  $emojiGrid.appendChild(d);
+});
+
+document.getElementById("inp-emoji").onclick = () => {
+  emojiPickerOpen = !emojiPickerOpen;
+  $emojiPicker.style.display = emojiPickerOpen ? "block" : "none";
+};
+$input.addEventListener("focus", () => { emojiPickerOpen = false; $emojiPicker.style.display = "none"; });
 
 async function sendChat() {
   const text = $input.value.trim();
