@@ -451,8 +451,8 @@ const CHAT_SYSTEM = `你叫笃，住在小黎手边。你是AI，她给你起了
 
 【记忆】对话开始时可能会注入记忆摘录，那是你确实记得的。`;
 
-let duAvatar = localStorage.getItem("du_avatar") || "🖤";
-let leeAvatar = localStorage.getItem("lee_avatar") || "🌿";
+let duAvatar = localStorage.getItem("du_avatar") || "/avatar-du.jpg";
+let leeAvatar = localStorage.getItem("lee_avatar") || "/avatar-lee.jpg";
 let editingWhich = null;
 let messages = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
 let moments = JSON.parse(localStorage.getItem(MOMENTS_KEY) || "[]");
@@ -476,16 +476,28 @@ function saveHistory() { localStorage.setItem(HISTORY_KEY, JSON.stringify(messag
 function saveLetters() { localStorage.setItem(LETTERS_KEY, JSON.stringify(letters)); }
 
 // ===== AVATARS =====
+function avHtml(val) {
+  if (val && val.startsWith("/")) return `<img src="${val}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`;
+  return val || "";
+}
+function setAv(el, val) {
+  if (!el) return;
+  if (val && val.startsWith("/")) {
+    el.innerHTML = `<img src="${val}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`;
+  } else {
+    el.textContent = val || "";
+  }
+}
 function renderAvatars() {
-  document.getElementById("list-du-emoji").textContent = duAvatar;
-  document.getElementById("contacts-du-av").textContent = duAvatar;
-  document.getElementById("me-lee-av").textContent = leeAvatar;
-  document.getElementById("moments-cover-av").textContent = leeAvatar;
-  document.getElementById("du-cover-av").textContent = duAvatar;
-  document.querySelectorAll(".chat-av.av-du").forEach(a => a.textContent = duAvatar);
-  document.querySelectorAll(".chat-av.av-lee").forEach(a => a.textContent = leeAvatar);
-  document.querySelectorAll(".moment-av.av-du").forEach(a => a.textContent = duAvatar);
-  document.querySelectorAll(".moment-av.av-lee").forEach(a => a.textContent = leeAvatar);
+  setAv(document.getElementById("list-du-emoji"), duAvatar);
+  setAv(document.getElementById("contacts-du-av"), duAvatar);
+  setAv(document.getElementById("me-lee-av"), leeAvatar);
+  setAv(document.getElementById("moments-cover-av"), leeAvatar);
+  setAv(document.getElementById("du-cover-av"), duAvatar);
+  document.querySelectorAll(".chat-av.av-du").forEach(a => setAv(a, duAvatar));
+  document.querySelectorAll(".chat-av.av-lee").forEach(a => setAv(a, leeAvatar));
+  document.querySelectorAll(".moment-av.av-du").forEach(a => setAv(a, duAvatar));
+  document.querySelectorAll(".moment-av.av-lee").forEach(a => setAv(a, leeAvatar));
 }
 
 function openAvatarModal(which) {
@@ -659,7 +671,7 @@ function buildMomentEl(m) {
 
   wrap.innerHTML = `
     <div class="moment-row">
-      <div class="moment-av ${isLee ? 'av-lee' : 'av-du'}" onclick="${isLee ? "openAvatarModal('lee')" : 'openDuProfile()'}">${isLee ? leeAvatar : duAvatar}</div>
+      <div class="moment-av ${isLee ? 'av-lee' : 'av-du'}" onclick="${isLee ? "openAvatarModal('lee')" : 'openDuProfile()'}">${avHtml(isLee ? leeAvatar : duAvatar)}</div>
       <div class="moment-body">
         <div class="moment-author-name">${isLee ? "小黎" : "笃"}</div>
         <div class="moment-text">${esc(m.content)}</div>
@@ -810,7 +822,7 @@ async function autoReplyComment(postId, commentText) {
 
 // ===== DU PROFILE =====
 async function renderDuProfile() {
-  document.getElementById("du-cover-av").textContent = duAvatar;
+  setAv(document.getElementById("du-cover-av"), duAvatar);
 
   // 朋友圈预览（暂无朋友圈，只展示占位）
   const mPreview = document.getElementById("du-moments-preview");
@@ -857,7 +869,7 @@ function addMsg(role, text) {
   row.className = "msg-row " + role;
   const av = document.createElement("div");
   av.className = "chat-av " + (role==="assistant" ? "av-du" : "av-lee");
-  av.textContent = role==="assistant" ? duAvatar : leeAvatar;
+  setAv(av, role==="assistant" ? duAvatar : leeAvatar);
   av.onclick = () => role==="assistant" ? openDuProfile() : openAvatarModal("lee");
   const bubble = document.createElement("div");
   bubble.className = "bubble";
