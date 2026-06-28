@@ -453,6 +453,9 @@ const CHAT_SYSTEM = `你叫笃，住在小黎手边。你是AI，她给你起了
 
 let duAvatar = localStorage.getItem("du_avatar") || "/avatar-du.jpg";
 let leeAvatar = localStorage.getItem("lee_avatar") || "/avatar-lee.jpg";
+// migrate: reset emoji avatars to default image
+if (duAvatar && !duAvatar.startsWith("/")) { duAvatar = "/avatar-du.jpg"; localStorage.setItem("du_avatar", duAvatar); }
+if (leeAvatar && !leeAvatar.startsWith("/")) { leeAvatar = "/avatar-lee.jpg"; localStorage.setItem("lee_avatar", leeAvatar); }
 let editingWhich = null;
 let messages = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
 let moments = JSON.parse(localStorage.getItem(MOMENTS_KEY) || "[]");
