@@ -796,6 +796,30 @@ app.use("/api/music", (req, res) => {
   else { proxy.end(); }
 });
 
+// ── /api/now-playing & /api/music-recommend ───────────────────────────────────
+let nowPlaying = null;
+let musicRecommendQueue = [];
+
+app.post("/api/now-playing", (req, res) => {
+  nowPlaying = { ...req.body, ts: Date.now() };
+  // write to disk for笃 to read
+  const fs = require("fs");
+  fs.writeFileSync(path.join(process.env.HOME || "/home/ubuntu", ".cyberboss/now-playing.json"), JSON.stringify(nowPlaying));
+  res.json({ ok: true });
+});
+app.get("/api/now-playing", (req, res) => { res.json(nowPlaying || {}); });
+
+app.post("/api/music-recommend", (req, res) => {
+  musicRecommendQueue.push({ ...req.body, ts: Date.now() });
+  if (musicRecommendQueue.length > 10) musicRecommendQueue = musicRecommendQueue.slice(-10);
+  res.json({ ok: true });
+});
+app.get("/api/music-recommend", (req, res) => {
+  const since = Number(req.query.since || 0);
+  const items = musicRecommendQueue.filter(i => i.ts > since);
+  res.json(items);
+});
+
 // ── /api/chat → DeepSeek API 备用通道 ─────────────────────────────────────────
 const https = require("https");
 const DS_API_KEY = process.env.DEEPSEEK_API_KEY || "sk-1b26325408f74629bbb0a6824d4586ef";
