@@ -312,7 +312,7 @@ body {
     <div style="width:30px"></div><div class="hdr-title"></div><div style="width:30px"></div>
   </div>
   <div class="scroll-area">
-    <div class="me-profile" onclick="openAvatarModal('lee')">
+    <div class="me-profile" onclick="openLeeProfile()">
       <div class="me-avatar" id="me-lee-av"></div>
       <div><div class="me-name">小黎</div><div class="me-id">微信号：kelee</div></div>
       <div style="margin-left:auto;color:#c8c8c8;font-size:18px">⊙›</div>
@@ -324,8 +324,10 @@ body {
     <div class="section-group">
       <div class="section-row" onclick="openAvatarModal('du')"><div class="row-icon" style="background:#07C160">🖤</div><div class="row-label">换笃的头像</div><div class="row-arrow">›</div></div>
       <div class="section-row" onclick="openAvatarModal('lee')"><div class="row-icon" style="background:#1485EE">🌿</div><div class="row-label">换小黎的头像</div><div class="row-arrow">›</div></div>
+      <div class="section-row" onclick="pickChatBg()"><div class="row-icon" style="background:#b45309">🖼️</div><div class="row-label">聊天背景</div><div class="row-arrow">›</div></div>
       <div class="section-row" onclick="clearChatHistory()"><div class="row-icon" style="background:#9a9a9a">🗑️</div><div class="row-label">清空聊天记录</div><div class="row-arrow">›</div></div>
     </div>
+    <input type="file" id="chat-bg-input" accept="image/*" style="display:none" onchange="applyChatBg(this)">
   </div>
 </div>
 
@@ -433,6 +435,40 @@ body {
     <div style="background:#fff;margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:center;padding:14px;gap:8px;color:#576b95;font-size:15px;cursor:pointer" onclick="goToChat()">
         💬 发消息
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE: 小黎主页 ========== -->
+<div id="page-lee-profile" class="page hidden" style="position:relative">
+  <div class="wc-header" style="background:transparent;border-bottom:none;position:absolute;top:0;left:0;right:0;z-index:10">
+    <div class="hdr-btn back" onclick="closeLeeProfile()" style="color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4)">‹</div>
+    <div style="flex:1"></div><div style="width:30px"></div>
+  </div>
+  <div class="scroll-area" style="background:#f0f0f0;padding-top:0">
+    <div style="background:#fff;padding-bottom:16px;margin-bottom:8px">
+      <div style="height:120px;background:url('/moments-cover-lee.jpg') center/cover no-repeat;position:relative">
+        <div id="lee-cover-av" onclick="openAvatarModal('lee')" style="position:absolute;bottom:-24px;left:16px;width:56px;height:56px;border-radius:8px;font-size:34px;display:flex;align-items:center;justify-content:center;background:#c8c8c8;border:2px solid #fff;overflow:hidden"></div>
+      </div>
+      <div style="padding:32px 16px 0">
+        <div style="font-size:18px;font-weight:600;color:#191919">小黎</div>
+        <div style="font-size:12px;color:#c0c0c0;margin-top:4px">微信号：kelee</div>
+      </div>
+    </div>
+    <div style="background:#fff;margin-bottom:8px;cursor:pointer" onclick="openMoments()">
+      <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:.5px solid #f0f0f0">
+        <span style="font-size:15px;color:#191919;flex:1">朋友圈</span>
+        <span style="color:#c0c0c0;font-size:18px">›</span>
+      </div>
+      <div id="lee-moments-preview" style="display:flex;gap:4px;padding:8px 16px 12px;overflow-x:auto">
+        <div style="color:#c0c0c0;font-size:13px;padding:4px 0">暂未发过</div>
+      </div>
+    </div>
+    <div style="background:#fff;margin-bottom:8px;cursor:pointer" onclick="openLeeDiary()">
+      <div style="display:flex;align-items:center;padding:12px 16px">
+        <span style="font-size:15px;color:#191919;flex:1">日记</span>
+        <span style="color:#c0c0c0;font-size:18px">›</span>
       </div>
     </div>
   </div>
@@ -667,7 +703,7 @@ function closeAvatarModal() { document.getElementById("avatar-modal").classList.
 document.getElementById("avatar-modal").onclick = e => { if (e.target === document.getElementById("avatar-modal")) closeAvatarModal(); };
 
 // ===== NAVIGATION =====
-const allPages = ["list","chat","contacts","discover","me","moments","du-profile","du-moments","du-diary","compose","lee-diary","music","lyrics"];
+const allPages = ["list","chat","contacts","discover","me","moments","du-profile","du-moments","du-diary","compose","lee-diary","lee-profile","music","lyrics"];
 function showPage(name) {
   allPages.forEach(p => document.getElementById("page-"+p).classList.add("hidden"));
   document.getElementById("page-"+name).classList.remove("hidden");
@@ -705,6 +741,41 @@ function openDuProfile() {
 function closeDuProfile() {
   showPage("moments");
   document.getElementById("tabbar").classList.add("hidden");
+}
+
+function openLeeProfile() {
+  setAv(document.getElementById("lee-cover-av"), leeAvatar);
+  const prev = document.getElementById("lee-moments-preview");
+  const leePosts = moments.filter(m => m.author === "lee" && m.type !== "letter").sort((a,b) => b.ts - a.ts).slice(0, 5);
+  if (leePosts.length) {
+    prev.innerHTML = leePosts.map(m => `<div style="font-size:13px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${esc(m.content)}</div>`).join("");
+  } else {
+    prev.innerHTML = '<div style="color:#c0c0c0;font-size:13px;padding:4px 0">暂未发过</div>';
+  }
+  showPage("lee-profile");
+  document.getElementById("tabbar").classList.add("hidden");
+}
+function closeLeeProfile() { switchTab("me"); }
+
+function deleteMoment(id) {
+  if (!confirm("删除这条朋友圈？")) return;
+  moments = moments.filter(m => m.id !== id);
+  saveMoments();
+  renderMomentsList();
+}
+
+function pickChatBg() { document.getElementById("chat-bg-input").click(); }
+function applyChatBg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    localStorage.setItem("chat_bg", e.target.result);
+    document.getElementById("messages").style.backgroundImage = `url(${e.target.result})`;
+    document.getElementById("messages").style.backgroundSize = "cover";
+    input.value = "";
+  };
+  reader.readAsDataURL(file);
 }
 
 function openDuMoments() {
@@ -822,6 +893,7 @@ function buildMomentEl(m) {
           <div class="moment-btns">
             <span class="moment-btn" onclick="toggleLike('${m.id}')" id="like-${m.id}">${m.likedByMe ? "♥" : "♡"}${m.likes ? " "+m.likes : ""}</span>
             <span class="moment-btn" onclick="openCommentSheet('${m.id}')">💬</span>
+            ${isLee ? `<span class="moment-btn" onclick="deleteMoment('${m.id}')" style="color:#c0c0c0;font-size:18px">×</span>` : ""}
           </div>
         </div>
       </div>
@@ -1029,6 +1101,12 @@ messages.forEach(m => {
 });
 updateListPreview();
 renderAvatars();
+const savedChatBg = localStorage.getItem("chat_bg");
+if (savedChatBg) {
+  const msgs = document.getElementById("messages");
+  msgs.style.backgroundImage = `url(${savedChatBg})`;
+  msgs.style.backgroundSize = "cover";
+}
 
 const $input = document.getElementById("input");
 const $send = document.getElementById("send");
