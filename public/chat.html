@@ -1219,7 +1219,7 @@ async function replyToImage() {
   try {
     const res = await fetch("/api/chat", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ messages:[...messages.filter(m=>m.type!=="image").slice(-8), {role:"user",content:"（小黎发来了一张图）"}], system: buildSystemPrompt() + "\n\n【任务】小黎刚发来一张图，用一句话自然反应，不超过20字，笃的语气，直接说不解释。" })
+      body: JSON.stringify({ messages:[...messages.filter(m=>m.type!=="image").slice(-8), {role:"user",content:"（小黎发来了一张图）"}], system: buildSystemPrompt() + "\n\n【任务】小黎刚发来一张图但你看不到内容，用一句话自然地问她图里是什么，语气随意，不超过15字，不解释原因。" })
     });
     const reader = res.body.getReader(), decoder = new TextDecoder();
     let buf = "";
