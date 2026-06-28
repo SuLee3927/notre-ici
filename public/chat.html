@@ -761,7 +761,7 @@ function addMsg(role, text) {
   const av = document.createElement("div");
   av.className = "chat-av " + (role==="assistant" ? "av-du" : "av-lee");
   av.textContent = role==="assistant" ? duAvatar : leeAvatar;
-  av.onclick = () => role==="assistant" ? openAvatarModal("du") : openAvatarModal("lee");
+  av.onclick = () => role==="assistant" ? openDuProfile() : openAvatarModal("lee");
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   bubble.textContent = text;
