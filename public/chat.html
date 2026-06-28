@@ -473,10 +473,25 @@ body {
       </div>
     </div>
     <!-- 控制按钮 -->
-    <div style="display:flex;justify-content:center;align-items:center;gap:32px;padding:8px 0 24px">
+    <div style="display:flex;justify-content:center;align-items:center;gap:32px;padding:8px 0 8px">
       <div onclick="musicPrev()" style="font-size:28px;cursor:pointer;opacity:.8">⏮</div>
       <div id="music-play-btn" onclick="toggleMusicPlay()" style="width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer">▶</div>
       <div onclick="musicNext()" style="font-size:28px;cursor:pointer;opacity:.8">⏭</div>
+    </div>
+    <!-- 登录入口 -->
+    <div style="text-align:center;padding:0 0 20px">
+      <span id="music-login-btn" onclick="showMusicQR()" style="font-size:12px;color:rgba(255,255,255,.4);cursor:pointer;text-decoration:underline">网易云登录（解锁VIP）</span>
+      <span id="music-login-ok" style="font-size:12px;color:rgba(255,255,255,.5);display:none">✓ 已登录</span>
+    </div>
+  </div>
+  <!-- QR登录弹层 -->
+  <div id="music-qr-modal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.75);z-index:50;align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:16px;padding:24px;text-align:center;width:260px">
+      <div style="font-size:16px;font-weight:600;color:#333;margin-bottom:4px">网易云扫码登录</div>
+      <div style="font-size:13px;color:#9a9a9a;margin-bottom:16px">用网易云APP扫描下方二维码</div>
+      <img id="music-qr-img" src="" style="width:180px;height:180px;border-radius:8px">
+      <div id="music-qr-status" style="font-size:13px;color:#9a9a9a;margin-top:12px">等待扫码</div>
+      <div onclick="hideMusicQR()" style="margin-top:16px;color:#576b95;font-size:14px;cursor:pointer">取消</div>
     </div>
   </div>
   <audio id="music-audio"></audio>
@@ -1374,6 +1389,44 @@ vinylStyle.textContent = `@keyframes spin{from{transform:rotate(0)}to{transform:
 document.head.appendChild(vinylStyle);
 $mAudio.addEventListener("play", () => document.getElementById("music-vinyl").classList.add("spinning"));
 $mAudio.addEventListener("pause", () => document.getElementById("music-vinyl").classList.remove("spinning"));
+
+// ===== NETEASE QR LOGIN =====
+let qrPollTimer = null;
+async function showMusicQR() {
+  document.getElementById("music-qr-modal").style.display = "flex";
+  document.getElementById("music-qr-status").textContent = "生成二维码中…";
+  document.getElementById("music-qr-img").src = "";
+  try {
+    const keyRes = await fetch(`/api/music/login/qr/key?timestamp=${Date.now()}`).then(r => r.json());
+    const key = keyRes.data?.unikey;
+    if (!key) throw new Error("no key");
+    const qrRes = await fetch(`/api/music/login/qr/create?key=${key}&qrimg=true&timestamp=${Date.now()}`).then(r => r.json());
+    const qrImg = qrRes.data?.qrimg;
+    if (qrImg) document.getElementById("music-qr-img").src = qrImg;
+    document.getElementById("music-qr-status").textContent = "等待扫码";
+    if (qrPollTimer) clearInterval(qrPollTimer);
+    qrPollTimer = setInterval(async () => {
+      try {
+        const check = await fetch(`/api/music/login/qr/check?key=${key}&timestamp=${Date.now()}`).then(r => r.json());
+        if (check.code === 802) { document.getElementById("music-qr-status").textContent = "已扫码，请在手机确认"; }
+        else if (check.code === 803) {
+          clearInterval(qrPollTimer);
+          hideMusicQR();
+          document.getElementById("music-login-btn").style.display = "none";
+          document.getElementById("music-login-ok").style.display = "inline";
+          document.getElementById("music-qr-status").textContent = "✓ 登录成功";
+        } else if (check.code === 800) {
+          clearInterval(qrPollTimer);
+          document.getElementById("music-qr-status").textContent = "二维码已过期，请重试";
+        }
+      } catch {}
+    }, 2000);
+  } catch { document.getElementById("music-qr-status").textContent = "生成失败，请重试"; }
+}
+function hideMusicQR() {
+  document.getElementById("music-qr-modal").style.display = "none";
+  if (qrPollTimer) { clearInterval(qrPollTimer); qrPollTimer = null; }
+}
 </script>
 </body>
 </html>

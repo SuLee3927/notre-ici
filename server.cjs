@@ -760,10 +760,41 @@ const FISHING_HOST = process.env.FISHING_HOST || "129.226.158.222";
 const FISHING_PORT = Number(process.env.FISHING_PORT || "4327");
 app.use("/api/fishing", makeProxy(FISHING_HOST, FISHING_PORT, "/fishing"));
 
-// ── /api/music → proxy to netease-api VPS server ─────────────────────────────
+// ── /api/music → proxy to netease-api VPS server (with cookie injection) ──────
 const MUSIC_HOST = process.env.MUSIC_HOST || "129.226.158.222";
 const MUSIC_PORT = Number(process.env.MUSIC_PORT || "4326");
-app.use("/api/music", makeProxy(MUSIC_HOST, MUSIC_PORT, ""));
+let neteaseLoginCookie = "";
+
+app.use("/api/music", (req, res) => {
+  const targetPath = req.path + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "");
+  const options = {
+    hostname: MUSIC_HOST, port: MUSIC_PORT,
+    path: targetPath || "/",
+    method: req.method,
+    headers: { "content-type": req.headers["content-type"] || "application/json" },
+  };
+  if (neteaseLoginCookie) options.headers["cookie"] = neteaseLoginCookie;
+  const proxy = http.request(options, (proxyRes) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    // capture login cookie on QR check success
+    if (req.path.includes("login/qr/check")) {
+      const setCookie = proxyRes.headers["set-cookie"];
+      if (setCookie) {
+        const merged = setCookie.map(c => c.split(";")[0]).join("; ");
+        if (merged && !merged.includes("undefined")) { neteaseLoginCookie = merged; }
+      }
+    }
+    res.status(proxyRes.statusCode);
+    proxyRes.pipe(res);
+  });
+  proxy.on("error", () => res.status(502).json({ error: "upstream unreachable" }));
+  if (req.method !== "GET" && req.body !== undefined) {
+    const body = JSON.stringify(req.body);
+    proxy.setHeader("content-length", Buffer.byteLength(body));
+    proxy.write(body); proxy.end();
+  } else if (req.method !== "GET") { req.pipe(proxy); }
+  else { proxy.end(); }
+});
 
 // ── /api/chat → DeepSeek API 备用通道 ─────────────────────────────────────────
 const https = require("https");
