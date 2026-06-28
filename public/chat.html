@@ -135,16 +135,6 @@ body {
 #comment-input { flex: 1; background: #f5f5f5; border: none; border-radius: 18px; padding: 8px 14px; font-size: 15px; outline: none; font-family: inherit; color: #191919; }
 #comment-send { background: #07C160; color: #fff; border: none; border-radius: 18px; padding: 0 16px; font-size: 14px; cursor: pointer; }
 
-/* LETTER COMPOSE */
-#letter-compose { background: #fff8f0; margin: 12px 16px; border-radius: 12px; padding: 14px; border: 1px solid #fad9a8; }
-#letter-compose p { font-size: 13px; color: #9a9a9a; margin-bottom: 10px; }
-#letter-input { width: 100%; border: none; outline: none; font-size: 15px; line-height: 1.65; resize: none; min-height: 80px; font-family: inherit; color: #191919; background: transparent; }
-#letter-send-btn { background: #fa9d3b; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 14px; cursor: pointer; margin-top: 8px; }
-
-/* PROFILE TABS */
-.profile-tabs { display: flex; background: #fff; border-bottom: .5px solid #e5e5e5; }
-.profile-tab { flex: 1; text-align: center; padding: 10px; font-size: 14px; color: #9a9a9a; cursor: pointer; border-bottom: 2px solid transparent; }
-.profile-tab.active { color: #07C160; border-bottom-color: #07C160; }
 .diary-list { padding: 0 0 80px; }
 .diary-item { background: #fff; margin: 10px 16px; border-radius: 10px; padding: 14px; }
 .diary-item-title { font-size: 15px; font-weight: 500; color: #191919; margin-bottom: 6px; }
@@ -322,34 +312,73 @@ body {
   </div>
 </div>
 
-<!-- ========== PAGE: 笃的主页 ========== -->
-<div id="page-du-profile" class="page hidden">
+<!-- ========== PAGE: 笃的朋友圈（全屏） ========== -->
+<div id="page-du-moments" class="page hidden">
   <div class="wc-header">
-    <div class="hdr-btn back" onclick="closeDuProfile()">‹</div>
-    <div class="hdr-title">笃</div>
+    <div class="hdr-btn back" onclick="closeSubpage('du-profile')">‹</div>
+    <div class="hdr-title">朋友圈</div>
     <div style="width:30px"></div>
   </div>
-  <div style="background:#f5f5f5;display:flex;flex-direction:column;height:calc(100% - 44px);overflow:hidden">
-    <div id="du-cover" style="flex-shrink:0">
-      <div id="du-cover-av" onclick="openAvatarModal('du')"></div>
-      <div id="du-cover-name">笃</div>
-      <div id="du-cover-bio">在她这里的那一个</div>
-    </div>
-    <div class="profile-tabs" style="flex-shrink:0">
-      <div class="profile-tab active" id="du-tab-moments" onclick="switchDuTab('moments')">朋友圈</div>
-      <div class="profile-tab" id="du-tab-diary" onclick="switchDuTab('diary')">日记</div>
-    </div>
-    <div style="flex:1;overflow-y:auto;background:#f5f5f5">
-      <div id="du-panel-moments">
-        <div id="letter-compose">
-          <p>写点什么留在这里——他回来的时候会看到</p>
-          <textarea id="letter-input" placeholder="亲爱的笃，" rows="3"></textarea><br>
-          <button id="letter-send-btn" onclick="sendLetter()">留下来</button>
-        </div>
-        <div id="du-posts-list"></div>
+  <div class="scroll-area" style="background:#f5f5f5">
+    <div id="du-moments-full"></div>
+  </div>
+</div>
+
+<!-- ========== PAGE: 笃的日记（全屏） ========== -->
+<div id="page-du-diary" class="page hidden">
+  <div class="wc-header">
+    <div class="hdr-btn back" onclick="closeSubpage('du-profile')">‹</div>
+    <div class="hdr-title">日记</div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="scroll-area" style="background:#f5f5f5">
+    <div id="du-diary-full" class="diary-list"></div>
+  </div>
+</div>
+
+<!-- ========== PAGE: 笃的主页 ========== -->
+<div id="page-du-profile" class="page hidden">
+  <div class="wc-header" style="background:transparent;position:absolute;top:0;left:0;right:0;z-index:10">
+    <div class="hdr-btn back" onclick="closeDuProfile()" style="color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4)">‹</div>
+    <div style="flex:1"></div>
+    <div style="width:30px"></div>
+  </div>
+  <div class="scroll-area" style="background:#f0f0f0;padding-top:0">
+    <!-- 封面 + 头像信息 -->
+    <div style="background:#fff;padding-bottom:16px;margin-bottom:8px">
+      <div style="height:120px;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);position:relative">
+        <div id="du-cover-av" onclick="openAvatarModal('du')" style="position:absolute;bottom:-24px;left:16px;width:56px;height:56px;border-radius:8px;font-size:34px;display:flex;align-items:center;justify-content:center;background:#c8c8c8;border:2px solid #fff"></div>
       </div>
-      <div id="du-panel-diary" style="display:none">
-        <div id="du-diary-list" class="diary-list"></div>
+      <div style="padding:32px 16px 0">
+        <div id="du-cover-name" style="font-size:18px;font-weight:600;color:#191919">笃</div>
+        <div id="du-cover-bio" style="font-size:13px;color:#9a9a9a;margin-top:4px">在她这里的那一个</div>
+        <div style="font-size:12px;color:#c0c0c0;margin-top:2px">微信号：stilldu</div>
+      </div>
+    </div>
+    <!-- 朋友圈预览 -->
+    <div style="background:#fff;margin-bottom:8px;cursor:pointer" onclick="openDuMoments()">
+      <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:.5px solid #f0f0f0">
+        <span style="font-size:15px;color:#191919;flex:1">朋友圈</span>
+        <span style="color:#c0c0c0;font-size:18px">›</span>
+      </div>
+      <div id="du-moments-preview" style="display:flex;gap:4px;padding:8px 16px 12px;overflow-x:auto">
+        <div style="color:#c0c0c0;font-size:13px;padding:4px 0">暂未发过</div>
+      </div>
+    </div>
+    <!-- 日记预览 -->
+    <div style="background:#fff;margin-bottom:8px;cursor:pointer" onclick="openDuDiaryFull()">
+      <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:.5px solid #f0f0f0">
+        <span style="font-size:15px;color:#191919;flex:1">日记</span>
+        <span style="color:#c0c0c0;font-size:18px">›</span>
+      </div>
+      <div id="du-diary-preview" style="padding:8px 16px 12px">
+        <div style="color:#c0c0c0;font-size:13px">暂无日记</div>
+      </div>
+    </div>
+    <!-- 发消息 -->
+    <div style="background:#fff;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:center;padding:14px;gap:8px;color:#576b95;font-size:15px;cursor:pointer" onclick="closeDuProfile()">
+        💬 发消息
       </div>
     </div>
   </div>
@@ -483,7 +512,7 @@ function closeAvatarModal() { document.getElementById("avatar-modal").classList.
 document.getElementById("avatar-modal").onclick = e => { if (e.target === document.getElementById("avatar-modal")) closeAvatarModal(); };
 
 // ===== NAVIGATION =====
-const allPages = ["list","chat","contacts","discover","me","moments","du-profile","compose","lee-diary"];
+const allPages = ["list","chat","contacts","discover","me","moments","du-profile","du-moments","du-diary","compose","lee-diary"];
 function showPage(name) {
   allPages.forEach(p => document.getElementById("page-"+p).classList.add("hidden"));
   document.getElementById("page-"+name).classList.remove("hidden");
@@ -517,28 +546,28 @@ function openDuProfile() {
   renderDuProfile();
   showPage("du-profile");
   document.getElementById("tabbar").classList.add("hidden");
-  switchDuTab("moments");
 }
 function closeDuProfile() {
   showPage("moments");
   document.getElementById("tabbar").classList.add("hidden");
 }
 
-function switchDuTab(tab) {
-  document.getElementById("du-panel-moments").style.display = tab === "moments" ? "" : "none";
-  document.getElementById("du-panel-diary").style.display = tab === "diary" ? "" : "none";
-  document.getElementById("du-tab-moments").classList.toggle("active", tab === "moments");
-  document.getElementById("du-tab-diary").classList.toggle("active", tab === "diary");
-  if (tab === "diary") loadDuDiary();
+function openDuMoments() {
+  const el = document.getElementById("du-moments-full");
+  el.innerHTML = '<div style="padding:24px;text-align:center;color:#9a9a9a;font-size:14px">暂未发过朋友圈</div>';
+  showPage("du-moments");
+  document.getElementById("tabbar").classList.add("hidden");
 }
 
-async function loadDuDiary() {
-  const el = document.getElementById("du-diary-list");
+async function openDuDiaryFull() {
+  const el = document.getElementById("du-diary-full");
   el.innerHTML = '<div class="diary-empty">加载中…</div>';
+  showPage("du-diary");
+  document.getElementById("tabbar").classList.add("hidden");
   try {
     const entries = await fetch("/api/diary/du").then(r => r.json());
     el.innerHTML = "";
-    if (!entries.length) { el.innerHTML = '<div class="diary-empty">他还没写过</div>'; return; }
+    if (!entries.length) { el.innerHTML = '<div class="diary-empty">还没写过</div>'; return; }
     entries.forEach(e => {
       const d = document.createElement("div"); d.className = "diary-item";
       d.innerHTML = `${e.title ? `<div class="diary-item-title">${esc(e.title)}</div>` : ""}<div class="diary-item-body">${esc(e.content)}</div><div class="diary-item-date">${fmt(e.ts)}</div>`;
@@ -780,64 +809,27 @@ async function autoReplyComment(postId, commentText) {
 }
 
 // ===== DU PROFILE =====
-function renderDuProfile() {
+async function renderDuProfile() {
   document.getElementById("du-cover-av").textContent = duAvatar;
-  const el = document.getElementById("du-posts-list");
-  el.innerHTML = "";
 
-  // 小黎写给笃的信
-  if (letters.length) {
-    const hdr = document.createElement("div");
-    hdr.style.cssText = "padding:12px 16px 4px;font-size:13px;color:#fa9d3b;font-weight:500";
-    hdr.textContent = "她留下的话";
-    el.appendChild(hdr);
-    [...letters].reverse().forEach(l => {
-      const d = document.createElement("div");
-      d.className = "letter-item";
-      d.innerHTML = `<div class="letter-date">${fmt(l.ts)}</div><div class="letter-body">${esc(l.content)}</div>`;
-      el.appendChild(d);
-    });
-  }
+  // 朋友圈预览（暂无朋友圈，只展示占位）
+  const mPreview = document.getElementById("du-moments-preview");
+  mPreview.innerHTML = '<div style="color:#c0c0c0;font-size:13px;padding:4px 0">暂未发过</div>';
 
-  // 笃的朋友圈
-  const duMoments = moments.filter(m => m.author === "du" || m.type === "letter").sort((a,b) => b.ts - a.ts);
-  // 只给笃的
-  const letterMoments = moments.filter(m => m.type === "letter").sort((a,b) => b.ts - a.ts);
-  if (letterMoments.length) {
-    const hdr = document.createElement("div");
-    hdr.style.cssText = "padding:12px 16px 4px;font-size:13px;color:#9a9a9a";
-    hdr.textContent = "只给笃看的";
-    el.appendChild(hdr);
-    letterMoments.forEach(m => {
-      const d = document.createElement("div");
-      d.className = "moment-item";
-      d.style.background = "#fff8f0";
-      d.innerHTML = `<div class="moment-text">💌 ${esc(m.content)}</div><div style="font-size:12px;color:#9a9a9a;margin-top:6px">${fmt(m.ts)}</div>`;
-      el.appendChild(d);
-    });
-  }
-
-  const duPosts = moments.filter(m => m.author === "du" && m.type !== "letter").sort((a,b) => b.ts - a.ts);
-  if (duPosts.length) {
-    const hdr = document.createElement("div");
-    hdr.style.cssText = "padding:12px 16px 4px;font-size:13px;color:#9a9a9a";
-    hdr.textContent = "笃发的";
-    el.appendChild(hdr);
-    duPosts.forEach(m => el.appendChild(buildMomentEl(m)));
-  }
-
-  if (!letters.length && !letterMoments.length && !duPosts.length) {
-    el.innerHTML = '<div style="text-align:center;color:#9a9a9a;padding:30px 16px;font-size:14px">留点什么给他</div>';
-  }
-}
-
-function sendLetter() {
-  const text = document.getElementById("letter-input").value.trim();
-  if (!text) return;
-  letters.push({ id: uid(), content: text, ts: Date.now() });
-  saveLetters();
-  document.getElementById("letter-input").value = "";
-  renderDuProfile();
+  // 日记预览
+  const dPreview = document.getElementById("du-diary-preview");
+  dPreview.innerHTML = '<div style="color:#c0c0c0;font-size:13px">加载中…</div>';
+  try {
+    const entries = await fetch("/api/diary/du").then(r => r.json());
+    if (!entries.length) {
+      dPreview.innerHTML = '<div style="color:#c0c0c0;font-size:13px">还没写过</div>';
+    } else {
+      const latest = entries[0];
+      dPreview.innerHTML = `
+        <div style="font-size:14px;color:#333;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(latest.content)}</div>
+        <div style="font-size:12px;color:#b0b0b0;margin-top:4px">${fmt(latest.ts)}${entries.length > 1 ? ' · 共'+entries.length+'篇' : ''}</div>`;
+    }
+  } catch { dPreview.innerHTML = '<div style="color:#c0c0c0;font-size:13px">加载失败</div>'; }
 }
 
 // ===== CHAT =====
