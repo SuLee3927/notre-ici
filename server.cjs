@@ -826,7 +826,7 @@ app.get("/api/music-recommend", (req, res) => {
 
 // ── /api/chat → DeepSeek API 备用通道 ─────────────────────────────────────────
 const https = require("https");
-const DS_API_KEY = process.env.DEEPSEEK_API_KEY || "sk-1b26325408f74629bbb0a6824d4586ef";
+const DS_API_KEY = process.env.DEEPSEEK_API_KEY || "sk-eb790a44bad64967b0c2422704b538ad";
 async function fetchKLMemories() {
   return new Promise((resolve) => {
     const opts = {
