@@ -93,6 +93,17 @@ function canPong(hand, tile) { return hand.filter(t => t === tile).length >= 2; 
 function canKong(hand, tile) { return hand.filter(t => t === tile).length >= 3; }
 function canWinOnDiscard(hand, tile) { return canWin([...hand, tile]); }
 
+function canChi(hand, tile) {
+  const s = tile.slice(-1), v = parseInt(tile);
+  if (!["w","t","p"].includes(s)) return [];
+  const has = t => hand.includes(t);
+  const combos = [];
+  if (v >= 3 && has(`${v-2}${s}`) && has(`${v-1}${s}`)) combos.push([`${v-2}${s}`,`${v-1}${s}`,tile]);
+  if (v >= 2 && v <= 8 && has(`${v-1}${s}`) && has(`${v+1}${s}`)) combos.push([`${v-1}${s}`,tile,`${v+1}${s}`]);
+  if (v <= 7 && has(`${v+1}${s}`) && has(`${v+2}${s}`)) combos.push([tile,`${v+1}${s}`,`${v+2}${s}`]);
+  return combos;
+}
+
 function canSelfKong(hand, melds) {
   const counts = countTiles(hand);
   for (const [t, c] of Object.entries(counts)) {
@@ -171,7 +182,13 @@ function processDiscard(game, playerIdx, tile) {
     if (canWinOnDiscard(p.hand, tile)) opts.push("hu");
     if (canKong(p.hand, tile)) opts.push("kong");
     if (canPong(p.hand, tile)) opts.push("pong");
-    if (opts.length) claims.push({ player: i, options: opts });
+    // chi: only the next player in turn order
+    const nextPlayer = (playerIdx + 1) % 4;
+    if (i === nextPlayer) {
+      const chiCombos = canChi(p.hand, tile);
+      if (chiCombos.length) opts.push("chi");
+    }
+    if (opts.length) claims.push({ player: i, options: opts, chiCombos: i === nextPlayer ? canChi(p.hand, tile) : [] });
   }
 
   if (!claims.length) return advanceTurn(game);
@@ -195,6 +212,7 @@ function processDiscard(game, playerIdx, tile) {
 
   if (humanClaims.length) {
     game.phase = "claim";
+    game.claimTimestamp = Date.now();
     game.pendingClaims = humanClaims;
     game.claimResponses = {};
     game.aiClaims = aiClaims;
@@ -265,6 +283,13 @@ function handleClaim(game, playerIdx, action) {
   } else if (action === "pong") {
     if (!canPong(p.hand, tile)) return { error: "不能碰" };
     game.claimResponses[playerIdx] = "pong";
+  } else if (typeof action === "object" && action.type === "chi") {
+    const combo = action.combo; // [t1, t2, t3] sorted
+    if (!combo || combo.length !== 3) return { error: "吃的组合不对" };
+    const chiCombos = canChi(p.hand, tile);
+    const match = chiCombos.find(c => c.join(",") === combo.join(","));
+    if (!match) return { error: "不能吃这个组合" };
+    game.claimResponses[playerIdx] = { type: "chi", combo };
   } else {
     return { error: "未知操作" };
   }
@@ -279,26 +304,28 @@ function handleClaim(game, playerIdx, action) {
 
 function resolveClaims(game) {
   const tile = game.lastDiscard;
-  const priority = { hu: 3, kong: 2, pong: 1 };
+  const priority = { hu: 4, kong: 3, pong: 2, chi: 1 };
 
-  // combine human responses with AI claims
-  let bestAction = null, bestPlayer = null, bestPriority = 0;
+  let bestAction = null, bestPlayer = null, bestPriority = 0, bestCombo = null;
 
   for (const c of game.pendingClaims) {
     const resp = game.claimResponses[c.player];
-    if (resp && resp !== "pass" && priority[resp] > bestPriority) {
-      bestPriority = priority[resp];
-      bestAction = resp;
+    if (!resp || resp === "pass") continue;
+    const act = typeof resp === "object" ? resp.type : resp;
+    const pri = priority[act] || 0;
+    if (pri > bestPriority) {
+      bestPriority = pri;
+      bestAction = act;
       bestPlayer = c.player;
+      bestCombo = typeof resp === "object" ? resp.combo : null;
     }
   }
 
-  // also check AI claims
   const aiClaims = game.aiClaims || [];
   for (const c of aiClaims) {
     for (const opt of c.options) {
-      if (opt === "pong" && Math.random() < 0.4) continue;
-      if (priority[opt] > bestPriority) {
+      if (opt === "chi" || (opt === "pong" && Math.random() < 0.4)) continue;
+      if ((priority[opt] || 0) > bestPriority) {
         bestPriority = priority[opt];
         bestAction = opt;
         bestPlayer = c.player;
@@ -323,21 +350,12 @@ function resolveClaims(game) {
       p.hand.push(game.wall.pop());
       p.hand = sortHand(p.hand);
       if (canWin(p.hand)) {
-        if (p.isAI) {
-          game.phase = "finished";
-          game.winner = bestPlayer;
-          return { event: "win", winner: bestPlayer, winnerName: p.name, afterKong: true };
-        }
-        game.phase = "self_win_available";
-        game.selfWinPlayer = bestPlayer;
+        if (p.isAI) { game.phase = "finished"; game.winner = bestPlayer; return { event: "win", winner: bestPlayer, winnerName: p.name, afterKong: true }; }
+        game.phase = "self_win_available"; game.selfWinPlayer = bestPlayer;
         return { event: "self_win_available", player: bestPlayer };
       }
     }
-    if (p.isAI) {
-      game.phase = "discard";
-      const d = aiChooseDiscard(p);
-      return processDiscard(game, bestPlayer, d);
-    }
+    if (p.isAI) { game.phase = "discard"; return processDiscard(game, bestPlayer, aiChooseDiscard(p)); }
     game.phase = "discard";
     return { event: "your_turn_after_kong", player: bestPlayer };
   }
@@ -347,13 +365,23 @@ function resolveClaims(game) {
     p.melds.push({ type: "pong", tiles: [tile, tile, tile] });
     game.lastDiscard = null;
     game.currentPlayer = bestPlayer;
-    if (p.isAI) {
-      game.phase = "discard";
-      const d = aiChooseDiscard(p);
-      return processDiscard(game, bestPlayer, d);
-    }
+    if (p.isAI) { game.phase = "discard"; return processDiscard(game, bestPlayer, aiChooseDiscard(p)); }
     game.phase = "discard";
     return { event: "your_turn_after_pong", player: bestPlayer };
+  }
+
+  if (bestAction === "chi" && bestCombo) {
+    for (const ct of bestCombo) {
+      if (ct === tile) continue;
+      const idx = p.hand.indexOf(ct);
+      if (idx >= 0) p.hand.splice(idx, 1);
+    }
+    p.melds.push({ type: "chi", tiles: bestCombo });
+    game.lastDiscard = null;
+    game.currentPlayer = bestPlayer;
+    if (p.isAI) { game.phase = "discard"; return processDiscard(game, bestPlayer, aiChooseDiscard(p)); }
+    game.phase = "discard";
+    return { event: "your_turn_after_chi", player: bestPlayer };
   }
 
   return advanceTurn(game);
@@ -445,6 +473,8 @@ function getState(game, viewAs = 0) {
     lastDiscardBy: game.lastDiscardBy,
     selfWinPlayer: game.selfWinPlayer,
     myClaimOptions: (game.phase === "claim" && myPending && !game.claimResponses[viewAs]) ? myPending.options : null,
+    myChiCombos: (game.phase === "claim" && myPending && !game.claimResponses[viewAs] && myPending.chiCombos) ? myPending.chiCombos : null,
+    claimTimestamp: game.claimTimestamp || null,
     waitingFor: game.phase === "claim" ? game.pendingClaims.filter(c => !game.claimResponses[c.player]).map(c => ({ player: c.player, name: game.players[c.player].name })) : null,
     players: game.players.map((p, i) => ({
       name: p.name,
@@ -457,4 +487,12 @@ function getState(game, viewAs = 0) {
   };
 }
 
-module.exports = { createGame, processDiscard, getState, handleClaim, handleSelfWin, sortHand, tileLabel, canSelfKong };
+function autoPassAll(game) {
+  if (game.phase !== "claim") return { error: "不在等待状态" };
+  for (const c of game.pendingClaims) {
+    if (!game.claimResponses[c.player]) game.claimResponses[c.player] = "pass";
+  }
+  return resolveClaims(game);
+}
+
+module.exports = { createGame, processDiscard, getState, handleClaim, handleSelfWin, autoPassAll, sortHand, tileLabel, canSelfKong };

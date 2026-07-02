@@ -145,6 +145,8 @@ function MeldDisplay({ meld }) {
   );
 }
 
+const CLAIM_TIMEOUT = 10; // seconds
+
 export default function Mahjong({ theme: t }) {
   const [mode, setMode] = useState(null);
   const [state, setState] = useState(null);
@@ -152,7 +154,9 @@ export default function Mahjong({ theme: t }) {
   const [selected, setSelected] = useState(null);
   const [msg, setMsg] = useState(null);
   const [drawnTile, setDrawnTile] = useState(null);
+  const [countdown, setCountdown] = useState(0);
   const pollRef = useRef(null);
+  const timerRef = useRef(null);
 
   const api = useCallback(async (path, body) => {
     const opts = body !== undefined ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
@@ -165,9 +169,32 @@ export default function Mahjong({ theme: t }) {
     else if (d.result?.event === "draw_game") setMsg("流局，没人胡。");
     else if (d.result?.event === "self_win_available") setMsg("你可以自摸胡牌！");
     else if (d.result?.event === "your_turn" && d.result.drawn) setMsg(`摸到 ${TILE_NAME[d.result.drawn] || d.result.drawn}`);
-    else if (d.result?.event === "claim_available") setMsg("可以碰/杠/胡！");
+    else if (d.result?.event === "claim_available") setMsg(null);
     return d;
   }, []);
+
+  // countdown timer for claims
+  useEffect(() => {
+    const hasClaim = state?.myClaimOptions?.length > 0;
+    if (hasClaim) {
+      setCountdown(CLAIM_TIMEOUT);
+      timerRef.current = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            fetch("/api/mahjong/timeout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+              .then(r => r.json()).then(d => { if (d.state) setState(d.state); });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timerRef.current);
+    } else {
+      setCountdown(0);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, [state?.myClaimOptions?.length > 0, state?.claimTimestamp]);
 
   useEffect(() => {
     if (!state || state.phase === "finished" || mode !== "du") return;
@@ -197,7 +224,11 @@ export default function Mahjong({ theme: t }) {
     await api("discard", { tile, player: 0 });
   }
 
-  async function claim(action) { setMsg(null); await api("claim", { action, player: 0 }); }
+  async function claim(action) {
+    setMsg(null); setCountdown(0);
+    if (timerRef.current) clearInterval(timerRef.current);
+    await api("claim", { action, player: 0 });
+  }
   async function selfWin(accept) { setMsg(null); await api("selfwin", { accept, player: 0 }); }
 
   if (!state) {
@@ -303,11 +334,27 @@ export default function Mahjong({ theme: t }) {
         {canDiscard && selected === null && <div style={{ fontSize: 11, color: t.textMuted }}>点一张牌选中，再点「打出」</div>}
 
         {hasClaim && (
-          <div style={{ display: "flex", gap: 8 }}>
-            {state.myClaimOptions.includes("hu") && <Btn label="胡！" bg="#E74C3C" onClick={() => claim("hu")} />}
-            {state.myClaimOptions.includes("kong") && <Btn label="杠" bg="#F39C12" onClick={() => claim("kong")} />}
-            {state.myClaimOptions.includes("pong") && <Btn label="碰" bg="#27AE60" onClick={() => claim("pong")} />}
-            <button onClick={() => claim("pass")} style={{ padding: "8px 16px", borderRadius: 8, background: t.surface, color: t.textMuted, border: `1px solid ${t.surfaceBorder}`, fontSize: 12, cursor: "pointer" }}>过</button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            {/* countdown bar */}
+            <div style={{ width: 120, height: 4, background: "rgba(0,0,0,0.1)", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ height: "100%", background: countdown > 3 ? "#27AE60" : "#E74C3C", width: `${(countdown / CLAIM_TIMEOUT) * 100}%`, transition: "width 1s linear", borderRadius: 2 }} />
+            </div>
+            <div style={{ fontSize: 10, color: t.textMuted }}>{countdown}秒</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+              {state.myClaimOptions.includes("hu") && <Btn label="胡！" bg="#E74C3C" onClick={() => claim("hu")} />}
+              {state.myClaimOptions.includes("kong") && <Btn label="杠" bg="#F39C12" onClick={() => claim("kong")} />}
+              {state.myClaimOptions.includes("pong") && <Btn label="碰" bg="#27AE60" onClick={() => claim("pong")} />}
+              {state.myClaimOptions.includes("chi") && state.myChiCombos?.map((combo, i) => (
+                <button key={i} onClick={() => claim({ type: "chi", combo })} style={{
+                  padding: "6px 10px", borderRadius: 8, background: "#8E44AD", color: "#fff",
+                  border: "none", fontSize: 11, fontWeight: 600, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 4,
+                }}>
+                  吃 {combo.map(t => TILE_NAME[t]).join("")}
+                </button>
+              ))}
+              <button onClick={() => claim("pass")} style={{ padding: "8px 16px", borderRadius: 8, background: t.surface, color: t.textMuted, border: `1px solid ${t.surfaceBorder}`, fontSize: 12, cursor: "pointer" }}>过</button>
+            </div>
           </div>
         )}
 
