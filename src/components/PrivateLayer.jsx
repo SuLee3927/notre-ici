@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import MusicPlayer from "./MusicPlayer.jsx";
+import KLMemoryBrowser from "./KLMemoryBrowser.jsx";
 
 const PASSWORD = "0508";
 
@@ -50,7 +51,7 @@ export default function PrivateLayer({ theme: t, onClose, onEnterNuonuo }) {
   }
 
   const itemContent = {
-    bookshelf: <PlaceholderContent emoji="📚" title="KL 记忆" />,
+    bookshelf: <KLMemoryBrowser theme={t} />,
     desk:      <DreamLog theme={t} />,
     diary:     <PlaceholderContent emoji="📝" title="吐槽小黎" note="接入中…" />,
     cabinet:   <PlaceholderContent emoji="🔒" title="尽在不言中" note="接入中…" />,

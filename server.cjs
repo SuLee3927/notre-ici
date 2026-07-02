@@ -919,6 +919,52 @@ app.delete("/api/diary/:who/:id", (req, res) => {
   res.json({ ok: true });
 });
 
+// ── /api/kl → KL 记忆系统接口 ────────────────────────────────────────────────
+function parseBreathHook(raw) {
+  const buckets = [];
+  const cleaned = raw.replace(/^\[Ombre Brain[^\]]*\]\n?/, "");
+  const blocks = cleaned.split(/\n---\n/);
+  const memRe = /记忆桶:\s*(.+?)\s+\[主题:(.+?)\]\s+\[情感:(V[\d.]+\/A[\d.]+)\]/;
+  for (const block of blocks) {
+    const trimmed = block.trim();
+    if (!trimmed || trimmed.startsWith("=== ")) continue;
+    const firstLine = trimmed.split("\n")[0];
+    const match = firstLine.match(memRe);
+    if (!match) continue;
+    const [, name, topic, emotion] = match;
+    const pinned = firstLine.includes("[核心准则]");
+    const contentStart = trimmed.indexOf("\n");
+    const content = contentStart > 0 ? trimmed.slice(contentStart + 1).trim() : "";
+    let summary = "";
+    try { const p = JSON.parse(content); summary = p.summary || ""; } catch { summary = content.split("\n")[0].slice(0, 120); }
+    buckets.push({ id: name.trim(), name: name.trim(), topic: topic.trim(), emotion: emotion.trim(), weight: pinned ? 999 : 10, pinned, summary, content });
+  }
+  return buckets;
+}
+
+app.get("/api/kl/memories", async (_req, res) => {
+  try {
+    const raw = await new Promise((resolve) => {
+      const opts = { hostname: "kelee-brain.zeabur.app", path: "/breath-hook", method: "GET" };
+      const req = https.request(opts, (r) => {
+        let data = "";
+        r.on("data", (c) => data += c);
+        r.on("end", () => resolve(data));
+      });
+      req.on("error", () => resolve(""));
+      req.setTimeout(12000, () => { req.destroy(); resolve(""); });
+      req.end();
+    });
+    const memories = parseBreathHook(raw);
+    const filtered = memories.filter(m =>
+      !["查记忆再开口","互动氛围规则","波折号与人机感","恋爱行为准则十条","称呼习惯与亲密关系","工作与亲密语气切换","记忆断开时坦白求助","笃说话风格"].includes(m.name)
+    );
+    res.json({ ok: true, memories: filtered });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ── /chat → 备用聊天页面 ──────────────────────────────────────────────────────
 app.get("/chat", (_req, res) => {
   const chatFile = path.join(__dirname, "public", "chat.html");
