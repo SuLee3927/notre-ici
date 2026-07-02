@@ -919,6 +919,25 @@ app.delete("/api/diary/:who/:id", (req, res) => {
   res.json({ ok: true });
 });
 
+// ── /api/unsaid → 尽在不言中 ──────────────────────────────────────────────────
+const UNSAID_FILE = path.join(__dirname, "unsaid.json");
+function loadUnsaid() {
+  try { return JSON.parse(fs.readFileSync(UNSAID_FILE, "utf8")); } catch { return []; }
+}
+function saveUnsaid(data) { fs.writeFileSync(UNSAID_FILE, JSON.stringify(data, null, 2)); }
+
+app.get("/api/unsaid", (_req, res) => res.json(loadUnsaid()));
+
+app.post("/api/unsaid", express.json(), (req, res) => {
+  const { title, content, date } = req.body || {};
+  if (!content || !content.trim()) return res.status(400).json({ error: "content required" });
+  const entries = loadUnsaid();
+  const entry = { id: Date.now().toString(), title: (title || "").trim(), date: date || new Date().toISOString().slice(0, 10), content: content.trim() };
+  entries.push(entry);
+  saveUnsaid(entries);
+  res.json({ ok: true, entry });
+});
+
 // ── /api/kl → KL 记忆系统接口 ────────────────────────────────────────────────
 function parseBreathHook(raw) {
   const buckets = [];
