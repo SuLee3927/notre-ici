@@ -10,6 +10,7 @@ import Billiards from "./Billiards.jsx";
 import BasketGame from "./BasketGame.jsx";
 import WatchTogether from "./WatchTogether.jsx";
 import CraneGame, { getPendingToys, clearPendingToys } from "./CraneGame.jsx";
+import Mahjong from "./Mahjong.jsx";
 import NoonoDream, { LivingRoom, BedroomRoom, KitchenRoom, NonoRoom, StudyLock, StudyEnding } from "./NoonoDream.jsx";
 
 const WALL_H = 28;
@@ -673,6 +674,7 @@ function GamePanel({ theme: t }) {
     { id:"billiards", emoji:"🎱", name:"桌球", desc:"拖杆瞄准，收完自己那组打黑八" },
     { id:"crane",     emoji:"🧸", name:"娃娃机", desc:"时机一到，出手不留" },
     { id:"basket",    emoji:"🏀", name:"投篮机", desc:"蓄力出手，进框翻倍" },
+    { id:"mahjong",   emoji:"🀄", name:"麻将",   desc:"摸打碰杠胡，四人对局" },
   ];
 
   if (open === "slot") return (
@@ -721,6 +723,13 @@ function GamePanel({ theme: t }) {
     <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
       <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
       <BasketGame theme={t} />
+    </div>
+  );
+
+  if (open === "mahjong") return (
+    <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
+      <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
+      <Mahjong theme={t} />
     </div>
   );
 

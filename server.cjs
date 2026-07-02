@@ -986,6 +986,47 @@ app.get("/api/kl/memories", async (_req, res) => {
   }
 });
 
+// ── /api/mahjong → 麻将 ──────────────────────────────────────────────────────
+const mahjong = require("./mahjong.cjs");
+let mjGame = null;
+
+app.post("/api/mahjong/new", express.json(), (_req, res) => {
+  mjGame = mahjong.createGame();
+  res.json({ ok: true, state: mahjong.getState(mjGame, 0) });
+});
+
+app.get("/api/mahjong/state", (_req, res) => {
+  if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
+  res.json({ ok: true, state: mahjong.getState(mjGame, 0) });
+});
+
+app.post("/api/mahjong/discard", express.json(), (req, res) => {
+  if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
+  if (mjGame.phase !== "discard" || mjGame.currentPlayer !== 0)
+    return res.json({ ok: false, error: "现在不是你出牌" });
+  const { tile } = req.body || {};
+  if (!tile) return res.json({ ok: false, error: "没选牌" });
+  const result = mahjong.processDiscard(mjGame, 0, tile);
+  if (result.error) return res.json({ ok: false, error: result.error });
+  res.json({ ok: true, result, state: mahjong.getState(mjGame, 0) });
+});
+
+app.post("/api/mahjong/claim", express.json(), (req, res) => {
+  if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
+  const { action } = req.body || {};
+  const result = mahjong.handleClaim(mjGame, action);
+  if (result.error) return res.json({ ok: false, error: result.error });
+  res.json({ ok: true, result, state: mahjong.getState(mjGame, 0) });
+});
+
+app.post("/api/mahjong/selfwin", express.json(), (req, res) => {
+  if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
+  const { accept } = req.body || {};
+  const result = mahjong.handleSelfWin(mjGame, accept);
+  if (result.error) return res.json({ ok: false, error: result.error });
+  res.json({ ok: true, result, state: mahjong.getState(mjGame, 0) });
+});
+
 // ── /chat → 备用聊天页面 ──────────────────────────────────────────────────────
 app.get("/chat", (_req, res) => {
   const chatFile = path.join(__dirname, "public", "chat.html");
