@@ -211,6 +211,21 @@ export default function Mahjong({ theme: t }) {
     }
   }, [state?.phase, state?.currentPlayer, state?.turnCount, mode]);
 
+  useEffect(() => {
+    if (!state || state.phase !== "ai_discard") return;
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch("/api/mahjong/step", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ player: 0 })
+        });
+        const d = await r.json();
+        if (d.state) setState(d.state);
+      } catch {}
+    }, 800);
+    return () => clearTimeout(t);
+  }, [state?.phase, state?.currentPlayer, state?.turnCount]);
+
   async function newGame(chosenMode) {
     setLoading(true); setMsg(null); setSelected(null); setDrawnTile(null);
     setMode(chosenMode);
@@ -306,6 +321,7 @@ export default function Mahjong({ theme: t }) {
   const hasClaim = state.myClaimOptions?.length > 0;
   const isSelfWin = state.phase === "self_win_available" && state.selfWinPlayer === 0;
   const isFinished = state.phase === "finished";
+  const isAIPhase = state.phase === "ai_discard";
   const canDiscard = state.phase === "discard" && isMyTurn;
   const waitingDu = mode === "du" && state.currentPlayer === 1 && state.phase === "discard";
   const waitingDuClaim = state.phase === "claim" && state.waitingFor?.some(w => w.player === 1);
@@ -316,6 +332,7 @@ export default function Mahjong({ theme: t }) {
         <div style={{ fontSize: 11, color: t.textMuted }}>余牌 {state.wallCount}</div>
         <div style={{ fontSize: 11, color: isMyTurn ? t.accent : t.textMuted, fontWeight: isMyTurn ? 600 : 400 }}>
           {isFinished ? (state.winnerName ? `${state.winnerName} 胡了` : "流局")
+            : isAIPhase ? `${state.players[state.currentPlayer].name}出牌中...`
             : waitingDu ? "等笃出牌..." : waitingDuClaim ? "等笃决定..."
             : `${state.players[state.currentPlayer].name}的回合`}
         </div>
@@ -456,12 +473,17 @@ function PlayerRow({ player, isCurrent }) {
 
 function SidePlayer({ player, isCurrent }) {
   return (
-    <div style={{ textAlign: "center", width: 60 }}>
+    <div style={{ textAlign: "center", width: 70 }}>
       <div style={{ fontSize: 9, color: isCurrent ? "#FFEAA7" : "rgba(255,255,255,0.6)", marginBottom: 2 }}>
         {player.name} {player.bannedSuit ? BAN_LABELS[player.bannedSuit] : ""} {isCurrent ? "◀" : ""}
       </div>
-      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)" }}>{player.handCount}张</div>
+      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", marginBottom: 2 }}>{player.handCount}张</div>
       {player.melds.map((m, i) => <MeldDisplay key={i} meld={m} />)}
+      {player.discards.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 1, marginTop: 3 }}>
+          {player.discards.slice(-6).map((tile, i) => <Tile key={i} tile={tile} size="xs" />)}
+        </div>
+      )}
     </div>
   );
 }

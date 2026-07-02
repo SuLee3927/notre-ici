@@ -1048,6 +1048,14 @@ app.post("/api/mahjong/timeout", express.json(), (_req, res) => {
   res.json({ ok: true, result, state: mahjong.getState(mjGame, 0) });
 });
 
+app.post("/api/mahjong/step", express.json(), (req, res) => {
+  if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
+  const result = mahjong.stepAI(mjGame);
+  if (result.error) return res.json({ ok: false, error: result.error });
+  const p = req.body.player ?? 0;
+  res.json({ ok: true, result, state: mahjong.getState(mjGame, p) });
+});
+
 // ── /chat → 备用聊天页面 ──────────────────────────────────────────────────────
 app.get("/chat", (_req, res) => {
   const chatFile = path.join(__dirname, "public", "chat.html");

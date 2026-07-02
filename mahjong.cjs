@@ -278,18 +278,19 @@ function resolveAIClaims(game, aiClaims, tile) {
           return { event: "win", winner: ac.player, winnerName: p.name, afterKong: true };
         }
       }
-      game.phase = "discard";
-      const d = aiChooseDiscard(p);
-      return processDiscard(game, ac.player, d);
+      game.phase = "ai_discard";
+      game.aiPendingDiscard = aiChooseDiscard(p);
+      game.currentPlayer = ac.player;
+      return { event: "ai_turn", player: ac.player, playerName: p.name, afterKong: true };
     }
     if (ac.options.includes("pong") && Math.random() > 0.4) {
       for (let i = 0; i < 2; i++) { const idx = p.hand.indexOf(tile); p.hand.splice(idx, 1); }
       p.melds.push({ type: "pong", tiles: [tile, tile, tile] });
       game.lastDiscard = null;
       game.currentPlayer = ac.player;
-      game.phase = "discard";
-      const d = aiChooseDiscard(p);
-      return processDiscard(game, ac.player, d);
+      game.phase = "ai_discard";
+      game.aiPendingDiscard = aiChooseDiscard(p);
+      return { event: "ai_turn", player: ac.player, playerName: p.name, afterPong: true };
     }
   }
   return advanceTurn(game);
@@ -393,7 +394,7 @@ function resolveClaims(game) {
         return { event: "self_win_available", player: bestPlayer };
       }
     }
-    if (p.isAI) { game.phase = "discard"; return processDiscard(game, bestPlayer, aiChooseDiscard(p)); }
+    if (p.isAI) { game.phase = "ai_discard"; game.aiPendingDiscard = aiChooseDiscard(p); return { event: "ai_turn", player: bestPlayer, playerName: p.name }; }
     game.phase = "discard";
     return { event: "your_turn_after_kong", player: bestPlayer };
   }
@@ -403,7 +404,7 @@ function resolveClaims(game) {
     p.melds.push({ type: "pong", tiles: [tile, tile, tile] });
     game.lastDiscard = null;
     game.currentPlayer = bestPlayer;
-    if (p.isAI) { game.phase = "discard"; return processDiscard(game, bestPlayer, aiChooseDiscard(p)); }
+    if (p.isAI) { game.phase = "ai_discard"; game.aiPendingDiscard = aiChooseDiscard(p); return { event: "ai_turn", player: bestPlayer, playerName: p.name }; }
     game.phase = "discard";
     return { event: "your_turn_after_pong", player: bestPlayer };
   }
@@ -417,7 +418,7 @@ function resolveClaims(game) {
     p.melds.push({ type: "chi", tiles: bestCombo });
     game.lastDiscard = null;
     game.currentPlayer = bestPlayer;
-    if (p.isAI) { game.phase = "discard"; return processDiscard(game, bestPlayer, aiChooseDiscard(p)); }
+    if (p.isAI) { game.phase = "ai_discard"; game.aiPendingDiscard = aiChooseDiscard(p); return { event: "ai_turn", player: bestPlayer, playerName: p.name }; }
     game.phase = "discard";
     return { event: "your_turn_after_chi", player: bestPlayer };
   }
@@ -476,9 +477,10 @@ function advanceTurn(game) {
         }
       }
     }
-    game.phase = "discard";
-    const d = aiChooseDiscard(p);
-    return processDiscard(game, game.currentPlayer, d);
+    // AI ready to discard — store pending, don't recurse
+    game.phase = "ai_discard";
+    game.aiPendingDiscard = aiChooseDiscard(p);
+    return { event: "ai_turn", player: game.currentPlayer, playerName: p.name };
   }
 
   game.phase = "discard";
@@ -526,6 +528,13 @@ function getState(game, viewAs = 0) {
   };
 }
 
+function stepAI(game) {
+  if (game.phase !== "ai_discard" || !game.aiPendingDiscard) return { error: "不在AI出牌阶段" };
+  const tile = game.aiPendingDiscard;
+  game.aiPendingDiscard = null;
+  return processDiscard(game, game.currentPlayer, tile);
+}
+
 function autoPassAll(game) {
   if (game.phase !== "claim") return { error: "不在等待状态" };
   for (const c of game.pendingClaims) {
@@ -534,4 +543,4 @@ function autoPassAll(game) {
   return resolveClaims(game);
 }
 
-module.exports = { createGame, chooseBan, processDiscard, getState, handleClaim, handleSelfWin, autoPassAll, sortHand, tileLabel, canSelfKong };
+module.exports = { createGame, chooseBan, processDiscard, getState, handleClaim, handleSelfWin, autoPassAll, stepAI, sortHand, tileLabel, canSelfKong };
