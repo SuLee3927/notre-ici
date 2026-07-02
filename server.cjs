@@ -996,6 +996,15 @@ app.post("/api/mahjong/new", express.json(), (req, res) => {
   res.json({ ok: true, state: mahjong.getState(mjGame, 0) });
 });
 
+app.post("/api/mahjong/ban", express.json(), (req, res) => {
+  if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
+  const { suit, player: pi } = req.body || {};
+  const playerIdx = pi ?? 0;
+  const result = mahjong.chooseBan(mjGame, playerIdx, suit);
+  if (result.error) return res.json({ ok: false, error: result.error });
+  res.json({ ok: true, result, state: mahjong.getState(mjGame, playerIdx) });
+});
+
 app.get("/api/mahjong/state", (req, res) => {
   if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
   const p = parseInt(req.query.player) || 0;

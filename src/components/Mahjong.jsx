@@ -113,7 +113,7 @@ function TilePattern({ tile, size }) {
   return <span style={{ fontSize: fs }}>{TILE_NAME[tile]}</span>;
 }
 
-function Tile({ tile, size = "md", faceDown, onClick, selected, disabled, isNew }) {
+function Tile({ tile, size = "md", faceDown, onClick, selected, disabled, isNew, banned }) {
   const sz = size === "sm" ? { w: 30, h: 40 } : size === "xs" ? { w: 24, h: 30 } : { w: 40, h: 54 };
   if (faceDown) {
     return <div style={{ width: sz.w, height: sz.h, borderRadius: 4, background: "linear-gradient(135deg,#2E86C1,#1B4F72)", border: "1px solid #1A5276", flexShrink: 0 }} />;
@@ -121,8 +121,9 @@ function Tile({ tile, size = "md", faceDown, onClick, selected, disabled, isNew 
   return (
     <button onClick={onClick} disabled={disabled} style={{
       width: sz.w, height: sz.h, borderRadius: 6,
-      background: selected ? "#FFF3CD" : isNew ? "#E8F8F5" : "#FDFEFE",
-      border: `1.5px solid ${selected ? "#F39C12" : isNew ? "#1ABC9C" : "#D5D8DC"}`,
+      background: banned ? "#E5E7E9" : selected ? "#FFF3CD" : isNew ? "#E8F8F5" : "#FDFEFE",
+      border: `1.5px solid ${banned ? "#AEB6BF" : selected ? "#F39C12" : isNew ? "#1ABC9C" : "#D5D8DC"}`,
+      opacity: banned ? 0.5 : 1,
       cursor: onClick && !disabled ? "pointer" : "default",
       display: "flex", alignItems: "center", justifyContent: "center",
       padding: 2, flexShrink: 0, transition: "transform .1s",
@@ -230,6 +231,7 @@ export default function Mahjong({ theme: t }) {
     await api("claim", { action, player: 0 });
   }
   async function selfWin(accept) { setMsg(null); await api("selfwin", { accept, player: 0 }); }
+  async function chooseBan(suit) { await api("ban", { suit, player: 0 }); }
 
   if (!state) {
     return (
@@ -250,6 +252,51 @@ export default function Mahjong({ theme: t }) {
           }}>自己和AI打</button>
         </div>
         {loading && <div style={{ fontSize: 11, color: t.textMuted, marginTop: 10 }}>洗牌中...</div>}
+      </div>
+    );
+  }
+
+  const SUIT_NAMES = { w: "万", t: "条", p: "筒" };
+
+  // Ban selection phase
+  if (state.phase === "choose_ban") {
+    const me = state.players[0];
+    const myBan = me.bannedSuit;
+    const waiting = state.players.filter(p => !p.bannedSuit && !p.isAI);
+    return (
+      <div style={{ padding: "16px 12px", fontFamily: "'Noto Serif SC',serif" }}>
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: t.text, marginBottom: 4 }}>缺一门</div>
+          <div style={{ fontSize: 11, color: t.textMuted }}>选一个花色不要，胡牌时手里不能有这个花色</div>
+        </div>
+        <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 6 }}>你的手牌</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap" }}>
+            {me.hand?.map((tile, i) => <Tile key={i} tile={tile} size="md" />)}
+          </div>
+        </div>
+        {!myBan ? (
+          <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
+            {["w","t","p"].map(s => {
+              const count = me.hand?.filter(t => t.slice(-1) === s).length || 0;
+              return (
+                <button key={s} onClick={() => chooseBan(s)} style={{
+                  padding: "14px 20px", borderRadius: 12, border: `1.5px solid ${t.surfaceBorder}`,
+                  background: t.surface, color: t.text, fontSize: 14, fontWeight: 600,
+                  cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                }}>
+                  <span>不要{SUIT_NAMES[s]}</span>
+                  <span style={{ fontSize: 10, color: t.textMuted }}>手里有{count}张</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 12, color: t.accent, fontWeight: 600, marginBottom: 8 }}>你选了不要{SUIT_NAMES[myBan]}</div>
+            {waiting.length > 0 && <div style={{ fontSize: 11, color: t.textMuted }}>等{waiting.map(p => p.name).join("、")}选...</div>}
+          </div>
+        )}
       </div>
     );
   }
@@ -310,12 +357,13 @@ export default function Mahjong({ theme: t }) {
 
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", marginBottom: 4 }}>
-            小黎的手牌 · {me.hand?.length || 0}张
+            小黎的手牌 · {me.hand?.length || 0}张 {me.bannedSuit ? BAN_LABELS[me.bannedSuit] : ""}
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap" }}>
             {me.hand && me.hand.map((tile, i) => (
               <Tile key={`${tile}-${i}`} tile={tile} size="md" selected={selected === i}
                 isNew={drawnTile && tile === drawnTile && i === me.hand.lastIndexOf(drawnTile)}
+                banned={me.bannedSuit && tile.slice(-1) === me.bannedSuit}
                 onClick={canDiscard ? () => setSelected(selected === i ? null : i) : undefined}
                 disabled={!canDiscard} />
             ))}
@@ -385,11 +433,13 @@ function Btn({ label, bg, onClick }) {
   return <button onClick={onClick} style={{ padding: "8px 16px", borderRadius: 8, background: bg, color: "#fff", border: "none", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{label}</button>;
 }
 
+const BAN_LABELS = { w: "🚫万", t: "🚫条", p: "🚫筒" };
+
 function PlayerRow({ player, isCurrent }) {
   return (
     <div style={{ textAlign: "center", marginBottom: 8 }}>
       <div style={{ fontSize: 10, color: isCurrent ? "#FFEAA7" : "rgba(255,255,255,0.6)", marginBottom: 4 }}>
-        {player.name} ({player.handCount}张) {isCurrent ? "◀" : ""}
+        {player.name} ({player.handCount}张) {player.bannedSuit ? BAN_LABELS[player.bannedSuit] : ""} {isCurrent ? "◀" : ""}
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 1, flexWrap: "wrap" }}>
         {player.melds.map((m, i) => <MeldDisplay key={i} meld={m} />)}
@@ -408,7 +458,7 @@ function SidePlayer({ player, isCurrent }) {
   return (
     <div style={{ textAlign: "center", width: 60 }}>
       <div style={{ fontSize: 9, color: isCurrent ? "#FFEAA7" : "rgba(255,255,255,0.6)", marginBottom: 2 }}>
-        {player.name} {isCurrent ? "◀" : ""}
+        {player.name} {player.bannedSuit ? BAN_LABELS[player.bannedSuit] : ""} {isCurrent ? "◀" : ""}
       </div>
       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)" }}>{player.handCount}张</div>
       {player.melds.map((m, i) => <MeldDisplay key={i} meld={m} />)}

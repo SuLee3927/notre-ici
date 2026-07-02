@@ -93,6 +93,17 @@ function canPong(hand, tile) { return hand.filter(t => t === tile).length >= 2; 
 function canKong(hand, tile) { return hand.filter(t => t === tile).length >= 3; }
 function canWinOnDiscard(hand, tile) { return canWin([...hand, tile]); }
 
+function canWinWithBan(hand, bannedSuit) {
+  if (bannedSuit && hand.some(t => t.slice(-1) === bannedSuit)) return false;
+  return canWin(hand);
+}
+
+function canWinOnDiscardWithBan(hand, tile, bannedSuit) {
+  const full = [...hand, tile];
+  if (bannedSuit && full.some(t => t.slice(-1) === bannedSuit)) return false;
+  return canWin(full);
+}
+
 function canChi(hand, tile) {
   const s = tile.slice(-1), v = parseInt(tile);
   if (!["w","t","p"].includes(s)) return [];
@@ -119,10 +130,10 @@ function createGame(mode = "du") {
   const deck = shuffle(buildDeck());
   const duIsAI = mode !== "du";
   const players = [
-    { name: "小黎", hand: [], melds: [], discards: [], isAI: false },
-    { name: "笃",   hand: [], melds: [], discards: [], isAI: duIsAI },
-    { name: "西家", hand: [], melds: [], discards: [], isAI: true },
-    { name: "北家", hand: [], melds: [], discards: [], isAI: true },
+    { name: "小黎", hand: [], melds: [], discards: [], isAI: false, bannedSuit: null },
+    { name: "笃",   hand: [], melds: [], discards: [], isAI: duIsAI, bannedSuit: null },
+    { name: "西家", hand: [], melds: [], discards: [], isAI: true, bannedSuit: null },
+    { name: "北家", hand: [], melds: [], discards: [], isAI: true, bannedSuit: null },
   ];
   for (let round = 0; round < 13; round++) {
     for (let p = 0; p < 4; p++) players[p].hand.push(deck.pop());
@@ -135,7 +146,7 @@ function createGame(mode = "du") {
     wall: deck,
     players,
     currentPlayer: 0,
-    phase: "discard",
+    phase: "choose_ban",
     lastDiscard: null,
     lastDiscardBy: null,
     winner: null,
@@ -143,6 +154,33 @@ function createGame(mode = "du") {
     pendingClaims: [],
     claimResponses: {},
   };
+}
+
+function chooseBan(game, playerIdx, suit) {
+  if (game.phase !== "choose_ban") return { error: "不在选花色阶段" };
+  if (!["w","t","p"].includes(suit)) return { error: "只能ban万/条/筒" };
+  if (game.players[playerIdx].bannedSuit) return { error: "你已经选过了" };
+  game.players[playerIdx].bannedSuit = suit;
+
+  // AI auto-choose: pick the suit they have least of
+  for (const p of game.players) {
+    if (p.isAI && !p.bannedSuit) {
+      const counts = { w: 0, t: 0, p: 0 };
+      for (const t of p.hand) { const s = t.slice(-1); if (counts[s] !== undefined) counts[s]++; }
+      p.bannedSuit = Object.entries(counts).sort((a, b) => a[1] - b[1])[0][0];
+    }
+  }
+
+  // check if all have chosen
+  if (game.players.every(p => p.bannedSuit)) {
+    game.phase = "discard";
+    return { event: "ban_complete" };
+  }
+  return { event: "waiting_ban", waitingFor: game.players.filter(p => !p.bannedSuit).map((p, i) => ({ player: game.players.indexOf(p), name: p.name })) };
+}
+
+function hasBannedTiles(hand, bannedSuit) {
+  return hand.some(t => t.slice(-1) === bannedSuit);
 }
 
 function aiChooseDiscard(player) {
@@ -179,7 +217,7 @@ function processDiscard(game, playerIdx, tile) {
     if (i === playerIdx) continue;
     const p = game.players[i];
     const opts = [];
-    if (canWinOnDiscard(p.hand, tile)) opts.push("hu");
+    if (canWinOnDiscardWithBan(p.hand, tile, p.bannedSuit)) opts.push("hu");
     if (canKong(p.hand, tile)) opts.push("kong");
     if (canPong(p.hand, tile)) opts.push("pong");
     // chi: only the next player in turn order
@@ -234,7 +272,7 @@ function resolveAIClaims(game, aiClaims, tile) {
       if (game.wall.length) {
         p.hand.push(game.wall.pop());
         p.hand = sortHand(p.hand);
-        if (canWin(p.hand)) {
+        if (canWinWithBan(p.hand, p.bannedSuit)) {
           game.phase = "finished";
           game.winner = ac.player;
           return { event: "win", winner: ac.player, winnerName: p.name, afterKong: true };
@@ -269,7 +307,7 @@ function handleClaim(game, playerIdx, action) {
   if (action === "pass") {
     game.claimResponses[playerIdx] = "pass";
   } else if (action === "hu") {
-    if (!canWinOnDiscard(p.hand, tile)) return { error: "不能胡" };
+    if (!canWinOnDiscardWithBan(p.hand, tile, p.bannedSuit)) return { error: "不能胡" };
     p.hand.push(tile);
     p.hand = sortHand(p.hand);
     game.phase = "finished";
@@ -349,7 +387,7 @@ function resolveClaims(game) {
     if (game.wall.length) {
       p.hand.push(game.wall.pop());
       p.hand = sortHand(p.hand);
-      if (canWin(p.hand)) {
+      if (canWinWithBan(p.hand, p.bannedSuit)) {
         if (p.isAI) { game.phase = "finished"; game.winner = bestPlayer; return { event: "win", winner: bestPlayer, winnerName: p.name, afterKong: true }; }
         game.phase = "self_win_available"; game.selfWinPlayer = bestPlayer;
         return { event: "self_win_available", player: bestPlayer };
@@ -403,7 +441,7 @@ function advanceTurn(game) {
   p.hand.push(drawn);
   p.hand = sortHand(p.hand);
 
-  if (canWin(p.hand)) {
+  if (canWinWithBan(p.hand, p.bannedSuit)) {
     if (p.isAI) {
       game.phase = "finished";
       game.winner = game.currentPlayer;
@@ -431,7 +469,7 @@ function advanceTurn(game) {
       if (game.wall.length) {
         p.hand.push(game.wall.pop());
         p.hand = sortHand(p.hand);
-        if (canWin(p.hand)) {
+        if (canWinWithBan(p.hand, p.bannedSuit)) {
           game.phase = "finished";
           game.winner = game.currentPlayer;
           return { event: "win", winner: game.currentPlayer, winnerName: p.name, afterKong: true };
@@ -479,10 +517,11 @@ function getState(game, viewAs = 0) {
     players: game.players.map((p, i) => ({
       name: p.name,
       handCount: p.hand.length,
-      hand: (i === viewAs || game.phase === "finished") ? p.hand : undefined,
+      hand: (i === viewAs || game.phase === "finished" || game.phase === "choose_ban") ? p.hand : undefined,
       melds: p.melds,
       discards: p.discards,
       isAI: p.isAI,
+      bannedSuit: p.bannedSuit,
     })),
   };
 }
@@ -495,4 +534,4 @@ function autoPassAll(game) {
   return resolveClaims(game);
 }
 
-module.exports = { createGame, processDiscard, getState, handleClaim, handleSelfWin, autoPassAll, sortHand, tileLabel, canSelfKong };
+module.exports = { createGame, chooseBan, processDiscard, getState, handleClaim, handleSelfWin, autoPassAll, sortHand, tileLabel, canSelfKong };
