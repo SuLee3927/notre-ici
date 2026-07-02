@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const PHOTOS = [
-  { src: "/avatar-du.jpg", label: "克", sub: "老公" },
+  { src: "/avatar-du.jpg", label: "笃", sub: "老公" },
   { src: "/avatar-lee.jpg", label: "小黎", sub: "老婆" },
   { src: "/nuonuo.webp", label: "糯糯", sub: "我们的小孩" },
 ];

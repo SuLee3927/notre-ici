@@ -835,6 +835,7 @@ async function fetchKLMemories() {
       method: "GET",
     };
     const req = https.request(opts, (res) => {
+      res.setEncoding("utf8");
       let data = "";
       res.on("data", (c) => data += c);
       res.on("end", () => resolve(data.trim() ? `\n\n${data.trim()}` : ""));
@@ -966,6 +967,7 @@ app.get("/api/kl/memories", async (_req, res) => {
     const raw = await new Promise((resolve) => {
       const opts = { hostname: "kelee-brain.zeabur.app", path: "/breath-hook", method: "GET" };
       const req = https.request(opts, (r) => {
+        r.setEncoding("utf8");
         let data = "";
         r.on("data", (c) => data += c);
         r.on("end", () => resolve(data));
