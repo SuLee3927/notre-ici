@@ -150,6 +150,7 @@ function createGame(mode = "du") {
     lastDiscard: null,
     lastDiscardBy: null,
     winner: null,
+    selfDraw: false,
     turnCount: 0,
     pendingClaims: [],
     claimResponses: {},
@@ -239,6 +240,7 @@ function processDiscard(game, playerIdx, tile) {
       p.hand = sortHand(p.hand);
       game.phase = "finished";
       game.winner = c.player;
+      game.selfDraw = false;
       game.lastDiscard = null;
       return { event: "win", winner: c.player, winnerName: p.name };
     }
@@ -275,6 +277,7 @@ function resolveAIClaims(game, aiClaims, tile) {
         if (canWinWithBan(p.hand, p.bannedSuit)) {
           game.phase = "finished";
           game.winner = ac.player;
+          game.selfDraw = true;
           return { event: "win", winner: ac.player, winnerName: p.name, afterKong: true };
         }
       }
@@ -313,6 +316,7 @@ function handleClaim(game, playerIdx, action) {
     p.hand = sortHand(p.hand);
     game.phase = "finished";
     game.winner = playerIdx;
+    game.selfDraw = false;
     game.lastDiscard = null;
     game.pendingClaims = [];
     return { event: "win", winner: playerIdx, winnerName: p.name };
@@ -389,7 +393,7 @@ function resolveClaims(game) {
       p.hand.push(game.wall.pop());
       p.hand = sortHand(p.hand);
       if (canWinWithBan(p.hand, p.bannedSuit)) {
-        if (p.isAI) { game.phase = "finished"; game.winner = bestPlayer; return { event: "win", winner: bestPlayer, winnerName: p.name, afterKong: true }; }
+        if (p.isAI) { game.phase = "finished"; game.winner = bestPlayer; game.selfDraw = true; return { event: "win", winner: bestPlayer, winnerName: p.name, afterKong: true }; }
         game.phase = "self_win_available"; game.selfWinPlayer = bestPlayer;
         return { event: "self_win_available", player: bestPlayer };
       }
@@ -446,6 +450,7 @@ function advanceTurn(game) {
     if (p.isAI) {
       game.phase = "finished";
       game.winner = game.currentPlayer;
+      game.selfDraw = true;
       return { event: "win", winner: game.currentPlayer, winnerName: p.name, selfDraw: true };
     }
     game.phase = "self_win_available";
@@ -473,6 +478,7 @@ function advanceTurn(game) {
         if (canWinWithBan(p.hand, p.bannedSuit)) {
           game.phase = "finished";
           game.winner = game.currentPlayer;
+          game.selfDraw = true;
           return { event: "win", winner: game.currentPlayer, winnerName: p.name, afterKong: true };
         }
       }
@@ -493,6 +499,7 @@ function handleSelfWin(game, playerIdx, accept) {
   if (accept) {
     game.phase = "finished";
     game.winner = playerIdx;
+    game.selfDraw = true;
     return { event: "win", winner: playerIdx, winnerName: game.players[playerIdx].name, selfDraw: true };
   }
   game.phase = "discard";
@@ -501,6 +508,7 @@ function handleSelfWin(game, playerIdx, accept) {
 
 function getState(game, viewAs = 0) {
   const myPending = game.pendingClaims.find(c => c.player === viewAs);
+  const score = (game.phase === "finished" && game.winner !== null) ? calcScore(game.players[game.winner], game.selfDraw) : null;
   return {
     id: game.id,
     phase: game.phase,
@@ -509,6 +517,8 @@ function getState(game, viewAs = 0) {
     turnCount: game.turnCount,
     winner: game.winner,
     winnerName: game.winner !== null ? game.players[game.winner].name : null,
+    selfDraw: game.selfDraw || false,
+    score,
     lastDiscard: game.lastDiscard,
     lastDiscardBy: game.lastDiscardBy,
     selfWinPlayer: game.selfWinPlayer,
@@ -526,6 +536,52 @@ function getState(game, viewAs = 0) {
       bannedSuit: p.bannedSuit,
     })),
   };
+}
+
+function calcScore(player, selfDraw) {
+  const hand = player.hand;
+  const melds = player.melds;
+  const allTiles = [...hand, ...melds.flatMap(m => m.tiles)];
+  const fans = [];
+
+  const suits = new Set(allTiles.map(t => t.slice(-1)));
+  const numSuits = new Set([...suits].filter(s => ["w","t","p"].includes(s)));
+  const hasHonors = suits.has("f") || suits.has("j");
+
+  // 七对: 7 pairs, no melds
+  if (melds.length === 0 && hand.length === 14) {
+    const counts = countTiles(hand);
+    const vals = Object.values(counts);
+    if (vals.every(v => v === 2)) fans.push({ name: "七对", fan: 4 });
+  }
+
+  // 清一色: all tiles same numbered suit, no honors
+  if (numSuits.size === 1 && !hasHonors) fans.push({ name: "清一色", fan: 4 });
+
+  // 混一色: one numbered suit + honors
+  if (numSuits.size === 1 && hasHonors) fans.push({ name: "混一色", fan: 2 });
+
+  // 碰碰胡: all melds are pong/kong, hand remainder is pair+pongs
+  const allPong = melds.every(m => m.type === "pong" || m.type === "kong");
+  if (allPong && hand.length >= 2) {
+    const counts = countTiles(hand);
+    const vals = Object.values(counts);
+    if (vals.every(v => v === 2 || v === 3) && vals.filter(v => v === 2).length === 1) {
+      fans.push({ name: "碰碰胡", fan: 2 });
+    }
+  }
+
+  if (selfDraw) fans.push({ name: "自摸", fan: 1 });
+
+  // 门前清: no open melds (all tiles in hand)
+  if (melds.length === 0 && !selfDraw) fans.push({ name: "门前清", fan: 1 });
+
+  if (fans.length === 0) fans.push({ name: "平胡", fan: 1 });
+
+  const totalFan = fans.reduce((s, f) => s + f.fan, 0);
+  const baseCoins = 10;
+  const coins = baseCoins * Math.pow(2, totalFan - 1);
+  return { fans, totalFan, coins };
 }
 
 function stepAI(game) {

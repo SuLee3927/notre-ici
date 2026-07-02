@@ -20,7 +20,7 @@ const TILE_NAME = {
 // SVG-based tile patterns
 function TilePattern({ tile, size }) {
   const s = tile.slice(-1), v = parseInt(tile);
-  const fs = size === "sm" ? 8 : size === "xs" ? 6 : 11;
+  const fs = size === "sm" ? 6 : size === "xs" ? 5 : 9;
 
   if (s === "j") {
     // 中=red, 发=green, 白=empty frame
@@ -114,7 +114,7 @@ function TilePattern({ tile, size }) {
 }
 
 function Tile({ tile, size = "md", faceDown, onClick, selected, disabled, isNew, banned }) {
-  const sz = size === "sm" ? { w: 30, h: 40 } : size === "xs" ? { w: 24, h: 30 } : { w: 40, h: 54 };
+  const sz = size === "sm" ? { w: 24, h: 32 } : size === "xs" ? { w: 18, h: 24 } : { w: 30, h: 42 };
   if (faceDown) {
     return <div style={{ width: sz.w, height: sz.h, borderRadius: 4, background: "linear-gradient(135deg,#2E86C1,#1B4F72)", border: "1px solid #1A5276", flexShrink: 0 }} />;
   }
@@ -287,17 +287,17 @@ export default function Mahjong({ theme: t }) {
         <div style={{ textAlign: "center", marginBottom: 16 }}>
           <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 6 }}>你的手牌</div>
           <div style={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap" }}>
-            {me.hand?.map((tile, i) => <Tile key={i} tile={tile} size="md" />)}
+            {me.hand?.map((tile, i) => <Tile key={i} tile={tile} size="sm" />)}
           </div>
         </div>
         {!myBan ? (
-          <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
             {["w","t","p"].map(s => {
               const count = me.hand?.filter(t => t.slice(-1) === s).length || 0;
               return (
                 <button key={s} onClick={() => chooseBan(s)} style={{
-                  padding: "14px 20px", borderRadius: 12, border: `1.5px solid ${t.surfaceBorder}`,
-                  background: t.surface, color: t.text, fontSize: 14, fontWeight: 600,
+                  padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${t.surfaceBorder}`,
+                  background: t.surface, color: t.text, fontSize: 12, fontWeight: 600,
                   cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
                 }}>
                   <span>不要{SUIT_NAMES[s]}</span>
@@ -431,9 +431,31 @@ export default function Mahjong({ theme: t }) {
         )}
 
         {isFinished && (
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => newGame(mode)} style={{ padding: "8px 24px", borderRadius: 8, border: `1.5px solid ${t.accentBorder}`, background: t.accentSoft, color: t.accent, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>再来一局</button>
-            <button onClick={() => { setState(null); setMode(null); setMsg(null); setDrawnTile(null); }} style={{ padding: "8px 16px", borderRadius: 8, border: `1px solid ${t.surfaceBorder}`, background: t.surface, color: t.textMuted, fontSize: 12, cursor: "pointer" }}>换模式</button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            {state.score && (
+              <div style={{ background: t.surface, border: `1.5px solid ${t.surfaceBorder}`, borderRadius: 10, padding: "10px 16px", textAlign: "center", minWidth: 180 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 6 }}>
+                  {state.winnerName} {state.selfDraw ? "自摸" : "胡了"}
+                </div>
+                <div style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+                  {state.score.fans.map((f, i) => (
+                    <span key={i} style={{ fontSize: 11, background: f.fan >= 4 ? "#FDEDEC" : f.fan >= 2 ? "#FEF9E7" : "#EAFAF1", color: f.fan >= 4 ? "#C0392B" : f.fan >= 2 ? "#B7950B" : "#1E8449", padding: "2px 8px", borderRadius: 6, fontWeight: 600 }}>
+                      {f.name} {f.fan}番
+                    </span>
+                  ))}
+                </div>
+                <div style={{ fontSize: 12, color: t.text, fontWeight: 600 }}>
+                  共 {state.score.totalFan} 番
+                </div>
+                <div style={{ fontSize: 12, color: state.winner === 0 ? "#27AE60" : "#E74C3C", fontWeight: 600, marginTop: 4 }}>
+                  {state.winner === 0 ? `+${state.score.coins}` : `-${Math.min(state.score.coins, 10)}`} 金币
+                </div>
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => newGame(mode)} style={{ padding: "8px 24px", borderRadius: 8, border: `1.5px solid ${t.accentBorder}`, background: t.accentSoft, color: t.accent, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>再来一局</button>
+              <button onClick={() => { setState(null); setMode(null); setMsg(null); setDrawnTile(null); }} style={{ padding: "8px 16px", borderRadius: 8, border: `1px solid ${t.surfaceBorder}`, background: t.surface, color: t.textMuted, fontSize: 12, cursor: "pointer" }}>换模式</button>
+            </div>
           </div>
         )}
       </div>
