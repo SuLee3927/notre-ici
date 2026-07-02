@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import MusicPlayer from "./MusicPlayer.jsx";
 import KLMemoryBrowser from "./KLMemoryBrowser.jsx";
+import TucaoDiary from "./TucaoDiary.jsx";
+import SilentCabinet from "./SilentCabinet.jsx";
+import FamilyAlbum from "./FamilyAlbum.jsx";
 
 const PASSWORD = "0508";
 
@@ -53,9 +56,9 @@ export default function PrivateLayer({ theme: t, onClose, onEnterNuonuo }) {
   const itemContent = {
     bookshelf: <KLMemoryBrowser theme={t} />,
     desk:      <DreamLog theme={t} />,
-    diary:     <PlaceholderContent emoji="📝" title="吐槽小黎" note="接入中…" />,
-    cabinet:   <PlaceholderContent emoji="🔒" title="尽在不言中" note="接入中…" />,
-    photos:    <PlaceholderContent emoji="🖼️" title="全家福" note="接入中…" />,
+    diary:     <TucaoDiary theme={t} />,
+    cabinet:   <SilentCabinet theme={t} />,
+    photos:    <FamilyAlbum theme={t} />,
     music:     <MusicPlayer theme={t} />,
     bear:      (() => {
       const activity = getNuonuoActivity();
