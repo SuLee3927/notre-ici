@@ -79,6 +79,9 @@ function nearestHotspot(lx, ty, threshold = 18) {
   return null;
 }
 
+// 预加载走路帧，避免首次走路平移
+["/nuonuo-walk1.webp", "/nuonuo-walk2.webp"].forEach(s => { const i = new Image(); i.src = s; });
+
 // ── 糯糯PNG（G老师插画版，眨眼+随机走路动画）──
 function NuonuoPNG({ size = 76, walkFrame = -1, blink = false }) {
   const src = walkFrame >= 0
@@ -186,6 +189,7 @@ function NuonuoResident({ theme: t, onEnter }) {
         setTimeout(() => {
           clearInterval(iv);
           setWalkFrame(-1);
+          setMoveDur(0);
           const hotspot = nearestHotspot(target.lx, target.ty);
           if (hotspot) triggerHotspot(hotspot);
           scheduleWalk();
