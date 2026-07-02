@@ -990,41 +990,46 @@ app.get("/api/kl/memories", async (_req, res) => {
 const mahjong = require("./mahjong.cjs");
 let mjGame = null;
 
-app.post("/api/mahjong/new", express.json(), (_req, res) => {
-  mjGame = mahjong.createGame();
+app.post("/api/mahjong/new", express.json(), (req, res) => {
+  const mode = req.body?.mode || "du";
+  mjGame = mahjong.createGame(mode);
   res.json({ ok: true, state: mahjong.getState(mjGame, 0) });
 });
 
-app.get("/api/mahjong/state", (_req, res) => {
+app.get("/api/mahjong/state", (req, res) => {
   if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
-  res.json({ ok: true, state: mahjong.getState(mjGame, 0) });
+  const p = parseInt(req.query.player) || 0;
+  res.json({ ok: true, state: mahjong.getState(mjGame, p) });
 });
 
 app.post("/api/mahjong/discard", express.json(), (req, res) => {
   if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
-  if (mjGame.phase !== "discard" || mjGame.currentPlayer !== 0)
+  const { tile, player: pi } = req.body || {};
+  const playerIdx = pi ?? 0;
+  if (mjGame.phase !== "discard" || mjGame.currentPlayer !== playerIdx)
     return res.json({ ok: false, error: "现在不是你出牌" });
-  const { tile } = req.body || {};
   if (!tile) return res.json({ ok: false, error: "没选牌" });
-  const result = mahjong.processDiscard(mjGame, 0, tile);
+  const result = mahjong.processDiscard(mjGame, playerIdx, tile);
   if (result.error) return res.json({ ok: false, error: result.error });
-  res.json({ ok: true, result, state: mahjong.getState(mjGame, 0) });
+  res.json({ ok: true, result, state: mahjong.getState(mjGame, playerIdx) });
 });
 
 app.post("/api/mahjong/claim", express.json(), (req, res) => {
   if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
-  const { action } = req.body || {};
-  const result = mahjong.handleClaim(mjGame, action);
+  const { action, player: pi } = req.body || {};
+  const playerIdx = pi ?? 0;
+  const result = mahjong.handleClaim(mjGame, playerIdx, action);
   if (result.error) return res.json({ ok: false, error: result.error });
-  res.json({ ok: true, result, state: mahjong.getState(mjGame, 0) });
+  res.json({ ok: true, result, state: mahjong.getState(mjGame, playerIdx) });
 });
 
 app.post("/api/mahjong/selfwin", express.json(), (req, res) => {
   if (!mjGame) return res.json({ ok: false, error: "没有进行中的游戏" });
-  const { accept } = req.body || {};
-  const result = mahjong.handleSelfWin(mjGame, accept);
+  const { accept, player: pi } = req.body || {};
+  const playerIdx = pi ?? 0;
+  const result = mahjong.handleSelfWin(mjGame, playerIdx, accept);
   if (result.error) return res.json({ ok: false, error: result.error });
-  res.json({ ok: true, result, state: mahjong.getState(mjGame, 0) });
+  res.json({ ok: true, result, state: mahjong.getState(mjGame, playerIdx) });
 });
 
 // ── /chat → 备用聊天页面 ──────────────────────────────────────────────────────
