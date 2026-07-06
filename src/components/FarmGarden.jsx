@@ -69,6 +69,10 @@ function getLogText(entry) {
     case "fertilize":   return `🌿 施肥 ${e}${n}${by}`;
     case "pest_remove": return `🐛 除虫 ${e}${n}${by}`;
     case "harvest":     return `${e} 收获${n}${entry.extra > 1 ? ` ×${entry.extra}` : ""}${by}`;
+    case "collect": {
+      const a = { chicken:"🐓", pig:"🐷" }[entry.cropId] ?? "🧺";
+      return `${a} 收了${entry.product ?? "一份"}${by}`;
+    }
     case "raccoon":     return `🦝 浣熊偷了${e}${n}`;
     case "pest_rot":    return `🐛 ${e}${n}烂掉了`;
     case "wilt":        return `🥀 ${e}${n}枯萎 [系统]`;
