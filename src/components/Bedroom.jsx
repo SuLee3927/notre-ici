@@ -108,8 +108,8 @@ function MirrorPanel({ theme: t }) {
 
 // ── 枕头：DL的负距离 ──
 const DU_COLOR  = "#C83030";
-const LEE_COLOR = "#E870A8";
-const BLEND_COLOR = "#D85070";
+const LEE_COLOR = "#E8487C";
+const BLEND_COLOR = "#D83C56";
 
 function intertwine(duTemp, leeTemp) {
   const segs = 6;
