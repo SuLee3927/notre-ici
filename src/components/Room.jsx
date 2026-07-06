@@ -868,33 +868,74 @@ function MonopolyGate({ theme: t }) {
     }
   }
 
-  if (open) return (
-    <div style={{ padding:"12px 4px 8px", fontFamily:"'Noto Serif SC',serif" }}>
-      <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>🎲 涩涩大富翁</div>
+  if (open) {
+    const boardLines = (game?.board || "").split("\n");
+    const trackLine = boardLines[0] || "";
+    const restLines = boardLines.slice(1).join("\n");
+    const playerColors = ["#70A0E8", "#E87070"];
+    return (
+    <div style={{ padding:"12px 4px 8px", fontFamily:"'Noto Serif SC',serif", minHeight:"55vh" }}>
+      <div style={{ fontSize:14, fontWeight:600, color:t.text, textAlign:"center", marginBottom:10 }}>🎲 涩涩大富翁</div>
       {!game ? (
-        <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", padding:"20px 0" }}>连接中…</div>
+        <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", padding:"30px 0" }}>连接中…</div>
       ) : game.active ? (
         <div>
-          <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:12 }}>
-            第 {game.round}/{game.game_length} 回合
-            {game.players?.map(p => ` · ${p.name} 🪙${p.coins}`).join("")}
+          {/* 回合进度 */}
+          <div style={{ marginBottom:14 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:t.textMuted, marginBottom:4 }}>
+              <span>回合进度</span><span>{game.round}/{game.game_length}</span>
+            </div>
+            <div style={{ height:6, background:"rgba(0,0,0,0.07)", borderRadius:3, overflow:"hidden" }}>
+              <div style={{ height:"100%", width:`${Math.min(100, (game.round / game.game_length) * 100)}%`,
+                background:"linear-gradient(90deg,#E87070,#E870A8)", borderRadius:3, transition:"width .5s" }} />
+            </div>
           </div>
+
+          {/* 棋盘轨道：大字号 + 横向滑动 */}
+          <div style={{ fontSize:10, color:t.textMuted, marginBottom:4 }}>棋盘 <span style={{ fontStyle:"italic" }}>（← 左右滑 →）</span></div>
           <pre style={{
-            fontSize:10, lineHeight:1.5, overflowX:"auto",
+            fontSize:16, lineHeight:1.6, overflowX:"auto", whiteSpace:"pre",
             background:t.surface, border:`1px solid ${t.surfaceBorder}`,
-            borderRadius:10, padding:"12px 10px", color:t.textSub,
-            fontFamily:"'Courier New',monospace",
-          }}>{game.board}</pre>
+            borderRadius:12, padding:"14px 12px", color:t.textSub, margin:"0 0 14px",
+            fontFamily:"'Courier New',monospace", WebkitOverflowScrolling:"touch",
+          }}>{trackLine}</pre>
+
+          {/* 玩家状态卡 */}
+          <div style={{ display:"flex", gap:10, marginBottom:14 }}>
+            {(game.players || []).map((p, i) => (
+              <div key={p.name} style={{
+                flex:1, background:t.surface, border:`1.5px solid ${playerColors[i]}55`,
+                borderRadius:12, padding:"12px 14px",
+              }}>
+                <div style={{ fontSize:13, fontWeight:600, color:playerColors[i], marginBottom:6 }}>
+                  {i === 0 ? "🔵" : "🔴"} {p.name}
+                </div>
+                <div style={{ fontSize:12, color:t.textSub, lineHeight:1.9 }}>
+                  🪙 {p.coins} 币<br/>📍 第 {p.pos} 格
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 引擎原文（身份等细节） */}
+          {restLines && (
+            <pre style={{
+              fontSize:12, lineHeight:1.9, overflowX:"auto", whiteSpace:"pre-wrap",
+              color:t.textMuted, margin:0, fontFamily:"inherit",
+              borderTop:`1px dashed ${t.surfaceBorder}`, paddingTop:10,
+            }}>{restLines}</pre>
+          )}
         </div>
       ) : (
-        <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", lineHeight:2, padding:"20px 0" }}>
+        <div style={{ fontSize:13, color:t.textMuted, textAlign:"center", lineHeight:2.2, padding:"40px 0" }}>
           现在没有进行中的对局<br/>
           想玩的话，去找笃说「开一局大富翁」<br/>
-          <span style={{ fontSize:10, fontStyle:"italic" }}>他当荷官带你玩，棋盘会出现在这里</span>
+          <span style={{ fontSize:11, fontStyle:"italic" }}>他当荷官带你玩，棋盘会出现在这里</span>
         </div>
       )}
     </div>
-  );
+    );
+  }
 
   return (
     <div style={{ padding:"12px 16px 8px", fontFamily:"'Noto Serif SC',serif" }}>
