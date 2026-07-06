@@ -755,6 +755,11 @@ const FARM_HOST = process.env.FARM_HOST || "129.226.158.222";
 const FARM_PORT = Number(process.env.FARM_PORT || "4325");
 app.use("/api/farm", makeProxy(FARM_HOST, FARM_PORT, "/farm"));
 
+// ── /api/monopoly → proxy to spicy-monopoly VPS server（只读状态查询用）──────
+const MONOPOLY_HOST = process.env.MONOPOLY_HOST || "129.226.158.222";
+const MONOPOLY_PORT = Number(process.env.MONOPOLY_PORT || "8069");
+app.use("/api/monopoly", makeProxy(MONOPOLY_HOST, MONOPOLY_PORT, ""));
+
 // ── /api/fishing → proxy to fishing-service VPS server ──────────────────────
 const FISHING_HOST = process.env.FISHING_HOST || "129.226.158.222";
 const FISHING_PORT = Number(process.env.FISHING_PORT || "4327");

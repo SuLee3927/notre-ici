@@ -365,13 +365,9 @@ export default function FarmGarden({ theme: t, onOpenPond }) {
 
   async function handlePickSeed(cropId) {
     const crop = CROPS.find(c => c.id === cropId);
-    const coinRes = await fetch("/api/coins/spend", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ amount: 2, who: "farm", reason: `买${crop?.name}种子` }),
-    }).then(r => r.json()).catch(() => ({ ok: false }));
-    if (!coinRes.ok) { showToast("🪙 金币不够买种子！"); return; }
-    await apiPost("/plant", { plotIndex: picking, cropId });
+    // 扣币在后端 /plant 统一处理（谁种都收费）
+    const res = await apiPost("/plant", { plotIndex: picking, cropId });
+    if (!res.ok) { showToast(`🪙 ${res.error || "种不了"}`); return; }
     setPicking(null);
     showToast(`${crop?.emoji} ${crop?.name} 种下去了 🌱`);
   }

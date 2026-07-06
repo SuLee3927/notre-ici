@@ -675,6 +675,7 @@ function GamePanel({ theme: t }) {
     { id:"crane",     emoji:"🧸", name:"娃娃机", desc:"时机一到，出手不留" },
     { id:"basket",    emoji:"🏀", name:"投篮机", desc:"蓄力出手，进框翻倍" },
     { id:"mahjong",   emoji:"🀄", name:"麻将",   desc:"摸打碰杠胡，四人对局" },
+    { id:"monopoly",  emoji:"🎲", name:"大富翁", desc:"掷骰走格，金币定胜负 🔒" },
   ];
 
   if (open === "slot") return (
@@ -730,6 +731,13 @@ function GamePanel({ theme: t }) {
     <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
       <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
       <Mahjong theme={t} />
+    </div>
+  );
+
+  if (open === "monopoly") return (
+    <div style={{ padding:"8px 16px 16px", fontFamily:"'Noto Serif SC',serif" }}>
+      <button onClick={() => setOpen(null)} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:10, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
+      <MonopolyGate theme={t} />
     </div>
   );
 
@@ -800,6 +808,91 @@ function SlotGate({ theme: t }) {
   if (open) return (
     <div style={{ padding:"12px 16px 8px", fontFamily:"'Noto Serif SC',serif" }}>
       <div style={{ textAlign:"center", fontSize:12, color:t.textMuted }}>已解锁，正在跳转……</div>
+    </div>
+  );
+
+  return (
+    <div style={{ padding:"12px 16px 8px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:10 }}>🔒 输入密码</div>
+      <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => e.key === "Enter" && attempt()}
+        placeholder="＿＿＿"
+        style={{
+          display:"block", width:"100%", boxSizing:"border-box",
+          padding:"10px 14px", borderRadius:10, border:`1.5px solid ${wrong ? "#E87070" : t.surfaceBorder}`,
+          background:t.surface, color:t.text, fontSize:15, textAlign:"center",
+          fontFamily:"inherit", outline:"none", marginBottom:10,
+          transition:"border-color .2s",
+        }}
+        autoFocus
+      />
+      <button onClick={attempt} style={{
+        display:"block", width:"100%", padding:"10px", borderRadius:10,
+        background:"linear-gradient(135deg,#E87070,#E870A8)", color:"#fff",
+        border:"none", fontSize:13, cursor:"pointer", fontFamily:"inherit",
+      }}>确认</button>
+      {wrong && <div style={{ textAlign:"center", fontSize:11, color:"#E87070", marginTop:8 }}>不对哦</div>}
+    </div>
+  );
+}
+
+// ── 大富翁密码门 + 对局面板 ──
+function MonopolyGate({ theme: t }) {
+  const [input, setInput] = useState("");
+  const [wrong, setWrong] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [game, setGame] = useState(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const fetchGame = () => {
+      fetch("/api/monopoly/latest")
+        .then(r => r.json())
+        .then(setGame)
+        .catch(() => {});
+    };
+    fetchGame();
+    const id = setInterval(fetchGame, 15000);
+    return () => clearInterval(id);
+  }, [open]);
+
+  function attempt() {
+    if (input.trim() === "K♡L") {
+      setOpen(true);
+    } else {
+      setWrong(true);
+      setInput("");
+      setTimeout(() => setWrong(false), 1200);
+    }
+  }
+
+  if (open) return (
+    <div style={{ padding:"12px 4px 8px", fontFamily:"'Noto Serif SC',serif" }}>
+      <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>🎲 涩涩大富翁</div>
+      {!game ? (
+        <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", padding:"20px 0" }}>连接中…</div>
+      ) : game.active ? (
+        <div>
+          <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:12 }}>
+            第 {game.round}/{game.game_length} 回合
+            {game.players?.map(p => ` · ${p.name} 🪙${p.coins}`).join("")}
+          </div>
+          <pre style={{
+            fontSize:10, lineHeight:1.5, overflowX:"auto",
+            background:t.surface, border:`1px solid ${t.surfaceBorder}`,
+            borderRadius:10, padding:"12px 10px", color:t.textSub,
+            fontFamily:"'Courier New',monospace",
+          }}>{game.board}</pre>
+        </div>
+      ) : (
+        <div style={{ fontSize:12, color:t.textMuted, textAlign:"center", lineHeight:2, padding:"20px 0" }}>
+          现在没有进行中的对局<br/>
+          想玩的话，去找笃说「开一局大富翁」<br/>
+          <span style={{ fontSize:10, fontStyle:"italic" }}>他当荷官带你玩，棋盘会出现在这里</span>
+        </div>
+      )}
     </div>
   );
 
