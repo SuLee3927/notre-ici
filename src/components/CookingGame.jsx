@@ -315,6 +315,15 @@ function RecipeBook({ theme: t, unlocked }) {
 }
 
 // 灶台游戏
+// 上报服务端 cookLog（统一账本），失败静默
+function reportCook(payload) {
+  fetch("/api/farm/cook-log", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+}
+
 export default function CookingGame({ theme: t }) {
   const [qty, setQty] = useState(loadQty);
   const [selected, setSelected] = useState([]);
@@ -322,6 +331,24 @@ export default function CookingGame({ theme: t }) {
   const [phase, setPhase] = useState("select"); // select cooking result
   const [result, setResult] = useState(null);
   const [unlocked, setUnlocked] = useState(loadUnlocked);
+
+  // 合并服务端 cookLog 里做出过的菜（谁做的都算解锁，共同账本）
+  useEffect(() => {
+    fetch("/api/farm")
+      .then(r => r.json())
+      .then(d => {
+        const serverDishes = (d.cookLog || [])
+          .filter(e => e.dish)
+          .map(e => `${e.emoji} ${e.dish}`);
+        if (!serverDishes.length) return;
+        setUnlocked(prev => {
+          const merged = [...new Set([...prev, ...serverDishes])];
+          if (merged.length !== prev.length) saveUnlocked(merged);
+          return merged;
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   function toggleIngredient(id) {
     if (phase !== "select") return;
@@ -353,6 +380,7 @@ export default function CookingGame({ theme: t }) {
           saveUnlocked(newU);
           setUnlocked(newU);
         }
+        reportCook({ dish: recipe.dish, emoji: recipe.emoji, who: "黎" });
         setResult({ success:true, recipe, isNew: !unlocked.includes(label) });
         playSuccessSound();
       } else {
@@ -372,6 +400,7 @@ export default function CookingGame({ theme: t }) {
           reason,
           date: new Date().toLocaleDateString("zh-CN", { month:"numeric", day:"numeric" }),
         });
+        reportCook({ dish: null, who: "黎", reason });
         setResult({ success:false, reason });
         playFailSound();
       }

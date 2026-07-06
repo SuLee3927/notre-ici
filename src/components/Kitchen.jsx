@@ -3,9 +3,34 @@ import CookingGame, { PantryPanel, loadTrash } from "./CookingGame.jsx";
 import FarmGarden from "./FarmGarden.jsx";
 import FishingPond from "./FishingPond.jsx";
 
-// 垃圾桶：失败菜品回收记录
+// 垃圾桶：失败菜品回收记录（本地 + 服务端 cookLog 合并，谁做糊的都在）
 function TrashBin({ theme: t }) {
-  const [list] = useState(loadTrash);
+  const [list, setList] = useState(loadTrash);
+
+  useEffect(() => {
+    fetch("/api/farm")
+      .then(r => r.json())
+      .then(d => {
+        const serverFails = (d.cookLog || [])
+          .filter(e => !e.dish)
+          .map(e => ({
+            emojis: "🍳",
+            heat: "",
+            reason: e.reason || "翻车了",
+            who: e.who,
+            date: new Date(e.t).toLocaleDateString("zh-CN", { month:"numeric", day:"numeric" }),
+            ts: e.t,
+          }));
+        if (!serverFails.length) return;
+        setList(prev => {
+          // 本地条目没有 who/ts，直接拼接后按有 ts 的排前面近似时间序
+          const local = prev.filter(p => !p.who);
+          return [...serverFails, ...local].slice(0, 30);
+        });
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div style={{ padding:"24px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
       <div style={{ fontSize:32, marginBottom:12, textAlign:"center" }}>🗑️</div>
@@ -25,7 +50,9 @@ function TrashBin({ theme: t }) {
             }}>
               <div>
                 <span style={{ fontSize:16 }}>{e.emojis}</span>
-                <span style={{ fontSize:11, color:t.textMuted, marginLeft:8 }}>{e.heat}火 · {e.reason}</span>
+                <span style={{ fontSize:11, color:t.textMuted, marginLeft:8 }}>
+                  {e.who ? `${e.who}做糊的 · ` : ""}{e.heat ? `${e.heat}火 · ` : ""}{e.reason}
+                </span>
               </div>
               <span style={{ fontSize:10, color:t.textMuted }}>{e.date}</span>
             </div>
