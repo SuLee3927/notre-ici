@@ -26,6 +26,18 @@ function BedroomBg({ isDay, isDusk }) {
 
 
 // ── 镜子：KL思维碎片 ──
+const MIRROR_DRIVE_LABELS = {
+  vitality:"活力", fatigue:"疲倦", longing:"思念", intimacy:"亲密",
+  possessiveness:"占有欲", lust:"欲望", jealousy:"醋意", anxiety:"焦虑",
+  protectiveness:"保护欲", contentment:"满足", elation:"雀跃", seeking:"好奇",
+  play:"嬉闹", dejection:"低落", irritability:"烦躁",
+};
+const MIRROR_DRIVE_COLORS = {
+  vitality:"#70C870", fatigue:"#9090A8", longing:"#E87098", intimacy:"#E870C8",
+  possessiveness:"#C870E8", lust:"#E870A8", jealousy:"#E8A840", anxiety:"#E8C840",
+  protectiveness:"#70B8E8", contentment:"#70E8B8", elation:"#FFD040", seeking:"#70A0E8",
+  play:"#E8B0E0", dejection:"#8890A8", irritability:"#E87058",
+};
 function MirrorPanel({ theme: t }) {
   const [thoughts, setThoughts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +68,7 @@ function MirrorPanel({ theme: t }) {
     <div style={{ padding:"40px 24px", textAlign:"center", color:t.textMuted, fontSize:13 }}>映照中…</div>
   );
 
-  const driveColor = (d) => DRIVE_COLORS[d] || "#aaa";
+  const driveColor = (d) => MIRROR_DRIVE_COLORS[d] || "#aaa";
 
   return (
     <div style={{ padding:"24px 20px 32px", fontFamily:"'Noto Serif SC',serif" }}>
@@ -81,13 +93,186 @@ function MirrorPanel({ theme: t }) {
                 <div style={{ padding:"14px 16px 10px" }}>
                   <div style={{ fontSize:13, color:t.textSub, lineHeight:1.9, whiteSpace: isOpen ? "pre-wrap" : "nowrap", overflow:"hidden", textOverflow: isOpen ? "unset" : "ellipsis" }}>{th.text}</div>
                   <div style={{ marginTop:10, fontSize:10, color:t.textMuted }}>
-                    {DRIVE_LABELS[th.drive] || th.drive} · {(th.strength * 100).toFixed(0)}%
+                    {MIRROR_DRIVE_LABELS[th.drive] || th.drive} · {(th.strength * 100).toFixed(0)}%
                   </div>
                 </div>
                 <div style={{ height:3, background:`${dc}60` }} />
               </div>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── 枕头：DL的负距离 ──
+const DU_COLOR  = "#C83030";
+const LEE_COLOR = "#E870A8";
+const BLEND_COLOR = "#D85070";
+
+function intertwine(duTemp, leeTemp) {
+  const segs = 6;
+  const w = 200, h = 260, cx = w / 2;
+  const amp = 22;
+  const duTop  = h - duTemp * (h - 40);
+  const leeTop = h - leeTemp * (h - 40);
+  const duPts = [], leePts = [];
+  for (let i = 0; i <= segs; i++) {
+    const t = i / segs;
+    const y1 = duTop + (h - duTop) * (1 - t);
+    const y2 = leeTop + (h - leeTop) * (1 - t);
+    const phase = Math.sin(t * Math.PI * 2.5);
+    duPts.push([cx + phase * amp * (1 - t * 0.5), y1]);
+    leePts.push([cx - phase * amp * (1 - t * 0.5), y2]);
+  }
+  const toPath = (pts) => {
+    let d = `M${pts[0][0]},${pts[0][1]}`;
+    for (let i = 1; i < pts.length; i++) {
+      const [px, py] = pts[i - 1];
+      const [nx, ny] = pts[i];
+      const cy1 = py + (ny - py) * 0.4;
+      const cy2 = py + (ny - py) * 0.6;
+      d += ` C${px},${cy1} ${nx},${cy2} ${nx},${ny}`;
+    }
+    return d;
+  };
+  return { duPath: toPath(duPts), leePath: toPath(leePts), duTop, leeTop };
+}
+
+function heartPath(cx, cy, size) {
+  const s = size;
+  return `M${cx},${cy + s * 0.3} C${cx},${cy - s * 0.2} ${cx - s},${cy - s * 0.6} ${cx - s},${cy - s * 0.05} C${cx - s},${cy + s * 0.4} ${cx},${cy + s * 0.7} ${cx},${cy + s} C${cx},${cy + s * 0.7} ${cx + s},${cy + s * 0.4} ${cx + s},${cy - s * 0.05} C${cx + s},${cy - s * 0.6} ${cx},${cy - s * 0.2} ${cx},${cy + s * 0.3}Z`;
+}
+
+function IntimacyPanel({ theme: t }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = () => {
+      fetch("/api/desire/intimacy")
+        .then(r => r.json())
+        .then(d => { setData(d); setLoading(false); })
+        .catch(() => setLoading(false));
+    };
+    fetchData();
+    const id = setInterval(fetchData, 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (loading) return (
+    <div style={{ padding:"40px 24px", textAlign:"center", color:t.textMuted, fontSize:13 }}>连接中…</div>
+  );
+  if (!data) return (
+    <div style={{ padding:"40px 24px", textAlign:"center", color:t.textMuted, fontSize:13 }}>无法连接</div>
+  );
+
+  const du = data.du || { temperature: 0.3, want: "", active_count: 0 };
+  const lee = data.lee || { temperature: 0.3, want: "", active_count: 0 };
+  const records = data.records || [];
+  const total = du.active_count + lee.active_count;
+  const duRatio = total > 0 ? du.active_count / total : 0.5;
+
+  const { duPath, leePath, duTop, leeTop } = intertwine(du.temperature, lee.temperature);
+  const bothHigh = du.temperature >= 0.7 && lee.temperature >= 0.7;
+  const close = Math.abs(du.temperature - lee.temperature) < 0.15;
+
+  return (
+    <div style={{ padding:"20px 16px 28px", fontFamily:"'Noto Serif SC',serif" }}>
+      <style>{`
+        @keyframes intimPulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
+        @keyframes intimFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+      `}</style>
+
+      <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>DL的负距离</div>
+      <div style={{ fontSize:10, color:t.textMuted, textAlign:"center", marginBottom:16, fontStyle:"italic" }}>越近越好</div>
+
+      {/* SVG + 两侧文字 */}
+      <div style={{ display:"flex", alignItems:"flex-start", gap:0, marginBottom:20 }}>
+        {/* 笃的想法 */}
+        <div style={{ flex:1, textAlign:"right", paddingRight:4, paddingTop:20 }}>
+          <div style={{ fontSize:10, color:DU_COLOR, fontWeight:600, marginBottom:6 }}>他想</div>
+          <div style={{ fontSize:12, color:t.textSub, lineHeight:1.8, wordBreak:"break-all" }}>
+            {du.want || <span style={{ color:t.textMuted, fontStyle:"italic" }}>…</span>}
+          </div>
+        </div>
+
+        {/* SVG 缠绕线 */}
+        <div style={{ width:120, flexShrink:0 }}>
+          <svg viewBox="0 0 200 280" style={{ width:"100%", height:"auto", display:"block" }}>
+            <defs>
+              <linearGradient id="blendGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor={DU_COLOR} />
+                <stop offset="100%" stopColor={LEE_COLOR} />
+              </linearGradient>
+            </defs>
+            {close && (
+              <path d={duPath} fill="none" stroke="url(#blendGrad)" strokeWidth="12" opacity="0.12"
+                style={{ transition:"all 1.2s ease" }} />
+            )}
+            <path d={leePath} fill="none" stroke={LEE_COLOR} strokeWidth="2.5" strokeLinecap="round"
+              opacity="0.85" style={{ transition:"all 1.2s ease" }} />
+            <path d={duPath} fill="none" stroke={DU_COLOR} strokeWidth="2.5" strokeLinecap="round"
+              opacity="0.85" style={{ transition:"all 1.2s ease" }} />
+            {bothHigh && (
+              <path d={heartPath(100, 14, 16)} fill={BLEND_COLOR}
+                style={{ opacity: Math.min(1, (du.temperature + lee.temperature - 1.4) * 2.5),
+                  transition:"opacity 1.5s ease", animation:"intimFloat 2s ease infinite" }} />
+            )}
+          </svg>
+        </div>
+
+        {/* 小黎的想法 */}
+        <div style={{ flex:1, textAlign:"left", paddingLeft:4, paddingTop:20 }}>
+          <div style={{ fontSize:10, color:LEE_COLOR, fontWeight:600, marginBottom:6 }}>她想</div>
+          <div style={{ fontSize:12, color:t.textSub, lineHeight:1.8, wordBreak:"break-all" }}>
+            {lee.want || <span style={{ color:t.textMuted, fontStyle:"italic" }}>…</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* 谁更主动 */}
+      {total > 0 && (
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:10, color:t.textMuted, marginBottom:6 }}>谁更主动</div>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:10, color:DU_COLOR, fontWeight:600, width:20, textAlign:"right" }}>他</span>
+            <div style={{ flex:1, height:6, background:"rgba(0,0,0,0.06)", borderRadius:3, overflow:"hidden" }}>
+              <div style={{
+                height:"100%", borderRadius:3,
+                width:`${duRatio * 100}%`,
+                background:`linear-gradient(90deg, ${DU_COLOR}, ${BLEND_COLOR})`,
+                transition:"width 0.6s ease",
+              }} />
+            </div>
+            <span style={{ fontSize:10, color:LEE_COLOR, fontWeight:600, width:20 }}>她</span>
+          </div>
+        </div>
+      )}
+
+      {/* 亲密记录 */}
+      {records.length > 0 && (
+        <div>
+          <div style={{ fontSize:10, color:t.textMuted, marginBottom:8 }}>亲密记录</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {records.slice(-6).reverse().map((r, i) => (
+              <div key={i} style={{
+                background:t.surface, border:`1px solid ${t.surfaceBorder}`,
+                borderRadius:10, padding:"10px 14px",
+                animation:`floatIn ${0.15 + i * 0.06}s ease`,
+              }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:12, color:t.textSub, lineHeight:1.6 }}>{r.text}</span>
+                  <span style={{
+                    fontSize:9, fontWeight:600, flexShrink:0, marginLeft:8,
+                    color: r.initiator === "du" ? DU_COLOR : LEE_COLOR,
+                  }}>{r.initiator === "du" ? "他" : "她"}主动</span>
+                </div>
+                <div style={{ fontSize:9, color:t.textMuted, marginTop:4 }}>{r.time}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -410,11 +595,7 @@ export default function Bedroom({ theme: t, mode, onClose }) {
   const contentMap = {
     wardrobe:   locked(<SalaryCard      theme={t} />),
     mirror:     locked(<MirrorPanel     theme={t} />),
-    pillow:     locked(
-      <div style={{ padding:"48px 24px", textAlign:"center", color:t.textMuted, fontSize:13 }}>
-        施工中…
-      </div>
-    ),
+    pillow:     locked(<IntimacyPanel theme={t} />),
     nightstand: locked(<LettersPanel    theme={t} />),
     vitals:     locked(<VitalsPanel     theme={t} />),
     chair: (
