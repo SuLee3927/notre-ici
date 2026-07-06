@@ -4,42 +4,6 @@ import SalaryCard from "./SalaryCard";
 
 const DESIRE_API = "/api/desire/state";
 
-const DRIVE_LABELS = {
-  vitality:       "活力",
-  fatigue:        "疲倦",
-  longing:        "思念",
-  intimacy:       "亲密",
-  possessiveness: "占有欲",
-  lust:           "欲望",
-  jealousy:       "醋意",
-  anxiety:        "焦虑",
-  protectiveness: "保护欲",
-  contentment:    "满足",
-  elation:        "雀跃",
-  seeking:        "好奇",
-  play:           "嬉闹",
-  dejection:      "低落",
-  irritability:   "烦躁",
-};
-const DRIVE_HIDDEN = new Set(["attachment","curiosity","reflection","duty","social","libido","stress"]);
-
-const DRIVE_COLORS = {
-  vitality:       "#70C870",
-  fatigue:        "#9090A8",
-  longing:        "#E87098",
-  intimacy:       "#E870C8",
-  possessiveness: "#C870E8",
-  lust:           "#E870A8",
-  jealousy:       "#E8A840",
-  anxiety:        "#E8C840",
-  protectiveness: "#70B8E8",
-  contentment:    "#70E8B8",
-  elation:        "#FFD040",
-  seeking:        "#70A0E8",
-  play:           "#E8B0E0",
-  dejection:      "#8890A8",
-  irritability:   "#E87058",
-};
 
 // ── 背景图 ──
 function BedroomBg({ isDay, isDusk }) {
@@ -60,79 +24,6 @@ function BedroomBg({ isDay, isDusk }) {
   );
 }
 
-// ── 欲望驱动条 ──
-function DriveBar({ label, value, color }) {
-  return (
-    <div style={{ marginBottom: 8 }}>
-      <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, marginBottom:3 }}>
-        <span style={{ color:"#888" }}>{label}</span>
-        <span style={{ color, fontWeight:600 }}>{(value * 100).toFixed(0)}</span>
-      </div>
-      <div style={{ height:5, background:"rgba(0,0,0,0.08)", borderRadius:3, overflow:"hidden" }}>
-        <div style={{ height:"100%", width:`${value*100}%`, background:color, borderRadius:3, transition:"width 0.6s ease" }} />
-      </div>
-    </div>
-  );
-}
-
-// ── 欲望系统面板 ──
-function DesirePanel({ theme: t }) {
-  const [state, setState] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    function fetchState() {
-      fetch(DESIRE_API)
-        .then(r => r.json())
-        .then(d => { setState(d); setLoading(false); })
-        .catch(() => setLoading(false));
-    }
-    fetchState();
-    const id = setInterval(fetchState, 30000);
-    return () => clearInterval(id);
-  }, []);
-
-  if (loading) return (
-    <div style={{ padding:"40px 24px", textAlign:"center", color:t.textMuted, fontSize:13 }}>读取中…</div>
-  );
-  if (!state) return (
-    <div style={{ padding:"40px 24px", textAlign:"center", color:t.textMuted, fontSize:13 }}>无法连接欲望系统</div>
-  );
-
-  const intent = state.intent;
-  const accentColor = DRIVE_COLORS[intent.drive_key] || "#C8B8A8";
-
-  return (
-    <div style={{ padding:"24px 20px 32px", fontFamily:"'Noto Serif SC',serif" }}>
-      {/* 此刻最想做的事 卡片 */}
-      <div style={{ background:t.surface, borderRadius:16, padding:"20px 18px 16px", marginBottom:20, border:`1px solid ${t.surfaceBorder}` }}>
-        <div style={{ fontSize:17, fontWeight:700, fontStyle:"italic", color:t.text, marginBottom:14, lineHeight:1.3 }}>此刻最想做的事</div>
-        <div style={{ fontSize:13, color:t.textSub, lineHeight:2, marginBottom:16 }}>
-          {intent.narrative || intent.reason || "—"}
-        </div>
-        <div style={{ height:1, background:t.surfaceBorder, marginBottom:14 }} />
-        <div style={{ fontSize:10, color:t.textMuted, marginBottom:6 }}>倾向</div>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <span style={{ fontSize:12, color:t.textSub, lineHeight:1.6 }}>{intent.reason || "—"}</span>
-          {intent.want_action && intent.want_action !== "none" && (
-            <span style={{ fontSize:10, color:t.textMuted, fontFamily:"sans-serif", marginLeft:10, flexShrink:0 }}>{intent.want_action}</span>
-          )}
-        </div>
-      </div>
-
-      {/* 内心状态条 */}
-      <div style={{ fontSize:11, color:t.textMuted, marginBottom:12 }}>内心状态</div>
-      {Object.entries(state.drive).filter(([k]) => !DRIVE_HIDDEN.has(k)).map(([k, v]) => (
-        <DriveBar key={k} label={DRIVE_LABELS[k] || k} value={v} color={DRIVE_COLORS[k] || "#aaa"} />
-      ))}
-      {state.thought_count > 0 && (
-        <div style={{ marginTop:16, fontSize:11, color:t.textMuted, textAlign:"center" }}>
-          念头池 · {state.thought_count} 条
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── 镜子：KL思维碎片 ──
 function MirrorPanel({ theme: t }) {
@@ -519,7 +410,11 @@ export default function Bedroom({ theme: t, mode, onClose }) {
   const contentMap = {
     wardrobe:   locked(<SalaryCard      theme={t} />),
     mirror:     locked(<MirrorPanel     theme={t} />),
-    pillow:     locked(<DesirePanel     theme={t} />),
+    pillow:     locked(
+      <div style={{ padding:"48px 24px", textAlign:"center", color:t.textMuted, fontSize:13 }}>
+        施工中…
+      </div>
+    ),
     nightstand: locked(<LettersPanel    theme={t} />),
     vitals:     locked(<VitalsPanel     theme={t} />),
     chair: (
