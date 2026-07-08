@@ -33,34 +33,24 @@ export default function Gate({ theme: t, onEnter }) {
         pointerEvents: "none",
       }}/>
 
-      {/* 全家福像素画 */}
+      {/* 全家福 */}
       <div style={{
         opacity: pressed ? 0 : 1,
         transform: pressed ? "scale(1.05)" : "scale(1)",
         transition: "all 0.5s ease",
       }}>
         <img
-          src="/pixel_family.svg"
-          alt="克·糯糯·Lee"
-          style={{ width: 240, height: 192, imageRendering: "pixelated" }}
+          src="/family_portrait.jpg"
+          alt="Du ♡ Lee"
+          style={{ width: "clamp(280px, 80vw, 420px)", borderRadius: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.12)" }}
         />
       </div>
 
-      {/* 名字 */}
       <div style={{
         textAlign: "center",
         opacity: pressed ? 0 : 1,
         transition: "opacity 0.4s ease",
       }}>
-        <div style={{
-          fontSize: 28,
-          fontWeight: 700,
-          color: t.text,
-          letterSpacing: "0.15em",
-          marginBottom: 8,
-        }}>
-          克 &amp; Lee
-        </div>
         <div style={{
           fontSize: 13,
           color: t.textSub,
