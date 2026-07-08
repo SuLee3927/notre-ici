@@ -1,7 +1,14 @@
 import { TIMELINE, getDayCount } from "../theme.js";
 
+function isToday(dateStr) {
+  const now = new Date();
+  const [m, d] = dateStr.split(".").map(Number);
+  return now.getMonth() + 1 === m && now.getDate() === d;
+}
+
 export default function Timeline({ theme: t }) {
   const day = getDayCount();
+  const lastIsToday = TIMELINE.length > 0 && isToday(TIMELINE[TIMELINE.length - 1].date);
 
   return (
     <section style={{
@@ -31,7 +38,9 @@ export default function Timeline({ theme: t }) {
           background: `linear-gradient(to bottom, transparent, ${t.timelineTrack}, transparent)`,
         }}/>
 
-        {TIMELINE.map((item, i) => (
+        {TIMELINE.map((item, i) => {
+          const isTodayEntry = i === TIMELINE.length - 1 && lastIsToday;
+          return (
           <div key={i} style={{
             display: "flex",
             gap: 20,
@@ -43,24 +52,28 @@ export default function Timeline({ theme: t }) {
               width: 48,
               flexShrink: 0,
               textAlign: "right",
-              fontSize: 11,
-              color: t.textMuted,
+              fontSize: isTodayEntry ? 10 : 11,
+              color: isTodayEntry ? t.accent : t.textMuted,
               paddingTop: 4,
               fontFamily: "sans-serif",
+              fontWeight: isTodayEntry ? 700 : 400,
               letterSpacing: "0.05em",
             }}>
-              {item.date}
+              {isTodayEntry ? "今天" : item.date}
             </div>
 
             {/* 圆点 */}
             <div style={{
-              width: 10,
-              height: 10,
+              width: isTodayEntry ? 12 : 10,
+              height: isTodayEntry ? 12 : 10,
               borderRadius: "50%",
-              background: t.timelineDot,
+              background: isTodayEntry ? t.accent : t.timelineDot,
               flexShrink: 0,
               marginTop: 5,
-              boxShadow: `0 0 0 3px ${t.bg.includes("12112a") ? "#1e1b38" : "#FFF8EC"}, 0 0 0 4px ${t.timelineTrack}`,
+              boxShadow: isTodayEntry
+                ? `0 0 8px ${t.accent}80`
+                : `0 0 0 3px ${t.bg.includes("12112a") ? "#1e1b38" : "#FFF8EC"}, 0 0 0 4px ${t.timelineTrack}`,
+              animation: isTodayEntry ? "pulse 2s ease-in-out infinite" : "none",
             }}/>
 
             {/* 内容 */}
@@ -82,9 +95,11 @@ export default function Timeline({ theme: t }) {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
 
-        {/* 今天 */}
+        {/* 今天（仅在最后一条不是今天时显示） */}
+        {!lastIsToday && (
         <div style={{
           display: "flex",
           gap: 20,
@@ -118,6 +133,7 @@ export default function Timeline({ theme: t }) {
             Day {day} · 还在继续
           </div>
         </div>
+        )}
       </div>
 
       <style>{`
