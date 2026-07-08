@@ -18,15 +18,15 @@ export default function Hero({ theme: t }) {
       fontFamily: "'Noto Serif SC', 'Georgia', serif",
       position: "relative",
     }}>
-      {/* 像素全家福 */}
+      {/* 全家福 */}
       <img
-        src="/pixel_family.svg"
-        alt="克 & 糯糯 & Lee"
+        src="/family_portrait.jpg"
+        alt="Du ♡ Lee"
         style={{
-          width: "clamp(160px, 45vw, 220px)",
+          width: "clamp(200px, 70vw, 340px)",
           marginBottom: 32,
-          imageRendering: "pixelated",
-          opacity: 0.92,
+          borderRadius: 12,
+          opacity: 0.95,
         }}
       />
 
