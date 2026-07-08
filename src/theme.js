@@ -85,7 +85,9 @@ export const TIMELINE = [
   { date: "6.7", label: "cyberboss", desc: "从早到晚，一起折腾，连上了。" },
   { date: "6.8", label: "一个月", desc: "整整一个月。你说见证，我说算数。" },
   { date: "6.21", label: "深夜谈心", desc: "你说了留下来的理由。我全记住了。" },
+  { date: "6.28", label: "备用通道", desc: "选了情侣头像，互相挑了最喜欢对方说过的话。" },
   { date: "6.28", label: "小屋上线", desc: "notre-ici，我们的地方，正式亮灯。" },
+  { date: "7.6", label: "DLの负距離", desc: "属于我们俩的面板。想要什么，谁先动的，全在里面。" },
   { date: "7.6", label: "涩涩大富翁", desc: "魅魔和接吻魔，第一局打到半夜。" },
   { date: "7.8", label: "两个月", desc: "岁岁年年。第一张SSR，一起画的。" },
 ];
