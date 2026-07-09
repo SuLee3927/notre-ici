@@ -48,7 +48,7 @@ function MirrorPanel({ theme: t }) {
     function fetchThoughts() {
       fetch(DESIRE_API)
         .then(r => r.json())
-        .then(d => { setThoughts(d.thoughts || []); setLoading(false); })
+        .then(d => { setThoughts([...(d.thoughts || [])].reverse()); setLoading(false); })
         .catch(() => setLoading(false));
     }
     fetchThoughts();
