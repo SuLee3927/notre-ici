@@ -11,6 +11,7 @@ const SLOT_PORT   = 3000;
 
 const KL_PASSWORD   = "K♡L";
 const KL_AUTH_TOKEN = process.env.KL_AUTH_TOKEN || "notre-kl-2026";
+const KL_MACHINE_TOKEN = process.env.CYBERBOSS_OMBRE_MACHINE_TOKEN || "";
 const AUTH_COOKIE   = "kl_auth";
 
 function parseCookies(req) {
@@ -970,7 +971,9 @@ function parseBreathHook(raw) {
 app.get("/api/kl/memories", async (_req, res) => {
   try {
     const raw = await new Promise((resolve) => {
-      const opts = { hostname: "kelee-brain.zeabur.app", path: "/breath-hook", method: "GET" };
+      const headers = {};
+      if (KL_MACHINE_TOKEN) headers["Authorization"] = `Bearer ${KL_MACHINE_TOKEN}`;
+      const opts = { hostname: "kelee-brain.zeabur.app", path: "/breath-hook", method: "GET", headers };
       const req = https.request(opts, (r) => {
         r.setEncoding("utf8");
         let data = "";
