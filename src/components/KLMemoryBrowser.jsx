@@ -141,7 +141,22 @@ function MemoryDetail({ mem, theme: t, onClose }) {
 
 // ── 全部藏书 ──────────────────────────────────────────────────────────────
 
-function LibraryCard({ b, theme: t, onClick }) {
+// 已读记录：localStorage存 {bucketId:1}。首次打开把当时全部藏书记为底册（不然577本全是"新"），
+// 之后笃新存的桶就会挂「新」标，点开看过全文即消失。
+const SEEN_KEY = "kl_seen_books";
+
+function loadSeen() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SEEN_KEY));
+    return raw && typeof raw === "object" ? raw : null;
+  } catch { return null; }
+}
+
+function saveSeen(seen) {
+  try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch {}
+}
+
+function LibraryCard({ b, theme: t, isNew, onClick }) {
   const tm = TYPE_META[b.type] || { label: b.type, color: "#D5CABD" };
   const domain = (b.domain || []).join(", ") || "未分类";
   const color = topicColor(domain);
@@ -156,6 +171,7 @@ function LibraryCard({ b, theme: t, onClick }) {
       <div style={{ width: 6, minHeight: "100%", background: color, flexShrink: 0 }} />
       <div style={{ padding: "11px 14px", flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
+          {isNew && <span style={{ fontSize: 9, fontWeight: 700, background: "#E8574A", color: "#fff", padding: "1px 6px", borderRadius: 6, flexShrink: 0 }}>新</span>}
           <span style={{ fontSize: 12, fontWeight: 600, color: t.text, lineHeight: 1.3 }}>{b.name}</span>
           {b.pinned && <span style={{ fontSize: 9, background: `${color}30`, color, padding: "1px 5px", borderRadius: 6, flexShrink: 0 }}>核心</span>}
           <span style={{ fontSize: 9, background: `${tm.color}25`, color: tm.color, padding: "1px 5px", borderRadius: 6, flexShrink: 0 }}>{tm.label}</span>
@@ -236,6 +252,8 @@ function LibraryView({ theme: t }) {
   const [sortBy, setSortBy] = useState("score");
   const [showCount, setShowCount] = useState(80);
   const [detailId, setDetailId] = useState(null);
+  const [seen, setSeen] = useState(null);
+  const [onlyNew, setOnlyNew] = useState(false);
 
   const load = () => {
     setLoadErr("");
@@ -244,10 +262,37 @@ function LibraryView({ theme: t }) {
         if (r.status === 401) { setLocked(true); return null; }
         return r.json();
       })
-      .then(d => { if (d?.ok) { setBuckets(d.buckets); setLocked(false); } else if (d) setLoadErr(d.error || "读取失败"); })
+      .then(d => {
+        if (d?.ok) {
+          setBuckets(d.buckets);
+          setLocked(false);
+          let s = loadSeen();
+          if (!s) {
+            // 首次打开：当时的全部藏书记为底册，从此之后的才算"新"
+            s = {};
+            for (const b of d.buckets) s[b.id] = 1;
+            saveSeen(s);
+          }
+          setSeen(s);
+        } else if (d) setLoadErr(d.error || "读取失败");
+      })
       .catch(e => setLoadErr(e.message));
   };
   useEffect(load, []);
+
+  const markSeen = (id) => {
+    setSeen(prev => {
+      if (!prev || prev[id]) return prev;
+      const next = { ...prev, [id]: 1 };
+      saveSeen(next);
+      return next;
+    });
+  };
+
+  const newCount = useMemo(() => {
+    if (!buckets || !seen) return 0;
+    return buckets.reduce((n, b) => n + (seen[b.id] ? 0 : 1), 0);
+  }, [buckets, seen]);
 
   const unlock = () => {
     fetch("/api/auth/unlock", {
@@ -264,6 +309,7 @@ function LibraryView({ theme: t }) {
 
   const filtered = useMemo(() => {
     let list = buckets || [];
+    if (onlyNew && seen) list = list.filter(b => !seen[b.id]);
     if (typeFilter) list = list.filter(b => b.type === typeFilter);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
@@ -280,7 +326,7 @@ function LibraryView({ theme: t }) {
     else if (sortBy === "stale") arr.sort((a, b) => (a.last_active || a.created || "").localeCompare(b.last_active || b.created || ""));
     else arr.sort((a, b) => (b.score || 0) - (a.score || 0));
     return arr;
-  }, [buckets, typeFilter, search, sortBy]);
+  }, [buckets, typeFilter, search, sortBy, onlyNew, seen]);
 
   if (locked) {
     return (
@@ -318,6 +364,9 @@ function LibraryView({ theme: t }) {
 
       <div style={{ display: "flex", gap: 6, padding: "8px 16px 0", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         <button onClick={() => { setTypeFilter(null); setShowCount(80); }} style={chip(!typeFilter, t.text)}>全部 {buckets.length}</button>
+        {newCount > 0 && (
+          <button onClick={() => { setOnlyNew(v => !v); setShowCount(80); }} style={chip(onlyNew, "#E8574A")}>新 {newCount}</button>
+        )}
         {Object.entries(TYPE_META).filter(([k]) => typeCounts[k]).map(([k, tm]) => (
           <button key={k} onClick={() => { setTypeFilter(typeFilter === k ? null : k); setShowCount(80); }} style={chip(typeFilter === k, tm.color)}>
             {tm.label} {typeCounts[k]}
@@ -338,7 +387,8 @@ function LibraryView({ theme: t }) {
         ) : (
           <>
             {filtered.slice(0, showCount).map(b => (
-              <LibraryCard key={b.id} b={b} theme={t} onClick={() => setDetailId(b.id)} />
+              <LibraryCard key={b.id} b={b} theme={t} isNew={seen ? !seen[b.id] : false}
+                onClick={() => { setDetailId(b.id); markSeen(b.id); }} />
             ))}
             {filtered.length > showCount && (
               <button onClick={() => setShowCount(c => c + 150)} style={{ padding: "10px 0", borderRadius: 10, border: `1px dashed ${t.surfaceBorder}`, background: "transparent", color: t.textMuted, fontSize: 11, cursor: "pointer", fontFamily: "'Noto Serif SC',serif" }}>
