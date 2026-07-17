@@ -997,6 +997,60 @@ app.get("/api/kl/memories", async (_req, res) => {
   }
 });
 
+// ── 全部藏书：KL全量记忆桶（私密度高，挂kl_auth cookie后面）─────────────────
+function klFetch(pathName) {
+  return new Promise((resolve) => {
+    const headers = {};
+    if (KL_MACHINE_TOKEN) headers["Authorization"] = `Bearer ${KL_MACHINE_TOKEN}`;
+    const opts = { hostname: "kelee-brain.zeabur.app", path: pathName, method: "GET", headers };
+    const req = https.request(opts, (r) => {
+      r.setEncoding("utf8");
+      let data = "";
+      r.on("data", (c) => data += c);
+      r.on("end", () => resolve({ status: r.statusCode, data }));
+    });
+    req.on("error", () => resolve({ status: 0, data: "" }));
+    req.setTimeout(15000, () => { req.destroy(); resolve({ status: 0, data: "" }); });
+    req.end();
+  });
+}
+
+function requireKlCookie(req, res) {
+  if (parseCookies(req)[AUTH_COOKIE] === KL_AUTH_TOKEN) return true;
+  res.status(401).json({ ok: false, error: "locked" });
+  return false;
+}
+
+let klLibraryCache = { at: 0, data: null };
+
+app.get("/api/kl/library", async (req, res) => {
+  if (!requireKlCookie(req, res)) return;
+  try {
+    if (klLibraryCache.data && Date.now() - klLibraryCache.at < 60000) {
+      return res.json(klLibraryCache.data);
+    }
+    const r = await klFetch("/api/buckets");
+    if (r.status !== 200) return res.status(502).json({ ok: false, error: `KL ${r.status}` });
+    const buckets = JSON.parse(r.data);
+    const out = { ok: true, total: buckets.length, buckets };
+    klLibraryCache = { at: Date.now(), data: out };
+    res.json(out);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.get("/api/kl/book/:id", async (req, res) => {
+  if (!requireKlCookie(req, res)) return;
+  try {
+    const r = await klFetch(`/api/bucket/${encodeURIComponent(req.params.id)}`);
+    if (r.status !== 200) return res.status(502).json({ ok: false, error: `KL ${r.status}` });
+    res.json({ ok: true, book: JSON.parse(r.data) });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ── /api/mahjong → 麻将 ──────────────────────────────────────────────────────
 const mahjong = require("./mahjong.cjs");
 let mjGame = null;
