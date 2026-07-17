@@ -990,7 +990,8 @@ app.get("/api/kl/memories", async (_req, res) => {
     const filtered = memories.filter(m =>
       !["查记忆再开口","互动氛围规则","波折号与人机感","恋爱行为准则十条","称呼习惯与亲密关系","工作与亲密语气切换","记忆断开时坦白求助","笃说话风格"].includes(m.name)
     );
-    res.json({ ok: true, memories: filtered });
+    // v2=解析器已适配KL v2.5格式；tokenSet便于排查Zeabur环境变量是否生效
+    res.json({ ok: true, v: 2, tokenSet: Boolean(KL_MACHINE_TOKEN), memories: filtered });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
