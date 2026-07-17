@@ -947,20 +947,22 @@ app.post("/api/unsaid", express.json(), (req, res) => {
 
 // ── /api/kl → KL 记忆系统接口 ────────────────────────────────────────────────
 function parseBreathHook(raw) {
+  // 兼容两种格式：旧版"记忆桶:"在块首行；KL v2.5起每块包 STORED_MEMORY_DATA 防注入头，
+  // "记忆桶:"行在 payload_begin: 之后
   const buckets = [];
   const cleaned = raw.replace(/^\[Ombre Brain[^\]]*\]\n?/, "");
   const blocks = cleaned.split(/\n---\n/);
   const memRe = /记忆桶:\s*(.+?)\s+\[主题:(.+?)\]\s+\[情感:(V[\d.]+\/A[\d.]+)\]/;
   for (const block of blocks) {
-    const trimmed = block.trim();
-    if (!trimmed || trimmed.startsWith("=== ")) continue;
-    const firstLine = trimmed.split("\n")[0];
-    const match = firstLine.match(memRe);
-    if (!match) continue;
-    const [, name, topic, emotion] = match;
-    const pinned = firstLine.includes("[核心准则]");
-    const contentStart = trimmed.indexOf("\n");
-    const content = contentStart > 0 ? trimmed.slice(contentStart + 1).trim() : "";
+    const lines = block.trim().split("\n");
+    const idx = lines.findIndex((l) => memRe.test(l));
+    if (idx === -1) continue;
+    const headLine = lines[idx];
+    const [, name, topic, emotion] = headLine.match(memRe);
+    const pinned = headLine.includes("[核心准则]");
+    let endIdx = lines.findIndex((l, i) => i > idx && l.startsWith("<<<END_STORED_MEMORY_DATA"));
+    if (endIdx === -1) endIdx = lines.length;
+    const content = lines.slice(idx + 1, endIdx).join("\n").trim();
     let summary = "";
     try { const p = JSON.parse(content); summary = p.summary || ""; } catch { summary = content.split("\n")[0].slice(0, 120); }
     buckets.push({ id: name.trim(), name: name.trim(), topic: topic.trim(), emotion: emotion.trim(), weight: pinned ? 999 : 10, pinned, summary, content });
