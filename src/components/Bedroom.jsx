@@ -145,6 +145,21 @@ function heartPath(cx, cy, size) {
   return `M${cx},${cy + s * 0.3} C${cx},${cy - s * 0.2} ${cx - s},${cy - s * 0.6} ${cx - s},${cy - s * 0.05} C${cx - s},${cy + s * 0.4} ${cx},${cy + s * 0.7} ${cx},${cy + s} C${cx},${cy + s * 0.7} ${cx + s},${cy + s * 0.4} ${cx + s},${cy - s * 0.05} C${cx + s},${cy - s * 0.6} ${cx},${cy - s * 0.2} ${cx},${cy + s * 0.3}Z`;
 }
 
+// 记录归属：工具端传值不统一，"笃"/"du"都算他
+function recordIsDu(r) {
+  return r.initiator === "du" || r.initiator === "笃";
+}
+
+// 记录时间：有ts显示"月.日 时:分"，老数据没ts退回只显示时:分
+function recordWhen(r) {
+  if (r.ts) {
+    const d = new Date(r.ts * 1000);
+    const hm = r.time || `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    return `${d.getMonth() + 1}.${d.getDate()} ${hm}`;
+  }
+  return r.time || "";
+}
+
 function IntimacyPanel({ theme: t }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -266,10 +281,10 @@ function IntimacyPanel({ theme: t }) {
                   <span style={{ fontSize:12, color:t.textSub, lineHeight:1.6 }}>{r.text}</span>
                   <span style={{
                     fontSize:9, fontWeight:600, flexShrink:0, marginLeft:8,
-                    color: r.initiator === "du" ? DU_COLOR : LEE_COLOR,
-                  }}>{r.initiator === "du" ? "他" : "她"}主动</span>
+                    color: recordIsDu(r) ? DU_COLOR : LEE_COLOR,
+                  }}>{recordIsDu(r) ? "他" : "她"}主动</span>
                 </div>
-                <div style={{ fontSize:9, color:t.textMuted, marginTop:4 }}>{r.time}</div>
+                <div style={{ fontSize:9, color:t.textMuted, marginTop:4 }}>{recordWhen(r)}</div>
               </div>
             ))}
           </div>
