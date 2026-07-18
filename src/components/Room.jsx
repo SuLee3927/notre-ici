@@ -80,8 +80,10 @@ function nearestHotspot(lx, ty, threshold = 18) {
   return null;
 }
 
-// 预加载走路帧，避免首次走路平移
-["/nuonuo-walk1.webp", "/nuonuo-walk2.webp"].forEach(s => { const i = new Image(); i.src = s; });
+// 预加载走路帧，避免首次走路平移——延后8秒，先让首屏（背景+糯糯本体）用满带宽
+setTimeout(() => {
+  ["/nuonuo-walk1.webp", "/nuonuo-walk2.webp"].forEach(s => { const i = new Image(); i.src = s; });
+}, 8000);
 
 // ── 糯糯PNG（G老师插画版，眨眼+随机走路动画）──
 function NuonuoPNG({ size = 76, walkFrame = -1, blink = false }) {

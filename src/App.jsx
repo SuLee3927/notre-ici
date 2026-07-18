@@ -60,8 +60,9 @@ export default function App() {
 
   return (
     <>
-      <audio ref={audioRef} loop src={BGM[mode]} style={{ display: "none" }} />
-      <audio ref={bedroomAudioRef} loop src="/bedroom-bgm.mp3" style={{ display: "none" }} />
+      {/* preload=none：BGM共4.5MB，别跟首屏抢带宽，播的时候再拉流 */}
+      <audio ref={audioRef} loop preload="none" src={BGM[mode]} style={{ display: "none" }} />
+      <audio ref={bedroomAudioRef} loop preload="none" src="/bedroom-bgm.mp3" style={{ display: "none" }} />
       {showNuonuo && <NuonuoSpace onClose={() => setShowNuonuo(false)} mode={mode} />}
       {!showNuonuo && showBedroom && <Bedroom theme={t} mode={mode} onClose={() => setShowBedroom(false)} />}
       {!showNuonuo && !showBedroom && showKitchen && <Kitchen theme={t} mode={mode} onClose={() => setShowKitchen(false)} />}

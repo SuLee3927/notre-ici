@@ -2,8 +2,11 @@ const express = require("express");
 const path = require("path");
 const http = require("http");
 const fs = require("fs");
+const compression = require("compression");
 
 const app = express();
+// gzip：535KB的JS bundle压到~160KB，细管子（国内直连）下首屏快3倍
+app.use(compression());
 const PORT = process.env.PORT || 3000;
 const DESIRE_HOST = "129.226.158.222";
 const DESIRE_PORT = 8765;
@@ -1238,8 +1241,16 @@ app.get("/chat", (_req, res) => {
 });
 
 // serve built frontend
-app.use(express.static(path.join(__dirname, "public")));
-app.use(express.static(path.join(__dirname, "dist")));
+// 强缓存：public资源7天；dist/assets带内容hash可永久缓存——回头客秒开
+app.use(express.static(path.join(__dirname, "public"), { maxAge: "7d" }));
+app.use(express.static(path.join(__dirname, "dist"), {
+  maxAge: "1h",
+  setHeaders: (res, filePath) => {
+    if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+      res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+    }
+  },
+}));
 app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));
 
 app.listen(PORT, () => console.log(`notre-ici on :${PORT}`));
