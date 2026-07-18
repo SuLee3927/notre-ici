@@ -30,6 +30,20 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // BGM预热：preload=none解决了BGM抢首屏带宽，但代价是切房间/恢复播放要现拉流，
+  // 细管子上会卡一下。首屏落定后6秒，趁空闲把两条BGM悄悄缓冲起来——两头都顾上。
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      for (const el of [audioRef.current, bedroomAudioRef.current]) {
+        if (el && el.paused && el.currentTime === 0) {
+          el.preload = "auto";
+          el.load();
+        }
+      }
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // 客厅 BGM
   useEffect(() => {
     if (!audioRef.current) return;
