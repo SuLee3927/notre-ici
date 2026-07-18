@@ -998,11 +998,11 @@ app.get("/api/kl/memories", async (_req, res) => {
 });
 
 // ── 全部藏书：KL全量记忆桶（私密度高，挂kl_auth cookie后面）─────────────────
-function klFetch(pathName) {
+function klFetch(pathName, method = "GET") {
   return new Promise((resolve) => {
     const headers = {};
     if (KL_MACHINE_TOKEN) headers["Authorization"] = `Bearer ${KL_MACHINE_TOKEN}`;
-    const opts = { hostname: "kelee-brain.zeabur.app", path: pathName, method: "GET", headers };
+    const opts = { hostname: "kelee-brain.zeabur.app", path: pathName, method, headers };
     const req = https.request(opts, (r) => {
       r.setEncoding("utf8");
       let data = "";
@@ -1046,6 +1046,87 @@ app.get("/api/kl/book/:id", async (req, res) => {
     const r = await klFetch(`/api/bucket/${encodeURIComponent(req.params.id)}`);
     if (r.status !== 200) return res.status(502).json({ ok: false, error: `KL ${r.status}` });
     res.json({ ok: true, book: JSON.parse(r.data) });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ── 待办视图：聚合KL各记忆桶里的待办，帮小黎认出僵尸待办 ─────────────────────
+// 候选：名字/预览带待办类字眼或plan型 → 逐个取详情抽todos数组（digest的JSON格式）
+// 或抽含待办字眼的行。resolved/archived标记一并给出。
+const TODO_HINT_RE = /待办|明天想|记得|别忘|todos/;
+
+let klTodosCache = { at: 0, data: null };
+
+app.get("/api/kl/todos", async (req, res) => {
+  if (!requireKlCookie(req, res)) return;
+  try {
+    if (klTodosCache.data && Date.now() - klTodosCache.at < 60000) {
+      return res.json(klTodosCache.data);
+    }
+    const r = await klFetch("/api/buckets");
+    if (r.status !== 200) return res.status(502).json({ ok: false, error: `KL ${r.status}` });
+    const buckets = JSON.parse(r.data);
+    const candidates = buckets.filter(b =>
+      TODO_HINT_RE.test(b.name || "") || TODO_HINT_RE.test(b.content_preview || "") || b.type === "plan"
+    ).slice(0, 60);
+
+    const items = [];
+    const BATCH = 8;
+    for (let i = 0; i < candidates.length; i += BATCH) {
+      const batch = candidates.slice(i, i + BATCH);
+      const details = await Promise.all(batch.map(b => klFetch(`/api/bucket/${encodeURIComponent(b.id)}`)));
+      for (let j = 0; j < batch.length; j++) {
+        const b = batch[j];
+        if (details[j].status !== 200) continue;
+        let book;
+        try { book = JSON.parse(details[j].data); } catch { continue; }
+        const meta = book.metadata || {};
+        const content = String(book.display_content || book.content || "");
+        let todos = [];
+        try {
+          const obj = JSON.parse(book.content);
+          if (Array.isArray(obj.todos)) todos = obj.todos.map(String);
+        } catch {}
+        if (!todos.length) {
+          todos = content.split("\n").map(s => s.trim())
+            .filter(s => s && TODO_HINT_RE.test(s))
+            .slice(0, 8);
+        }
+        if (!todos.length) continue;
+        items.push({
+          bucketId: b.id,
+          bucketName: b.name,
+          type: b.type,
+          created: meta.created || b.created || "",
+          last_active: meta.last_active || b.last_active || "",
+          resolved: Boolean(meta.resolved ?? b.resolved),
+          archived: b.type === "archived",
+          todos,
+        });
+      }
+    }
+    // 未了结的排前面，各组内新的在前
+    items.sort((a, b) => (a.resolved === b.resolved
+      ? (b.created || "").localeCompare(a.created || "")
+      : (a.resolved ? 1 : -1)));
+    const out = { ok: true, items };
+    klTodosCache = { at: Date.now(), data: out };
+    res.json(out);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// 已了结开关（KL的resolve是toggle）
+app.post("/api/kl/book/:id/resolve", async (req, res) => {
+  if (!requireKlCookie(req, res)) return;
+  try {
+    const r = await klFetch(`/api/bucket/${encodeURIComponent(req.params.id)}/resolve`, "POST");
+    if (r.status !== 200) return res.status(502).json({ ok: false, error: `KL ${r.status}` });
+    klTodosCache = { at: 0, data: null };
+    klLibraryCache = { at: 0, data: null };
+    res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }

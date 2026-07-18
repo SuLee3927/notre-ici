@@ -404,8 +404,119 @@ function LibraryView({ theme: t }) {
   );
 }
 
+// ── 待办 ──────────────────────────────────────────────────────────────────
+
+function TodoView({ theme: t }) {
+  const [items, setItems] = useState(null);
+  const [locked, setLocked] = useState(false);
+  const [loadErr, setLoadErr] = useState("");
+  const [pw, setPw] = useState("");
+  const [showResolved, setShowResolved] = useState(false);
+  const [detailId, setDetailId] = useState(null);
+  const [busy, setBusy] = useState("");
+
+  const load = () => {
+    setLoadErr("");
+    fetch("/api/kl/todos")
+      .then(r => {
+        if (r.status === 401) { setLocked(true); return null; }
+        return r.json();
+      })
+      .then(d => { if (d?.ok) { setItems(d.items); setLocked(false); } else if (d) setLoadErr(d.error || "读取失败"); })
+      .catch(e => setLoadErr(e.message));
+  };
+  useEffect(load, []);
+
+  const unlock = () => {
+    fetch("/api/auth/unlock", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: pw }),
+    }).then(r => r.json()).then(d => { if (d.ok) { setPw(""); load(); } });
+  };
+
+  const toggleResolve = (id) => {
+    setBusy(id);
+    fetch(`/api/kl/book/${encodeURIComponent(id)}/resolve`, { method: "POST" })
+      .then(r => r.json())
+      .then(d => {
+        setBusy("");
+        if (d.ok) setItems(prev => prev.map(it => it.bucketId === id ? { ...it, resolved: !it.resolved } : it));
+      })
+      .catch(() => setBusy(""));
+  };
+
+  if (locked) {
+    return (
+      <div style={{ padding: "36px 24px", textAlign: "center" }}>
+        <div style={{ fontSize: 22, marginBottom: 10 }}>🔒</div>
+        <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 14 }}>待办是私密的，说密码</div>
+        <div style={{ display: "flex", gap: 8, maxWidth: 240, margin: "0 auto" }}>
+          <input type="password" value={pw} onChange={e => setPw(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") unlock(); }}
+            style={{ flex: 1, padding: "8px 12px", borderRadius: 10, border: `1.5px solid ${t.surfaceBorder}`, background: t.surface, color: t.text, fontSize: 12, outline: "none", boxSizing: "border-box" }} />
+          <button onClick={unlock} style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: t.text, color: t.bg, fontSize: 11, cursor: "pointer" }}>开</button>
+        </div>
+      </div>
+    );
+  }
+  if (loadErr) return <div style={{ padding: "36px 24px", textAlign: "center", fontSize: 11, color: t.textMuted }}>{loadErr}</div>;
+  if (!items) return <div style={{ padding: "36px 24px", textAlign: "center", fontSize: 11, color: t.textMuted }}>翻各个桶里的待办中...（第一次要几秒）</div>;
+
+  const open = items.filter(i => !i.resolved);
+  const done = items.filter(i => i.resolved);
+  const shown = showResolved ? items : open;
+
+  return (
+    <div>
+      <div style={{ padding: "0 16px 4px", display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 10, color: t.textMuted }}>进行中 {open.length} · 已了结 {done.length}</span>
+        <button onClick={() => setShowResolved(v => !v)} style={{
+          marginLeft: "auto", padding: "3px 10px", borderRadius: 8,
+          border: `1px solid ${t.surfaceBorder}`, background: "transparent",
+          color: t.textMuted, fontSize: 10, cursor: "pointer", fontFamily: "'Noto Serif SC',serif",
+        }}>{showResolved ? "只看进行中" : "连已了结一起看"}</button>
+      </div>
+      <div style={{ padding: "4px 16px 24px", display: "flex", flexDirection: "column", gap: 8 }}>
+        {shown.length === 0 && <div style={{ textAlign: "center", padding: "24px 0", fontSize: 11, color: t.textMuted }}>没有进行中的待办，干净</div>}
+        {shown.map(it => (
+          <div key={it.bucketId} style={{
+            background: t.surface, border: `1px solid ${t.surfaceBorder}`,
+            borderRadius: 14, padding: "12px 14px",
+            opacity: it.resolved ? 0.6 : 1,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
+              <button onClick={() => setDetailId(it.bucketId)} style={{
+                background: "none", border: "none", padding: 0, cursor: "pointer",
+                fontSize: 12, fontWeight: 600, color: t.text, fontFamily: "'Noto Serif SC',serif",
+              }}>{it.bucketName}</button>
+              <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 6, flexShrink: 0,
+                background: it.resolved ? "#9DC8C825" : "#E8574A20",
+                color: it.resolved ? "#9DC8C8" : "#E8574A" }}>
+                {it.resolved ? "已了结" : "进行中"}
+              </span>
+              {it.archived && <span style={{ fontSize: 9, color: t.textMuted }}>归档</span>}
+              <span style={{ fontSize: 9, color: t.textMuted, marginLeft: "auto", flexShrink: 0 }}>{fmtDay(it.created)} 立</span>
+            </div>
+            <div style={{ fontSize: 11, color: t.text, opacity: 0.85, lineHeight: 1.8 }}>
+              {it.todos.map((td, i) => <div key={i}>{it.resolved ? "☑" : "□"} {td}</div>)}
+            </div>
+            <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
+              <button disabled={busy === it.bucketId} onClick={() => toggleResolve(it.bucketId)} style={{
+                padding: "4px 12px", borderRadius: 8, cursor: "pointer", fontSize: 10,
+                border: `1px solid ${t.surfaceBorder}`, fontFamily: "'Noto Serif SC',serif",
+                background: "transparent", color: it.resolved ? t.textMuted : "#E8574A",
+              }}>{busy === it.bucketId ? "..." : it.resolved ? "标回进行中" : "标记已了结"}</button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {detailId && <LibraryDetail bookId={detailId} theme={t} onClose={() => setDetailId(null)} />}
+    </div>
+  );
+}
+
 export default function KLMemoryBrowser({ theme: t }) {
-  const [mode, setMode] = useState("breath"); // breath=开窗浮现 | library=全部藏书
+  const [mode, setMode] = useState("breath"); // breath=开窗浮现 | library=全部藏书 | todos=待办
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -459,10 +570,13 @@ export default function KLMemoryBrowser({ theme: t }) {
         <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 4 }}>
           <button onClick={() => setMode("breath")} style={tabStyle(mode === "breath")}>浮现 {memories.length}</button>
           <button onClick={() => setMode("library")} style={tabStyle(mode === "library")}>全部藏书</button>
+          <button onClick={() => setMode("todos")} style={tabStyle(mode === "todos")}>待办</button>
         </div>
       </div>
 
-      {mode === "library" ? (
+      {mode === "todos" ? (
+        <TodoView theme={t} />
+      ) : mode === "library" ? (
         <LibraryView theme={t} />
       ) : loading ? (
         <div style={{ padding: "36px 24px", textAlign: "center" }}>
