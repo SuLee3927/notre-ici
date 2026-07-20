@@ -169,6 +169,32 @@ function matchRecipe(selected, heatIdx) {
   return null;
 }
 
+const FS_METHODS  = ["炒","炖","煮","烤","蒸","煎","焖","拌","卤","熬"];
+const FS_PREFIXES = ["秘制","创意","即兴","黑暗","迷之","玄学","概念","实验","灵魂","梦幻","随缘","深夜"];
+const FS_SUFFIXES = ["大杂烩","奇遇","惊喜","之谜","新发现","乱炖","混搭","怪谈"];
+const FS_EMOJIS   = ["🍽️","🥘","🍲","🫕","🥙","🍱","✨","🌟","💫","🎲","🔮","🧪"];
+const FS_VIBES    = [
+  "味道出乎意料地不错！","这是什么神奇组合…","闻起来奇怪但尝起来还行",
+  "可能发明了新菜式！","下次再试试能不能复现","厨房里飘出了奇妙的香味",
+  "灶台都愣住了","食材们表示很震惊","居然没爆炸，成功！",
+  "颜色很有艺术感…味道就不好说了","已经超越了料理的范畴",
+];
+const _pick = a => a[Math.floor(Math.random() * a.length)];
+
+function generateFreestyle(selected) {
+  const names = selected.map(id => INGREDIENTS.find(x => x.id === id)?.name || "?");
+  const m = _pick(FS_METHODS), p = _pick(FS_PREFIXES), s = _pick(FS_SUFFIXES);
+  const emoji = _pick(FS_EMOJIS);
+  const vibe  = _pick(FS_VIBES);
+  const templates = [
+    () => `${p}${m}${names.join("")}`,
+    () => `${names.join("×")}${s}`,
+    () => `${p}${names.join("")}`,
+    () => `${names[0]}${m}${names.slice(1).join("")}`,
+  ];
+  return { dish: _pick(templates)(), emoji, vibe, freestyle: true };
+}
+
 const RESTOCK_COST = 3;   // 每份食材 3 公共币
 const RESTOCK_QTY  = 3;   // 每次补 3 份
 
@@ -385,25 +411,15 @@ export default function CookingGame({ theme: t }) {
         setResult({ success:true, recipe, isNew: !unlocked.includes(label) });
         playSuccessSound();
       } else {
-        // 失败：消耗食材，扔进垃圾桶
-        const reasons = [
-          "火候不对，烧糊了", "食材搭配有点奇怪", "这个配方还没找到",
-          "灶台抗议了", "好像少了什么食材",
-        ];
-        const reason = reasons[Math.floor(Math.random()*reasons.length)];
+        // 不在配方里 → 创意料理！随机生成一个新菜
+        const freestyle = generateFreestyle(selected);
         const newQty = { ...qty };
         selected.forEach(id => { if (newQty[id] !== 99) newQty[id] = Math.max(0, (newQty[id]||0) - 1); });
         saveQty(newQty);
         setQty(newQty);
-        pushTrash({
-          emojis: selected.map(id => INGREDIENTS.find(x => x.id === id)?.emoji).join(""),
-          heat: HEAT_LABELS[heatIdx],
-          reason,
-          date: new Date().toLocaleDateString("zh-CN", { month:"numeric", day:"numeric" }),
-        });
-        reportCook({ dish: null, who: "黎", reason });
-        setResult({ success:false, reason });
-        playFailSound();
+        reportCook({ dish: freestyle.dish, emoji: freestyle.emoji, who: "黎", freestyle: true });
+        setResult({ success:true, recipe: freestyle, isNew: false, freestyle: true });
+        playSuccessSound();
       }
       setPhase("result");
     }, 1200);
@@ -525,7 +541,12 @@ export default function CookingGame({ theme: t }) {
               {result.isNew && (
                 <div style={{ fontSize:11, color:"#E8956A", marginBottom:8 }}>✨ 新配方解锁！</div>
               )}
-              <div style={{ fontSize:11, color:t.textMuted, marginBottom:20 }}>做好了~</div>
+              {result.freestyle && (
+                <div style={{ fontSize:11, color:"#9B7DFF", marginBottom:4 }}>🎲 创意料理！</div>
+              )}
+              <div style={{ fontSize:11, color:t.textMuted, marginBottom:20 }}>
+                {result.freestyle ? result.recipe.vibe : "做好了~"}
+              </div>
             </>
           ) : (
             <>
