@@ -126,6 +126,7 @@ const RECIPES = [
   { ids:["tidal_trout","water"],         heat:"低", dish:"清蒸潮信鳟",   emoji:"🐟" },
   { ids:["mangrove_snapper","chili","garlic"], heat:"旺", dish:"香辣红树鲷", emoji:"🐠" },
   { ids:["moonscale_carp","rice","water"], heat:"低", dish:"月鳞鲤粥",   emoji:"🌙" },
+  { ids:["chili","garlic"],              heat:"旺", dish:"虎皮辣椒",     emoji:"🌶️" },
 ];
 
 const HEAT_LABELS = ["低火", "中火", "旺火"];
