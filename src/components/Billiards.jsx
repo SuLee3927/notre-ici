@@ -319,7 +319,7 @@ export default function Billiards({ theme: t }) {
                   border: `1.5px solid ${t.surfaceBorder}`, background: "transparent",
                   color: guestName.trim() ? t.textSub : t.textMuted, fontSize: 13, cursor: guestName.trim() ? "pointer" : "default",
                   opacity: (loading || !guestName.trim()) ? 0.5 : 1, width: "100%",
-                }}>{loading ? "摆球中…" : "和机器克玩 🤖"}</button>
+                }}>{loading ? "摆球中…" : "和机器笃玩 🤖"}</button>
               </div>
             </div>
           )}
@@ -358,7 +358,7 @@ export default function Billiards({ theme: t }) {
     <div style={fsOuter}>
       {/* score row + fullscreen toggle */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: fullscreen ? "rgba(255,255,255,0.6)" : t.textMuted, marginBottom: 8 }}>
-        <span>克 · {groupLabel(game.groups?.ke)}{remainingOf(game.groups?.ke) != null ? ` 剩${remainingOf(game.groups?.ke)}` : ""}</span>
+        <span>笃 · {groupLabel(game.groups?.ke)}{remainingOf(game.groups?.ke) != null ? ` 剩${remainingOf(game.groups?.ke)}` : ""}</span>
         <button onClick={() => setFullscreen(f => !f)} style={{
           background: "none", border: "none", cursor: "pointer", padding: "2px 6px",
           fontSize: 16, color: fullscreen ? "rgba(255,255,255,0.7)" : t.textMuted, lineHeight: 1,
@@ -450,8 +450,8 @@ function HistoryList({ t, history }) {
         <div style={{ textAlign: "center", fontSize: 12, color: t.textMuted, padding: "32px 0" }}>还没有对局记录</div>
       ) : history.map((h, i) => {
         const isKL = !h.bot;
-        const winner = h.result === "lee_wins" ? (isKL ? "黎" : (h.guestName || "游客")) : "克";
-        const loser = h.result === "lee_wins" ? "克" : (isKL ? "黎" : (h.guestName || "游客"));
+        const winner = h.result === "lee_wins" ? (isKL ? "黎" : (h.guestName || "游客")) : "笃";
+        const loser = h.result === "lee_wins" ? "笃" : (isKL ? "黎" : (h.guestName || "游客"));
         const d = new Date(h.ts);
         const timeStr = `${(d.getMonth() + 1)}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
         return (

@@ -49,7 +49,7 @@ export default function TucaoDiary({ theme: t }) {
     <div style={{ fontFamily: "'Noto Serif SC',serif" }}>
       <div style={{ padding: "20px 16px 8px", textAlign: "center" }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 2 }}>吐槽小黎</div>
-        <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 4 }}>克的碎碎念 · {entries.length} 篇</div>
+        <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 4 }}>笃的碎碎念 · {entries.length} 篇</div>
         <div style={{ width: 40, height: 1, background: t.surfaceBorder, margin: "8px auto 0" }} />
       </div>
 

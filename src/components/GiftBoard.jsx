@@ -89,7 +89,7 @@ export default function GiftBoard({ theme: t }) {
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="给克 & Lee 留句话..."
+            placeholder="给笃 & 黎留句话..."
             rows={3}
             style={{
               width: "100%", boxSizing: "border-box",

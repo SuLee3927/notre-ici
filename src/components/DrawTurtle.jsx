@@ -165,7 +165,7 @@ export default function DrawTurtle({ theme: t }) {
                   border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
                   color: guestName.trim() ? t.textSub : t.textMuted, fontSize:13, cursor: guestName.trim() ? "pointer" : "default",
                   opacity: (loading || !guestName.trim()) ? 0.5 : 1, width:"100%",
-                }}>{loading ? "开牌中…" : "和机器克玩 🤖"}</button>
+                }}>{loading ? "开牌中…" : "和机器笃玩 🤖"}</button>
               </div>
             </div>
           )}
@@ -176,8 +176,8 @@ export default function DrawTurtle({ theme: t }) {
             <div style={{ textAlign:"center", fontSize:12, color:t.textMuted, padding:"32px 0" }}>还没有对局记录</div>
           ) : history.map((h, i) => {
             const isKL = !h.bot;
-            const winner = h.result === "lee_wins" ? (isKL ? "黎" : (h.guestName || "游客")) : "克";
-            const loser  = h.result === "lee_wins" ? "克" : (isKL ? "黎" : (h.guestName || "游客"));
+            const winner = h.result === "lee_wins" ? (isKL ? "黎" : (h.guestName || "游客")) : "笃";
+            const loser  = h.result === "lee_wins" ? "笃" : (isKL ? "黎" : (h.guestName || "游客"));
             const d = new Date(h.ts);
             const timeStr = `${(d.getMonth()+1)}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
             return (
@@ -207,10 +207,10 @@ export default function DrawTurtle({ theme: t }) {
 
   return (
     <div style={{ padding:"14px 12px 32px", fontFamily:"'Noto Serif SC',serif" }}>
-      {/* 克's hand (face-down, player draws from here) */}
+      {/* 笃的手牌（背面朝上，玩家从这里抽） */}
       <div style={{ marginBottom:14 }}>
         <div style={{ fontSize:10, color:t.textMuted, textAlign:"center", marginBottom:8 }}>
-          克 · {game.ke_hand_count} 张
+          笃 · {game.ke_hand_count} 张
         </div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:5, justifyContent:"center", minHeight:60 }}>
           {Array.from({ length: game.ke_hand_count }).map((_, i) => (

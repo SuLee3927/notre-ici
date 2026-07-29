@@ -90,7 +90,7 @@ function MemoBoard({ theme: t }) {
         ))}
       </div>
       <div style={{ marginTop:20, fontSize:11, color:t.textMuted, textAlign:"center", lineHeight:1.8 }}>
-        克记的<br/>不准不照着吃
+        笃记的<br/>不准不照着吃
       </div>
     </div>
   );
@@ -140,7 +140,7 @@ export default function Kitchen({ theme: t, mode, onClose }) {
         background:"rgba(0,0,0,0.15)", padding:"3px 14px", borderRadius:20,
         backdropFilter:"blur(4px)",
       }}>
-        克 &amp; Lee 的厨房
+        DuLee 的厨房
       </div>
 
       {/* 热点层 */}

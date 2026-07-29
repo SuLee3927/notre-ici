@@ -49,7 +49,7 @@ function LobbyScreen({ t, showEgg, setShowEgg, onPrivate, onBot }) {
             padding:"10px 32px", borderRadius:12,
             border:`1.5px solid ${t.surfaceBorder}`, background:"transparent",
             color:t.textSub, fontSize:13, cursor:"pointer", width:180,
-          }}>机器克陪你猜 🤖</button>
+          }}>机器笃陪你猜 🤖</button>
         </div>
       )}
     </div>
@@ -86,7 +86,7 @@ function BotGame({ t, onBack }) {
   if (!state) return (
     <div style={{ padding:"32px 20px", textAlign:"center", fontFamily:"'Noto Serif SC',serif" }}>
       <button onClick={onBack} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:20, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
-      <div style={{ fontSize:14, color:t.textSub, marginBottom:24 }}>机器克来描述，你来猜</div>
+      <div style={{ fontSize:14, color:t.textSub, marginBottom:24 }}>机器笃来描述，你来猜</div>
       <button onClick={newGame} disabled={loading} style={{
         padding:"10px 32px", borderRadius:12,
         border:`1.5px solid ${t.accentBorder}`, background:t.accentSoft,
@@ -101,12 +101,12 @@ function BotGame({ t, onBack }) {
     <div style={{ padding:"14px 14px 32px", fontFamily:"'Noto Serif SC',serif" }}>
       <button onClick={onBack} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:12, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
 
-      {/* 机器克提示框 */}
+      {/* 机器笃提示框 */}
       <div style={{
         background:t.surface, border:`1px solid ${t.surfaceBorder}`,
         borderRadius:12, padding:"12px 14px", marginBottom:14,
       }}>
-        <div style={{ fontSize:10, color:t.textMuted, marginBottom:6 }}>🤖 机器克说</div>
+        <div style={{ fontSize:10, color:t.textMuted, marginBottom:6 }}>🤖 机器笃说</div>
         {(state.hints || []).map((h, i) => (
           <div key={i} style={{ fontSize:13, color:t.text, lineHeight:1.8 }}>· {h}</div>
         ))}
@@ -221,7 +221,7 @@ function PrivateGame({ t, onBack }) {
       <button onClick={onBack} style={{ background:"none", border:"none", color:t.textMuted, fontSize:12, cursor:"pointer", marginBottom:12, padding:0, display:"flex", alignItems:"center", gap:4 }}>← 返回</button>
 
       <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:t.textMuted, marginBottom:14 }}>
-        <span>{isDescriber ? "你来描述" : "克来描述"}</span>
+        <span>{isDescriber ? "你来描述" : "笃来描述"}</span>
         <span style={{ color:t.accent }}>剩 {game.guesses_left} 次</span>
       </div>
 

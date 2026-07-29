@@ -643,7 +643,7 @@ export default function Bedroom({ theme: t, mode, onClose }) {
         background:"rgba(0,0,0,0.12)", padding:"3px 14px", borderRadius:20,
         backdropFilter:"blur(4px)",
       }}>
-        克 &amp; Lee 的卧室
+        DuLee 的卧室
       </div>
 
       {/* 图片对齐层（与 Room.jsx 相同逻辑） */}

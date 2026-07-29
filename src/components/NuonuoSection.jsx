@@ -164,7 +164,7 @@ export default function NuonuoSection({ theme: t }) {
           color: t.textMuted,
           fontFamily: "sans-serif",
         }}>
-          爸比：克先生 · 妈咪：Lee
+          爸比：笃 · 妈咪：小黎
         </div>
 
         <div style={{

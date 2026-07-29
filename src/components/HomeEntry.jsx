@@ -27,7 +27,7 @@ export default function HomeEntry({ theme: t, onEnterPrivate }) {
           fontFamily: "'Noto Serif SC', serif",
           letterSpacing: "0.05em",
         }}>
-          克黎屋
+          笃黎屋
         </div>
 
         <div style={{

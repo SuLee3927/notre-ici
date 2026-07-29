@@ -106,7 +106,7 @@ export default function BambooGame({ theme: t }) {
     <div style={{ padding:"14px 14px 32px", fontFamily:"'Noto Serif SC',serif" }}>
       {/* 计数行 */}
       <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:t.textMuted, marginBottom:14 }}>
-        <span>克 🎴 {game.ke_count}张</span>
+        <span>笃 🎴 {game.ke_count}张</span>
         <span>黎 🎴 {game.lee_count}张</span>
       </div>
 

@@ -566,7 +566,7 @@ export default function KLMemoryBrowser({ theme: t }) {
     <div style={{ fontFamily: "'Noto Serif SC',serif" }}>
       <div style={{ padding: "20px 16px 8px", textAlign: "center" }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: t.text, marginBottom: 2 }}>KL 记忆</div>
-        <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 12 }}>克的记忆书架</div>
+        <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 12 }}>笃的记忆书架</div>
         <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 4 }}>
           <button onClick={() => setMode("breath")} style={tabStyle(mode === "breath")}>浮现 {memories.length}</button>
           <button onClick={() => setMode("library")} style={tabStyle(mode === "library")}>全部藏书</button>

@@ -115,7 +115,7 @@ function tView(g, player) {
 
 function tCheckOver(g) {
   if (g.lee_hand.length === 0) { g.phase = "over"; g.result = "lee_wins"; g.message = "黎 赢了！克抱着王八 🐢"; }
-  else if (g.ke_hand.length === 0) { g.phase = "over"; g.result = "ke_wins"; g.message = "克 赢了！黎 抱着王八 🐢"; }
+  else if (g.ke_hand.length === 0) { g.phase = "over"; g.result = "ke_wins"; g.message = "笃 赢了！黎 抱着王八 🐢"; }
   if (g.phase === "over") {
     turtleHistory.unshift({ result: g.result, bot: g.bot, guestName: g.guestName, ts: Date.now() });
     if (turtleHistory.length > 30) turtleHistory.pop();
@@ -129,7 +129,7 @@ function tBotMove(g) {
   g.last_drawn = d; g.last_drawn_by = "ke";
   g.ke_hand = tDiscard([...g.ke_hand, d]);
   tCheckOver(g);
-  if (g.phase !== "over") { g.phase = "lee_turn"; g.message = "黎 来了，从克的牌里抽一张"; }
+  if (g.phase !== "over") { g.phase = "lee_turn"; g.message = "黎 来了，从笃的牌里抽一张"; }
 }
 
 app.post("/api/turtle/new", (req, res) => {
@@ -140,7 +140,7 @@ app.post("/api/turtle/new", (req, res) => {
     phase: "lee_turn", bot: !!botMode, guestName: guestName.trim().slice(0, 12),
     lee_hand: tDiscard(deck.slice(0, mid)),
     ke_hand:  tDiscard(deck.slice(mid)),
-    result: null, message: "黎 先来，从克的牌里抽一张",
+    result: null, message: "黎 先来，从笃的牌里抽一张",
     last_drawn: null, last_drawn_by: null,
     created: Date.now(),
   };
@@ -166,7 +166,7 @@ app.post("/api/turtle/draw", (req, res) => {
     tCheckOver(turtleGame);
     if (turtleGame.phase !== "over") {
       turtleGame.phase = "ke_turn";
-      turtleGame.message = "克 在想…";
+      turtleGame.message = "笃 在想…";
       if (turtleGame.bot) {
         const g = turtleGame;
         setTimeout(() => { if (turtleGame === g) tBotMove(g); }, 1200 + Math.random() * 800);
@@ -181,7 +181,7 @@ app.post("/api/turtle/draw", (req, res) => {
     tCheckOver(turtleGame);
     if (turtleGame.phase !== "over") {
       turtleGame.phase = "lee_turn";
-      turtleGame.message = "黎 来了，从克的牌里抽一张";
+      turtleGame.message = "黎 来了，从笃的牌里抽一张";
     }
   } else {
     return res.json({ ok: false, error: "unknown player" });
@@ -248,10 +248,10 @@ function bDoFlip(g, player) {
     const won = g.pile.splice(matchIdx);
     deck.push(...won);
     g.last_win = { by: player, count: won.length };
-    g.message = `${player==="lee"?"黎":"克"} 接竹竿！赢了 ${won.length} 张`;
+    g.message = `${player==="lee"?"黎":"笃"} 接竹竿！赢了 ${won.length} 张`;
     if (otherDeck.length === 0) {
       g.phase = "over"; g.result = player==="lee" ? "lee_wins" : "ke_wins";
-      g.message = `${player==="lee"?"黎":"克"} 赢了！对方的牌全没了`;
+      g.message = `${player==="lee"?"黎":"笃"} 赢了！对方的牌全没了`;
     } else {
       g.phase = player==="lee" ? "lee_turn" : "ke_turn";
     }
@@ -259,10 +259,10 @@ function bDoFlip(g, player) {
     const won = g.pile.splice(0);
     deck.push(...won);
     g.last_win = { by: player, count: won.length };
-    g.message = `竹竿太长！${player==="lee"?"黎":"克"} 接走 ${won.length} 张`;
+    g.message = `竹竿太长！${player==="lee"?"黎":"笃"} 接走 ${won.length} 张`;
     if (otherDeck.length === 0) {
       g.phase = "over"; g.result = player==="lee" ? "lee_wins" : "ke_wins";
-      g.message = `${player==="lee"?"黎":"克"} 赢了！对方的牌全没了`;
+      g.message = `${player==="lee"?"黎":"笃"} 赢了！对方的牌全没了`;
     } else {
       g.phase = player==="lee" ? "lee_turn" : "ke_turn";
     }
@@ -270,10 +270,10 @@ function bDoFlip(g, player) {
     g.last_win = null;
     if (otherDeck.length === 0) {
       g.phase = "over"; g.result = player==="lee" ? "lee_wins" : "ke_wins";
-      g.message = `${player==="lee"?"黎":"克"} 赢了！对方的牌全没了`;
+      g.message = `${player==="lee"?"黎":"笃"} 赢了！对方的牌全没了`;
     } else {
       g.phase = player==="lee" ? "ke_turn" : "lee_turn";
-      g.message = player==="lee" ? "克 翻…" : "黎 翻";
+      g.message = player==="lee" ? "笃 翻…" : "黎 翻";
     }
   }
   return true;
@@ -386,11 +386,11 @@ function bzApplyShot(g, who, vx, vy) {
     // legal 8-ball: my group was assigned AND cleared AND no scratch
     if (clearedMine && !sim.cueScratched) {
       g.phase = "over"; g.result = who === "lee" ? "lee_wins" : "ke_wins";
-      g.message = who === "lee" ? "黑八进袋！黎 赢了 🎉" : "黑八进袋，克 赢了～";
+      g.message = who === "lee" ? "黑八进袋！黎 赢了 🎉" : "黑八进袋，笃 赢了～";
     } else {
       // potted 8 too early, or scratched on it → loss
       g.phase = "over"; g.result = who === "lee" ? "ke_wins" : "lee_wins";
-      g.message = who === "lee" ? "黑八提前进袋，黎 输了 🥲" : "克 提前打进黑八，黎 赢了 🎉";
+      g.message = who === "lee" ? "黑八提前进袋，黎 输了 🥲" : "笃 提前打进黑八，黎 赢了 🎉";
     }
     bzFinish(g);
     return;
@@ -409,13 +409,13 @@ function bzApplyShot(g, who, vx, vy) {
   if (sim.cueScratched) {
     bzRespotCue(g);
     g.turn = other;
-    g.message = `${who === "lee" ? "黎" : "克"} 母球进袋（犯规），换 ${other === "lee" ? "黎" : "克"}`;
+    g.message = `${who === "lee" ? "黎" : "笃"} 母球进袋（犯规），换 ${other === "lee" ? "黎" : "笃"}`;
   } else if (pottedMine) {
     g.turn = who; // shoot again
-    g.message = `${who === "lee" ? "黎" : "克"} 进球了，继续！`;
+    g.message = `${who === "lee" ? "黎" : "笃"} 进球了，继续！`;
   } else {
     g.turn = other;
-    g.message = `轮到 ${other === "lee" ? "黎" : "克"} 了`;
+    g.message = `轮到 ${other === "lee" ? "黎" : "笃"} 了`;
   }
 
   g.phase = g.turn === "lee" ? "lee_turn" : "ke_turn";
@@ -651,7 +651,7 @@ app.post("/api/guess/submit", (req, res) => {
   res.json({ ok: true, game: gView(guessGame, player) });
 });
 
-// 游客版：机器克描述，游客猜
+// 游客版：机器笃描述，游客猜
 app.post("/api/guess/bot/new", (req, res) => {
   const entry = GUESS_WORDS[Math.floor(Math.random() * GUESS_WORDS.length)];
   botGuessGame = {
@@ -661,7 +661,7 @@ app.post("/api/guess/bot/new", (req, res) => {
     result: null,
   };
   const hints = gBotHints(entry, 0);
-  res.json({ ok: true, hints, guesses_left: 5, guesses: [], phase: "playing", message: "机器克说：" + hints.join("，") });
+  res.json({ ok: true, hints, guesses_left: 5, guesses: [], phase: "playing", message: "机器笃说：" + hints.join("，") });
 });
 
 app.get("/api/guess/bot/state", (req, res) => {
@@ -671,7 +671,7 @@ app.get("/api/guess/bot/state", (req, res) => {
   const hints = g.phase === "playing" ? gBotHints(g.entry, wrongCount) : [];
   res.json({ ok: true, phase: g.phase, result: g.result, hints, guesses_left: g.guesses_left, guesses: g.guesses,
     word: g.phase === "over" ? g.word : undefined,
-    message: g.phase === "over" ? (g.result === "correct" ? `猜对了！就是「${g.word}」🎉` : `没猜出来，答案是「${g.word}」`) : "机器克说：" + hints.join("，") });
+    message: g.phase === "over" ? (g.result === "correct" ? `猜对了！就是「${g.word}」🎉` : `没猜出来，答案是「${g.word}」`) : "机器笃说：" + hints.join("，") });
 });
 
 app.post("/api/guess/bot/submit", (req, res) => {
@@ -695,7 +695,7 @@ app.post("/api/guess/bot/submit", (req, res) => {
   const wrongCount = b.guesses.length;
   const hints = gBotHints(b.entry, wrongCount);
   res.json({ ok: true, correct: false, phase: "playing", hints, guesses_left: b.guesses_left, guesses: b.guesses,
-    message: "机器克说：" + hints.join("，") });
+    message: "机器笃说：" + hints.join("，") });
 });
 
 app.use("/api/desire",  makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/desire"));

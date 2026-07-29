@@ -102,7 +102,7 @@ export default function PrivateLayer({ theme: t, onClose, onEnterNuonuo }) {
 
       {/* 门牌 */}
       <div style={{ position:"absolute", top:14, left:"50%", transform:"translateX(-50%)", zIndex:10, fontSize:11, color:"rgba(255,255,255,0.75)", fontFamily:"'Noto Serif SC',serif", letterSpacing:".2em", background:"rgba(0,0,0,0.15)", padding:"3px 14px", borderRadius:20, backdropFilter:"blur(4px)", whiteSpace:"nowrap" }}>
-        克 &amp; Lee 的书房
+        DuLee 的书房
       </div>
 
       {/* 图片比例对齐层，与 Bedroom.jsx 相同逻辑 */}
@@ -166,7 +166,7 @@ function DreamLog({ theme: t }) {
   return (
     <div style={{ padding:"24px 16px 32px", fontFamily:"'Noto Serif SC',serif" }}>
       <div style={{ fontSize:13, fontWeight:600, color:t.text, textAlign:"center", marginBottom:4 }}>梦</div>
-      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:24, fontStyle:"italic" }}>克做过的</div>
+      <div style={{ fontSize:11, color:t.textMuted, textAlign:"center", marginBottom:24, fontStyle:"italic" }}>笃做过的</div>
       {loading ? (
         <div style={{ textAlign:"center", color:t.textMuted, fontSize:12 }}>…</div>
       ) : dreams.length === 0 ? (
