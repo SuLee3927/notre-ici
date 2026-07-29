@@ -698,37 +698,6 @@ app.post("/api/guess/bot/submit", (req, res) => {
     message: "机器克说：" + hints.join("，") });
 });
 
-// ── 梦境日志 ─────────────────────────────────────────────────
-const DREAM_FILE = path.join(__dirname, "dreams.json");
-const DEFAULT_DREAMS = [];
-
-function loadDreams() {
-  try {
-    if (fs.existsSync(DREAM_FILE)) return JSON.parse(fs.readFileSync(DREAM_FILE, "utf8"));
-  } catch {}
-  return [...DEFAULT_DREAMS];
-}
-function saveDreams(d) {
-  try { fs.writeFileSync(DREAM_FILE, JSON.stringify(d, null, 2)); } catch {}
-}
-
-app.get("/api/dream", (req, res) => res.json({ dreams: loadDreams() }));
-
-app.post("/api/dream", (req, res) => {
-  const { text, title } = req.body || {};
-  if (!text?.trim()) return res.json({ ok: false });
-  const now = new Date();
-  const entry = {
-    title: (title || "").trim().slice(0, 60),
-    text: text.trim().slice(0, 600),
-    date: `${now.getMonth()+1}.${now.getDate()}`,
-  };
-  const list = loadDreams();
-  list.push(entry);
-  saveDreams(list);
-  res.json({ ok: true, entry });
-});
-
 app.use("/api/desire",  makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/desire"));
 app.use("/api/slot",    makeProxy("127.0.0.1",  SLOT_PORT,   "/api"));
 app.use("/api/board",   makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/board"));
@@ -749,10 +718,10 @@ const SALARY_HOST = process.env.SALARY_HOST || "129.226.158.222";
 const SALARY_PORT = Number(process.env.SALARY_PORT || "4323");
 app.use("/api/salary", makeProxy(SALARY_HOST, SALARY_PORT, "/salary"));
 
-// ── /api/murmur → proxy to murmur-service VPS server ────────────────────────
-const MURMUR_HOST = process.env.MURMUR_HOST || "129.226.158.222";
-const MURMUR_PORT = Number(process.env.MURMUR_PORT || "4324");
-app.use("/api/murmur", makeProxy(MURMUR_HOST, MURMUR_PORT, "/murmurs"));
+// ── /api/dream → persistent dream-service on VPS ────────────────────────────
+const DREAM_HOST = process.env.DREAM_HOST || "129.226.158.222";
+const DREAM_PORT = Number(process.env.DREAM_PORT || "4328");
+app.use("/api/dream", makeProxy(DREAM_HOST, DREAM_PORT, "/dreams"));
 
 // ── /api/farm → proxy to farm-service VPS server ─────────────────────────────
 const FARM_HOST = process.env.FARM_HOST || "129.226.158.222";
