@@ -55,6 +55,58 @@ function makeProxy(hostname, port, basePath) {
 }
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// DuLee 小手机：沿用小屋域名与认证 cookie，转发到独立服务。
+app.post("/phone/unlock", (req, res) => {
+  if ((req.body || {}).password !== KL_PASSWORD) {
+    return res.status(401).send("密码不对。<a href=\"/phone/\">再试一次</a>");
+  }
+  res.setHeader("Set-Cookie", `${AUTH_COOKIE}=${KL_AUTH_TOKEN}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax`);
+  return res.redirect("/phone/");
+});
+
+app.use("/phone", (req, res) => {
+  if (parseCookies(req)[AUTH_COOKIE] !== KL_AUTH_TOKEN) {
+    return res.status(401).send(`<!doctype html><html lang="zh-CN"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#18203d;color:#fff;font-family:system-ui}.card{width:min(320px,82vw);padding:28px;border-radius:26px;background:#fff;color:#29243a}h1{font-size:24px}input,button{width:100%;box-sizing:border-box;margin-top:12px;padding:14px;border:0;border-radius:14px}input{background:#f0e9ed}button{color:#fff;background:#765a73}</style>
+      <form class="card" method="post" action="/phone/unlock"><small>Du ♡ Lee</small><h1>解锁笃黎小手机</h1><input type="password" name="password" placeholder="小屋密码" autofocus><button>解锁</button></form></html>`);
+  }
+  const targetPath = req.originalUrl.replace(/^\/phone/, "") || "/";
+  const options = {
+    hostname: "127.0.0.1",
+    port: 4351,
+    path: targetPath,
+    method: req.method,
+    headers: {
+      "content-type": req.headers["content-type"] || "application/json",
+    },
+  };
+  const proxy = http.request(options, (proxyRes) => {
+    for (const [key, value] of Object.entries(proxyRes.headers || {})) {
+      if (value !== undefined) res.setHeader(key, value);
+    }
+    res.status(proxyRes.statusCode || 502);
+    proxyRes.pipe(res);
+  });
+  proxy.on("error", () => res.status(502).send("小手机暂时没接上。"));
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    const isPhotoUpload = targetPath.startsWith("/api/photos/upload")
+      && String(req.headers["content-type"] || "").startsWith("image/");
+    if (isPhotoUpload) {
+      req.pipe(proxy);
+    } else if (req.body !== undefined) {
+      const body = JSON.stringify(req.body);
+      proxy.setHeader("content-length", Buffer.byteLength(body));
+      proxy.write(body);
+      proxy.end();
+    } else {
+      req.pipe(proxy);
+    }
+  } else {
+    proxy.end();
+  }
+});
 
 app.post("/api/auth/unlock", (req, res) => {
   if ((req.body || {}).password === KL_PASSWORD) {
