@@ -705,7 +705,7 @@ app.use("/api/nuonuo",  makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/nuonuo"));
 
 // ── /api/vitals → proxy to ring-control VPS server ─────────────────────────
 const RING_HOST = process.env.RING_HOST || "129.226.158.222";
-const RING_PORT = Number(process.env.RING_PORT || "4321");
+const RING_PORT = Number(process.env.RING_PORT || "4320");
 app.use("/api/vitals", makeProxy(RING_HOST, RING_PORT, "/vitals"));
 
 // ── /api/coins → proxy to coin-service VPS server ───────────────────────────
