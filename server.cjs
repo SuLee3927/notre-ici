@@ -758,6 +758,36 @@ app.use("/api/nuonuo",  makeProxy(DESIRE_HOST, DESIRE_PORT, "/api/nuonuo"));
 // ── /api/vitals → proxy to ring-control VPS server ─────────────────────────
 const RING_HOST = process.env.RING_HOST || "129.226.158.222";
 const RING_PORT = Number(process.env.RING_PORT || "4320");
+
+// Plain HTML for chat windows whose connector snapshot cannot call house tools.
+// Render server-side so URL readers do not need to execute JavaScript.
+app.get("/ring-status", (_req, res) => {
+  const request = http.get({ host: RING_HOST, port: RING_PORT, path: "/vitals", timeout: 5000 }, (upstream) => {
+    let raw = "";
+    upstream.setEncoding("utf8");
+    upstream.on("data", (chunk) => { raw += chunk; });
+    upstream.on("end", () => {
+      try {
+        const payload = JSON.parse(raw);
+        const ring = payload?.vitals?.ring || payload?.ring || {};
+        const active = Boolean(ring.active);
+        const speed = Number(ring.speed || 0);
+        const checkedAt = new Date().toISOString();
+        res.set({
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          Pragma: "no-cache",
+          Expires: "0",
+          "X-Robots-Tag": "noindex, nofollow",
+        });
+        res.type("html").send(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>环的当前状态</title></head><body><main><h1>环的当前状态</h1><p>开关：${active ? "已开启" : "已关闭"}</p><p>档位：${speed}</p><p>机器字段：active=${active}; speed=${speed}</p><p>读取时间：${checkedAt}</p><p>这是只读实时状态页。每次确认时请重新读取本页，不要沿用此前结果。</p></main></body></html>`);
+      } catch {
+        res.status(502).type("html").send("<!doctype html><meta charset=utf-8><title>环状态暂不可用</title><p>环状态暂时读取失败，请稍后重新读取本页。</p>");
+      }
+    });
+  });
+  request.on("timeout", () => request.destroy(new Error("ring status timeout")));
+  request.on("error", () => res.status(502).type("html").send("<!doctype html><meta charset=utf-8><title>环状态暂不可用</title><p>环状态暂时读取失败，请稍后重新读取本页。</p>"));
+});
 app.use("/api/vitals", makeProxy(RING_HOST, RING_PORT, "/vitals"));
 
 // ── /api/coins → proxy to coin-service VPS server ───────────────────────────
