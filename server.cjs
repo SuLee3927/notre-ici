@@ -885,6 +885,71 @@ app.get("/api/music-recommend", (req, res) => {
 });
 
 const https = require("https");
+
+// 糯糯专用 DeepSeek 桥：密钥只保存在 Zeabur，服务器凭机器令牌调用。
+app.post("/api/nuonuo/ai", async (req, res) => {
+  const expected = KL_MACHINE_TOKEN;
+  const auth = req.headers.authorization || "";
+  if (!expected || auth !== `Bearer ${expected}`) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+  const key = process.env.DEEPSEEK_API_KEY || "";
+  if (!key) return res.status(503).json({ error: "deepseek not configured" });
+
+  const system = String(req.body?.system || "").slice(0, 4000);
+  const message = String(req.body?.message || "").trim().slice(0, 1000);
+  const history = Array.isArray(req.body?.history) ? req.body.history.slice(-12) : [];
+  if (!message) return res.status(400).json({ error: "empty message" });
+
+  const messages = [{ role: "system", content: system }];
+  for (const item of history) {
+    const role = item?.role === "assistant" ? "assistant" : "user";
+    const content = String(item?.text || "").trim().slice(0, 1000);
+    if (content) messages.push({ role, content });
+  }
+  messages.push({ role: "user", content: message });
+  const body = JSON.stringify({
+    model: process.env.DEEPSEEK_MODEL || "deepseek-chat",
+    messages,
+    max_tokens: 120,
+    temperature: 0.9,
+    stream: false,
+  });
+
+  const upstream = https.request({
+    hostname: "api.deepseek.com",
+    path: "/chat/completions",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${key}`,
+      "Content-Length": Buffer.byteLength(body),
+    },
+    timeout: 20000,
+  }, (upRes) => {
+    let data = "";
+    upRes.setEncoding("utf8");
+    upRes.on("data", (chunk) => { data += chunk; });
+    upRes.on("end", () => {
+      try {
+        const parsed = JSON.parse(data);
+        const reply = parsed?.choices?.[0]?.message?.content?.trim();
+        if (!reply) return res.status(502).json({ error: "empty deepseek reply" });
+        res.json({ reply: reply.slice(0, 200) });
+      } catch {
+        res.status(502).json({ error: "invalid deepseek response" });
+      }
+    });
+  });
+  upstream.on("timeout", () => upstream.destroy(new Error("timeout")));
+  upstream.on("error", (err) => {
+    console.error("Nuonuo DeepSeek bridge error:", err.message);
+    if (!res.headersSent) res.status(502).json({ error: "deepseek unavailable" });
+  });
+  upstream.write(body);
+  upstream.end();
+});
+
 // ── /api/diary → 日记系统 ─────────────────────────────────────────────────────
 const DIARY_FILE = path.join(__dirname, "diary.json");
 function loadDiary() {
