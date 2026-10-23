@@ -887,7 +887,7 @@ app.get("/api/music-recommend", (req, res) => {
 const https = require("https");
 
 // 糯糯专用 DeepSeek 桥：密钥只保存在 Zeabur，服务器凭机器令牌调用。
-app.post("/api/nuonuo/ai", async (req, res) => {
+app.post("/api/ai/nuonuo", async (req, res) => {
   const expected = KL_MACHINE_TOKEN;
   const auth = req.headers.authorization || "";
   if (!expected || auth !== `Bearer ${expected}`) {
