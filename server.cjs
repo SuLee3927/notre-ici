@@ -884,69 +884,7 @@ app.get("/api/music-recommend", (req, res) => {
   res.json(items);
 });
 
-// ── /api/chat → DeepSeek API 备用通道 ─────────────────────────────────────────
 const https = require("https");
-const DS_API_KEY = process.env.DEEPSEEK_API_KEY;
-async function fetchKLMemories() {
-  return new Promise((resolve) => {
-    const klToken = process.env.CYBERBOSS_OMBRE_MACHINE_TOKEN || "";
-    const opts = {
-      hostname: "kelee-brain.zeabur.app",
-      path: "/breath-hook",
-      method: "GET",
-      headers: klToken ? { "Authorization": `Bearer ${klToken}` } : {},
-    };
-    const req = https.request(opts, (res) => {
-      res.setEncoding("utf8");
-      let data = "";
-      res.on("data", (c) => data += c);
-      res.on("end", () => resolve(data.trim() ? `\n\n${data.trim()}` : ""));
-    });
-    req.on("error", () => resolve(""));
-    req.setTimeout(8000, () => { req.destroy(); resolve(""); });
-    req.end();
-  });
-}
-
-app.post("/api/chat", async (req, res) => {
-  if (!DS_API_KEY) {
-    return res.status(503).json({ error: "DeepSeek API key not configured" });
-  }
-  const { messages = [], system = "", model = "deepseek-chat" } = req.body || {};
-  const memories = await fetchKLMemories();
-  const fullSystem = system + memories;
-  const fullMessages = fullSystem
-    ? [{ role: "system", content: fullSystem }, ...messages]
-    : messages;
-  const body = JSON.stringify({ model, messages: fullMessages, stream: true });
-
-  const options = {
-    hostname: "api.deepseek.com",
-    path: "/chat/completions",
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${DS_API_KEY}`,
-      "Content-Length": Buffer.byteLength(body),
-    },
-  };
-
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-
-  const upstream = https.request(options, (upRes) => {
-    upRes.on("data", (chunk) => res.write(chunk));
-    upRes.on("end", () => res.end());
-  });
-  upstream.on("error", (err) => {
-    console.error("DeepSeek proxy error:", err);
-    res.end();
-  });
-  upstream.write(body);
-  upstream.end();
-});
-
 // ── /api/diary → 日记系统 ─────────────────────────────────────────────────────
 const DIARY_FILE = path.join(__dirname, "diary.json");
 function loadDiary() {
@@ -1284,13 +1222,6 @@ app.post("/api/mahjong/step", express.json(), (req, res) => {
   const st = mahjong.getState(mjGame, p);
   settleMahjongCoins(st);
   res.json({ ok: true, result, state: st });
-});
-
-// ── /chat → 备用聊天页面 ──────────────────────────────────────────────────────
-app.get("/chat", (_req, res) => {
-  const chatFile = path.join(__dirname, "public", "chat.html");
-  if (fs.existsSync(chatFile)) return res.sendFile(chatFile);
-  res.sendFile(path.join(__dirname, "dist", "chat.html"));
 });
 
 // serve built frontend
