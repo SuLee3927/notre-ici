@@ -129,6 +129,9 @@ function NuonuoResident({ theme: t, onEnter }) {
   const hasToys = pending.length > 0;
 
   useEffect(() => {
+    // 22:00—06:00 糯糯已经回床睡觉，不再启动眨眼和漫游定时器。
+    if (!getNuonuoState()) return;
+
     function scheduleBlink() {
       blinkTimer.current = setTimeout(() => {
         setBlink(true);
@@ -141,16 +144,18 @@ function NuonuoResident({ theme: t, onEnter }) {
       if (lastHotspot.current === hotspot.id) return; // 同一热点不重复
       lastHotspot.current = hotspot.id;
       try {
-        const r = await fetch("/api/nuonuo/messages/send", {
+        const r = await fetch("/api/nuonuo/chat", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text: hotspot.context, author: "糯糯", context: "" }),
+          body: JSON.stringify({
+            message: hotspot.context,
+            history: [],
+            visitor_level: 0,
+            visitor_name: "房间里的小动静",
+          }),
         });
         const d = await r.json();
-        // 取最新一条消息的糯糯回复
-        const msgs = d.messages || [];
-        const last = msgs[msgs.length - 1];
-        const reply = last?.replies?.find?.(r => r.author === "糯糯")?.text || last?.text;
+        const reply = d.reply;
         if (reply) {
           clearTimeout(bubbleTimer.current);
           setBubble(reply);
@@ -162,6 +167,12 @@ function NuonuoResident({ theme: t, onEnter }) {
     function scheduleWalk() {
       const delay = 5000 + Math.random() * 7000;
       walkTimer.current = setTimeout(() => {
+        // 页面若跨过 22:00 仍开着，也要立刻停止，不让睡着的糯糯后台梦游。
+        if (!getNuonuoState()) {
+          setWalkFrame(-1);
+          setMoveDur(0);
+          return;
+        }
         let target;
         if (Math.random() < 0.3) {
           const h = HOTSPOTS[Math.floor(Math.random() * HOTSPOTS.length)];
@@ -245,16 +256,18 @@ function NuonuoResident({ theme: t, onEnter }) {
     const fallback = NUONUO_FALLBACK[type];
     setReaction(fallback[Math.floor(Math.random() * fallback.length)]);
     try {
-      const r = await fetch("/api/nuonuo/messages/send", {
+      const r = await fetch("/api/nuonuo/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ author: "访客", text: NUONUO_ACTION_PROMPT[type] }),
+        body: JSON.stringify({
+          message: NUONUO_ACTION_PROMPT[type],
+          history: [],
+          visitor_level: 0,
+          visitor_name: "访客",
+        }),
       });
       const d = await r.json();
-      const msgs = d.messages || [];
-      const last = msgs[msgs.length - 1];
-      const reply = last?.replies?.[last.replies.length - 1];
-      if (reply?.text) setReaction(reply.text.slice(0, 30));
+      if (d.reply) setReaction(d.reply.slice(0, 30));
     } catch {}
     setTimeout(() => setReaction(null), 3000);
   }
