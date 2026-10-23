@@ -573,6 +573,11 @@ export default function NuonuoSpace({ onClose, mode }) {
       const savedR=loadLocal(KEYS.ROLE,null);
       const savedO=loadLocal(KEYS.OUTFIT,"none");
       setPetState(state);setCareLogs(logs);setOutfit(savedO);
+      try {
+        const res = await fetch("/api/nuonuo/state");
+        const shared = await res.json();
+        if (shared.hunger !== undefined) setPetState({hunger:shared.hunger,happiness:shared.happiness,energy:shared.energy});
+      } catch {}
       const r = savedR || "mama";
       if(savedR) setRole(savedR);
       try {
@@ -607,16 +612,23 @@ export default function NuonuoSpace({ onClose, mode }) {
 
   function showBubble(msg){ setBubble(msg); clearTimeout(bubTimer.current); bubTimer.current=setTimeout(()=>setBubble(""),3500); }
   function trigger(act,dur=1800){ setAction(act); setTimeout(()=>setAction("idle"),dur); }
+  async function sharedCare(action){
+    try {
+      const res=await fetch("/api/nuonuo/care",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,caregiver:role==="mama"?"妈咪":"爸比"})});
+      const d=await res.json(), s=d.state;
+      if(s) setPetState({hunger:s.hunger,happiness:s.happiness,energy:s.energy});
+    } catch {}
+  }
   async function addLog(txt){
     const who=role==="mama"?"妈咪":"爸比";
     const updated=[...careLogs,{who,action:txt,time:getTime()}].slice(-60);
     setCareLogs(updated); await saveShared(KEYS.CARE_LOG,updated);
   }
   function handlePoke(){ if(action!=="idle") return; trigger("poke",600); showBubble(pick(role==="mama"?MAMA_BUBBLES:BABA_BUBBLES)); setPetState(s=>({...s,happiness:Math.min(100,s.happiness+5)})); addLog("戳了糯糯一下"); callInteract("pinch"); }
-  function handleFeed(){ if(petState.hunger>=95){showBubble("糯糯已经很饱了！");return;} trigger("eat",1600);showBubble("啊呜啊呜～好好吃！");setPetState(s=>({...s,hunger:Math.min(100,s.hunger+25),happiness:Math.min(100,s.happiness+5)}));addLog("喂了糯糯零食 🍡");callInteract("pat"); }
-  function handlePlay(){ if(petState.energy<15){showBubble("糯糯太困了...想睡觉...");return;} trigger("play",2000);showBubble("耶耶耶！陪糯糯玩！");setPetState(s=>({...s,happiness:Math.min(100,s.happiness+20),energy:Math.max(0,s.energy-10)}));addLog("陪糯糯玩了一会儿 🎀");callInteract("pat"); }
-  function handleSleep(){ trigger("sleep",3200);showBubble("好～糯糯去睡觉了... zZ");setPetState(s=>({...s,energy:Math.min(100,s.energy+35)}));addLog("哄糯糯睡觉 🌙"); }
-  function handleHug(){ trigger("hug",1400);showBubble(role==="mama"?"妈咪抱糯糯 ♡ 好温暖":"爸比抱抱 ♡ 好安心");setPetState(s=>({...s,happiness:Math.min(100,s.happiness+10)}));addLog("抱了抱糯糯 🫂");callInteract("pat"); }
+  function handleFeed(){ if(petState.hunger>=95){showBubble("糯糯已经很饱了！");return;} trigger("eat",1600);showBubble("啊呜啊呜～好好吃！");sharedCare("feed");addLog("喂了糯糯零食 🍡");callInteract("pat"); }
+  function handlePlay(){ if(petState.energy<15){showBubble("糯糯太困了...想睡觉...");return;} trigger("play",2000);showBubble("耶耶耶！陪糯糯玩！");sharedCare("play");addLog("陪糯糯玩了一会儿 🎀");callInteract("pat"); }
+  function handleSleep(){ trigger("sleep",3200);showBubble("好～糯糯去睡觉了... zZ");sharedCare("sleep");addLog("哄糯糯睡觉 🌙"); }
+  function handleHug(){ trigger("hug",1400);showBubble(role==="mama"?"妈咪抱糯糯 ♡ 好温暖":"爸比抱抱 ♡ 好安心");sharedCare("hug");addLog("抱了抱糯糯 🫂");callInteract("pat"); }
   function handleOutfit(id){
     setOutfit(id);
     saveLocal(KEYS.OUTFIT,id);
