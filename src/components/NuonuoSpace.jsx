@@ -534,6 +534,7 @@ export default function NuonuoSpace({ onClose, mode }) {
   const [petState,  setPetState] = useState({hunger:70,happiness:70,energy:70});
   const [careLogs,  setCareLogs] = useState([]);
   const [messages,  setMessages] = useState([]);
+  const [activities,setActivities] = useState([]);
   const [bubble,    setBubble]   = useState("");
   const [action,    setAction]   = useState("idle");
   const [outfit,    setOutfit]   = useState("none");
@@ -579,6 +580,11 @@ export default function NuonuoSpace({ onClose, mode }) {
         const d = await res.json();
         setMessages(d.messages || []);
       } catch { setMessages([]); }
+      try {
+        const res = await fetch("/api/nuonuo/activities?limit=30");
+        const d = await res.json();
+        setActivities(d.activities || []);
+      } catch { setActivities([]); }
       await loadAffection(r);
       setLoading(false);
     }
@@ -708,11 +714,27 @@ export default function NuonuoSpace({ onClose, mode }) {
     ),
     bookshelf: (
       <div style={{padding:"20px 24px 32px",fontFamily:"'Nunito',sans-serif"}}>
-        <div style={{fontSize:13,fontWeight:700,color:"#8B6555",marginBottom:14}}>📚 糯糯的小书架</div>
-        <div style={{fontSize:13,color:"#5C3D2E",lineHeight:1.8,textAlign:"center",padding:"20px 0"}}>
-          <div style={{fontSize:36,marginBottom:8}}>📖✨</div>
-          <div>糯糯的绘本和故事书</div>
-          <div style={{fontSize:12,color:"#C0A090",marginTop:8}}>（待布置）</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#8B6555"}}>📔 糯糯的动态本</div>
+          <button onClick={async()=>{try{const r=await fetch("/api/nuonuo/activities?limit=30");const d=await r.json();setActivities(d.activities||[]);}catch{}}} style={{background:"none",border:"1px solid #E8C0A8",borderRadius:8,padding:"3px 10px",cursor:"pointer",fontSize:12,color:"#A07060",fontFamily:"'Nunito',sans-serif"}}>↻ 刷新</button>
+        </div>
+        {!activities.length ? (
+          <div style={{fontSize:13,color:"#A08070",lineHeight:1.8,textAlign:"center",padding:"24px 0"}}>
+            <div style={{fontSize:36,marginBottom:8}}>📖✨</div>
+            <div>还没有写下小动向～</div>
+          </div>
+        ) : (
+          <div style={{display:"flex",flexDirection:"column",gap:10,maxHeight:"55vh",overflowY:"auto",paddingRight:2}}>
+            {[...activities].reverse().map(item=>(
+              <div key={item.id} style={{background:"#FFF9EE",border:"1.5px solid #F0D8B8",borderRadius:14,padding:"11px 13px",boxShadow:"0 2px 7px rgba(160,110,70,.07)"}}>
+                <div style={{fontSize:10,color:"#C09A82",marginBottom:5}}>{item.time}</div>
+                <div style={{fontSize:13,color:"#5C3D2E",lineHeight:1.75,whiteSpace:"pre-wrap"}}>{item.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{fontSize:11,color:"#C0A090",textAlign:"center",marginTop:12}}>
+          小气泡会消失，今天发现的事情会留在这里 ♡
         </div>
       </div>
     ),

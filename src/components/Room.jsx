@@ -144,18 +144,13 @@ function NuonuoResident({ theme: t, onEnter }) {
       if (lastHotspot.current === hotspot.id) return; // 同一热点不重复
       lastHotspot.current = hotspot.id;
       try {
-        const r = await fetch("/api/nuonuo/chat", {
+        const r = await fetch("/api/nuonuo/activity", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            message: hotspot.context,
-            history: [],
-            visitor_level: 0,
-            visitor_name: "房间里的小动静",
-          }),
+          body: JSON.stringify({ context: hotspot.context }),
         });
         const d = await r.json();
-        const reply = d.reply;
+        const reply = d.bubble;
         if (reply) {
           clearTimeout(bubbleTimer.current);
           setBubble(reply);
