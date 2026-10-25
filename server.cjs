@@ -68,7 +68,10 @@ app.post("/phone/unlock", (req, res) => {
 
 app.use("/phone", (req, res) => {
   if (parseCookies(req)[AUTH_COOKIE] !== KL_AUTH_TOKEN) {
-    return res.status(401).send(`<!doctype html><html lang="zh-CN"><meta name="viewport" content="width=device-width,initial-scale=1">
+    // Render the unlock form as a normal document. Some Android browsers
+    // replace every 401 response with their own error screen before the HTML
+    // can be shown; authentication is still enforced by the password POST.
+    return res.status(200).send(`<!doctype html><html lang="zh-CN"><meta name="viewport" content="width=device-width,initial-scale=1">
       <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#18203d;color:#fff;font-family:system-ui}.card{width:min(320px,82vw);padding:28px;border-radius:26px;background:#fff;color:#29243a}h1{font-size:24px}input,button{width:100%;box-sizing:border-box;margin-top:12px;padding:14px;border:0;border-radius:14px}input{background:#f0e9ed}button{color:#fff;background:#765a73}</style>
       <form class="card" method="post" action="/phone/unlock"><small>Du ♡ Lee</small><h1>解锁笃黎小手机</h1><input type="password" name="password" placeholder="小屋密码" autofocus><button>解锁</button></form></html>`);
   }
